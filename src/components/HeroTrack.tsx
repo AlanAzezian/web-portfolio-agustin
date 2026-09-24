@@ -3,47 +3,46 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { projects } from "@/data/projects";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
 export default function HeroTrack() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-  });
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const smoothProgress = useSpring(scrollYProgress, {
-    damping: 20,
-    stiffness: 100,
-    mass: 0.5
-  });
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const x = useTransform(smoothProgress, [0, 1], ["0%", "-50%"]);
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+      }
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, []);
 
   return (
-    <div ref={containerRef} className="h-[200vh] bg-white relative">
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center bg-white">
-        <motion.div 
-          style={{ x }} 
-          className="flex gap-8 px-12 items-center min-w-max"
+    <div 
+      ref={scrollContainerRef}
+      className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-10 px-12 items-center h-[75vh] scrollbar-hide scroll-smooth"
+      style={{ scrollBehavior: 'auto' }}
+    >
+      {projects.map((project, i) => (
+        <div 
+          key={project.id} 
+          className={`relative w-[60vw] md:w-[40vw] lg:w-[30vw] aspect-[4/5] overflow-hidden shrink-0 ${i % 2 === 1 ? 'mt-16' : 'mb-16'}`}
         >
-          {projects.map((project, i) => (
-            <div 
-              key={project.id} 
-              className={`relative w-[60vw] md:w-[40vw] lg:w-[30vw] aspect-[4/5] overflow-hidden bg-gray-100 shrink-0 ${i % 2 === 1 ? 'mt-24' : ''}`}
-            >
-              <Image
-                src={project.imageUrl}
-                alt={project.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 60vw, 30vw"
-                priority={i < 4}
-              />
-            </div>
-          ))}
-        </motion.div>
-      </div>
+          <Image
+            src={project.imageUrl}
+            alt={project.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 60vw, 30vw"
+            priority={i < 4}
+          />
+        </div>
+      ))}
     </div>
   );
 }

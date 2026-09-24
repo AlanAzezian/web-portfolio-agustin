@@ -4,7 +4,7 @@ import HeroTrack from "@/components/HeroTrack";
 
 export default function Home() {
   return (
-    <main className="bg-white overflow-hidden">
+    <main className="h-screen max-h-screen overflow-hidden bg-[#F8F7F4] flex flex-col justify-center">
       <HeroTrack />
     </main>
   );

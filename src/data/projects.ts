@@ -11,110 +11,74 @@ export interface Project {
 export const projects: Project[] = [
   {
     id: "1",
-    title: "Concurso Conjunto 50 Viviendas (1er puesto)",
-    category: "Concurso / Proyecto",
-    imageUrl: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Concurso Nacional",
-    year: "2024"
-  },
-  {
-    id: "2",
-    title: "Concurso de Ideas Acceso PNLQ (2do puesto)",
-    category: "Concurso / Diseño Urbano",
-    imageUrl: "https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "PNLQ",
-    year: "2024"
-  },
-  {
-    id: "3",
-    title: "Centro de Trasbordo | Académico",
-    category: "Académico / Infraestructura",
-    imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Jury A3 Taller A77",
-    year: "2023"
-  },
-  {
-    id: "4",
-    title: "L'Avenue | Kuanqa / Engasa",
-    category: "Experiencia Laboral / Visualización",
-    imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Kuanqa / Engasa",
-    year: "2023"
-  },
-  {
-    id: "5",
-    title: "Planos Comerciales | Miranda Bosch",
-    category: "Documentación / Comercial",
-    imageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Miranda Bosch",
-    year: "2023"
-  },
-  {
-    id: "6",
-    title: "BAVSA x RB Espacios",
-    category: "Comisión / Visualización",
-    imageUrl: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "BAVSA / RB Espacios",
-    year: "2022"
-  },
-  {
-    id: "7",
-    title: "Imaginarios, Quilmes | Académico",
-    category: "Académico / Proyecto",
-    imageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "A3 Taller A77",
-    year: "2023"
-  },
-  {
-    id: "8",
-    title: "Frentes para Gastón y Micaela",
-    category: "Comisión / Residencial",
-    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2000&auto=format&fit=crop",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Privado",
-    year: "2022"
-  },
-  {
-    id: "9",
-    title: "Utopía Productiva | Académico",
-    category: "Académico / Masterplan",
-    imageUrl: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=2000&auto=format&fit=crop",
+    title: "Utopía Productiva | A4 Red Ferrari",
+    category: "Académico",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/max_808/3e2842248952259.Y3JvcCwyMDYzLDE2MTMsMTgzLDIyOQ.png",
     link: "https://www.behance.net/agustinfabrizio",
     client: "A4 Red Ferrari",
     year: "2024"
   },
   {
-    id: "10",
-    title: "Pabellón Efímero",
-    category: "Arquitectura Efímera",
-    imageUrl: "https://images.unsplash.com/photo-1448518340475-e3c680e9b4be?q=80&w=2000&auto=format&fit=crop",
+    id: "2",
+    title: "Centro de Trasbordo | Taller A77",
+    category: "Académico",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/max_808/b9bf89240116059.Y3JvcCwxNjM4LDEyODEsMCww.jpg",
     link: "https://www.behance.net/agustinfabrizio",
-    client: "Concurso",
+    client: "Taller A77",
     year: "2023"
   },
   {
-    id: "11",
-    title: "Vivienda Unifamiliar en la Costa",
-    category: "Residencial / Visualización",
-    imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000&auto=format&fit=crop",
+    id: "3",
+    title: "L'Avenue | Kuanqa / Engasa",
+    category: "Experiencia Laboral",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/max_808/10ff62249433673.Y3JvcCwzODY2LDMwMjQsODYsMA.jpg",
     link: "https://www.behance.net/agustinfabrizio",
-    client: "Estudio Independiente",
+    client: "Kuanqa / Engasa",
+    year: "2023"
+  },
+  {
+    id: "4",
+    title: "Planos Comerciales | Miranda Bosch",
+    category: "Comercial",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/max_808/3db5bb232167735.Y3JvcCw2MTQ4LDQ4MDksMjYxNywyMzc0.jpg",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Miranda Bosch",
+    year: "2023"
+  },
+  {
+    id: "5",
+    title: "Concurso Conjunto 50 Viviendas",
+    category: "Concursos",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/max_808/54717f168971547.Y3JvcCwxMTU0LDkwMiw1NDAsNTU0.jpg",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Concurso",
+    year: "2024"
+  },
+  {
+    id: "6",
+    title: "Frentes para Gastón y Micaela",
+    category: "Residencial",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/max_808/f2253b224127831.Y3JvcCwxNjE2LDEyNjQsMCww.png",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Gastón y Micaela",
     year: "2022"
   },
   {
-    id: "12",
-    title: "Edificio de Oficinas Corporativas",
-    category: "Comercial / Render Exterior",
-    imageUrl: "https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=2000&auto=format&fit=crop",
+    id: "7",
+    title: "BAVSA x RB Espacios",
+    category: "Interiores",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/original/ecc1b9191758095.Y3JvcCwyMjk1LDE3OTUsODA2LDM4MA.png",
     link: "https://www.behance.net/agustinfabrizio",
-    client: "Desarrolladora XYZ",
+    client: "BAVSA / RB Espacios",
+    year: "2022"
+  },
+  {
+    id: "8",
+    title: "Acceso PNLQ",
+    category: "Diseño Urbano",
+    imageUrl: "https://mir-s3-cdn-cf.behance.net/projects/max_808/e60d11252633497.Y3JvcCwyMjUwLDE3NjAsMCww.png",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "PNLQ",
     year: "2024"
   }
 ];

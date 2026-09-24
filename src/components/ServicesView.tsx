@@ -40,7 +40,7 @@ export default function ServicesView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h1 className="text-4xl md:text-6xl font-bold mb-24 max-w-2xl">
+        <h1 className="text-4xl md:text-6xl font-light text-[#1C1C1A] mb-24 max-w-2xl">
           Soluciones arquitectónicas pensadas para construir y perdurar.
         </h1>
 
@@ -51,16 +51,16 @@ export default function ServicesView() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 + 0.2, duration: 0.5 }}
-              className="border-t border-gray-200 pt-8"
+              className="border-t border-[#E5E2DC] pt-8"
             >
-              <h3 className="text-2xl font-semibold mb-4">{service.title}</h3>
-              <p className="text-gray-600 leading-relaxed">{service.description}</p>
+              <h3 className="text-2xl font-light text-[#1C1C1A] mb-4">{service.title}</h3>
+              <p className="text-[#686661] leading-relaxed">{service.description}</p>
             </motion.div>
           ))}
         </div>
 
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-12">Metodología de Visualización</h2>
+          <h2 className="text-2xl md:text-3xl font-light text-[#1C1C1A] mb-12 border-b border-[#E5E2DC] pb-4">Metodología de Visualización</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {methodology.map((item, i) => (
               <motion.div 
@@ -68,11 +68,11 @@ export default function ServicesView() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.1 + 0.4, duration: 0.4 }}
-                className="bg-gray-50 p-8 rounded-2xl"
+                className="bg-[#FFFFFF]/50 border border-[#E5E2DC] p-8 rounded-none relative overflow-hidden group hover:border-[#8C5E48] transition-colors"
               >
-                <span className="text-4xl font-light text-gray-300 block mb-4">{item.step}</span>
-                <h4 className="text-xl font-medium mb-2">{item.title}</h4>
-                <p className="text-gray-500 text-sm">{item.desc}</p>
+                <span className="text-4xl font-light text-[#E5E2DC] group-hover:text-[#8C5E48] transition-colors block mb-4">{item.step}</span>
+                <h4 className="text-xl font-medium text-[#1C1C1A] mb-2">{item.title}</h4>
+                <p className="text-[#686661] text-sm">{item.desc}</p>
               </motion.div>
             ))}
           </div>

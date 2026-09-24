@@ -11,7 +11,7 @@ export default function ProjectGrid() {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto px-6 md:px-12 py-32 min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto px-6 py-32 min-h-screen">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project, i) => (
             <motion.div
@@ -28,14 +28,14 @@ export default function ProjectGrid() {
                 src={project.imageUrl}
                 alt={project.title}
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
               <motion.div 
-                className="absolute inset-0 bg-white/85 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="absolute inset-0 bg-[#F8F7F4]/90 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6 text-center"
               >
-                <h3 className="text-2xl font-semibold text-gray-900 text-center px-4 mb-2">{project.title}</h3>
-                <span className="text-sm text-gray-600 uppercase tracking-widest">{project.category}</span>
+                <span className="text-xs text-[#8C5E48] uppercase tracking-widest mb-3">{project.category}</span>
+                <h3 className="text-2xl font-light text-[#1C1C1A]">{project.title}</h3>
               </motion.div>
             </motion.div>
           ))}

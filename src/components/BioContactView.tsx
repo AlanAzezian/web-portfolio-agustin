@@ -11,14 +11,14 @@ export default function BioContactView() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-8">Sobre Mí</h1>
-          <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+          <h1 className="text-4xl md:text-5xl font-light text-[#1C1C1A] mb-8">Sobre Mí</h1>
+          <p className="text-lg text-[#686661] mb-6 leading-relaxed">
             Agustín Fabrizio — Arquitecto en formación avanzada / Próximo a graduarse en FADU, UBA. Especializado en visualización arquitectónica y proyecto contemporáneo. Mi enfoque se centra en la representación hiperrealista, la atención al detalle y la creación de atmósferas envolventes.
           </p>
           
           <div className="mb-12">
-            <h3 className="text-xl font-semibold mb-4 border-b border-gray-200 pb-2">Stack de Software</h3>
-            <ul className="grid grid-cols-2 gap-2 text-gray-600">
+            <h3 className="text-xl font-medium text-[#1C1C1A] mb-4 border-b border-[#E5E2DC] pb-2">Stack de Software</h3>
+            <ul className="grid grid-cols-2 gap-2 text-[#686661]">
               <li>Revit & Archicad</li>
               <li>Rhinoceros</li>
               <li>3ds Max + Corona / V-Ray</li>
@@ -29,26 +29,26 @@ export default function BioContactView() {
           </div>
           
           <div className="mb-12">
-            <h3 className="text-xl font-semibold mb-4 border-b border-gray-200 pb-2">Premios & Reconocimientos</h3>
-            <ul className="space-y-4 text-gray-600">
+            <h3 className="text-xl font-medium text-[#1C1C1A] mb-4 border-b border-[#E5E2DC] pb-2">Premios & Reconocimientos</h3>
+            <ul className="space-y-4 text-[#686661]">
               <li>
-                <span className="font-medium text-black">1er Premio</span> - Concurso Nacional Espacio Público (2024)
+                <span className="font-medium text-[#1C1C1A]">1er Premio</span> - Concurso Nacional Espacio Público (2024)
               </li>
               <li>
-                <span className="font-medium text-black">Publicación</span> - Revista Summa+ - Edición 190 (2023)
+                <span className="font-medium text-[#1C1C1A]">Publicación</span> - Revista Summa+ - Edición 190 (2023)
               </li>
               <li>
-                <span className="font-medium text-black">Mención de Honor</span> - Bienal de Arquitectura Joven (2022)
+                <span className="font-medium text-[#1C1C1A]">Mención de Honor</span> - Bienal de Arquitectura Joven (2022)
               </li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-xl font-semibold mb-4 border-b border-gray-200 pb-2">Canales Directos</h3>
-            <ul className="space-y-2 text-gray-600">
-              <li>Mail: <a href="mailto:hola@agustinfabrizio.com" className="hover:text-black transition-colors">hola@agustinfabrizio.com</a></li>
-              <li>Behance: <a href="https://behance.net/agustinfabrizio" target="_blank" rel="noreferrer" className="hover:text-black transition-colors">behance.net/agustinfabrizio</a></li>
-              <li>WhatsApp: <a href="#" className="hover:text-black transition-colors">+54 9 11 0000-0000</a></li>
+            <h3 className="text-xl font-medium text-[#1C1C1A] mb-4 border-b border-[#E5E2DC] pb-2">Canales Directos</h3>
+            <ul className="space-y-2 text-[#686661]">
+              <li>Mail: <a href="mailto:hola@agustinfabrizio.com" className="hover:text-[#1C1C1A] transition-colors">hola@agustinfabrizio.com</a></li>
+              <li>Behance: <a href="https://behance.net/agustinfabrizio" target="_blank" rel="noreferrer" className="hover:text-[#1C1C1A] transition-colors">behance.net/agustinfabrizio</a></li>
+              <li>WhatsApp: <a href="#" className="hover:text-[#1C1C1A] transition-colors">+54 9 11 0000-0000</a></li>
             </ul>
           </div>
         </motion.div>
@@ -57,40 +57,40 @@ export default function BioContactView() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-gray-50 p-8 md:p-12 rounded-3xl"
+          className="bg-[#FFFFFF]/50 border border-[#E5E2DC] p-8 md:p-12 rounded-xl"
         >
-          <h2 className="text-3xl font-bold mb-8">Cotiza tu Proyecto</h2>
+          <h2 className="text-3xl font-light text-[#1C1C1A] mb-8">Cotiza tu Proyecto</h2>
           <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
+              <label htmlFor="name" className="block text-sm font-medium text-[#8C5E48] mb-2 uppercase tracking-widest">Nombre</label>
               <input 
                 type="text" 
                 id="name" 
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black transition-shadow"
+                className="w-full bg-[#F8F7F4] border border-[#E5E2DC] rounded-none px-4 py-3 focus:outline-none focus:border-[#8C5E48] transition-colors"
                 placeholder="Tu nombre"
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-[#8C5E48] mb-2 uppercase tracking-widest">Email</label>
               <input 
                 type="email" 
                 id="email" 
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black transition-shadow"
+                className="w-full bg-[#F8F7F4] border border-[#E5E2DC] rounded-none px-4 py-3 focus:outline-none focus:border-[#8C5E48] transition-colors"
                 placeholder="tu@email.com"
               />
             </div>
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Detalles del encargo</label>
+              <label htmlFor="message" className="block text-sm font-medium text-[#8C5E48] mb-2 uppercase tracking-widest">Detalles del encargo</label>
               <textarea 
                 id="message" 
                 rows={4}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-black transition-shadow resize-none"
+                className="w-full bg-[#F8F7F4] border border-[#E5E2DC] rounded-none px-4 py-3 focus:outline-none focus:border-[#8C5E48] transition-colors resize-none"
                 placeholder="¿Necesitas renders, modelado 3D, o ambos? Cuéntame sobre la escala y plazos de tu proyecto..."
               ></textarea>
             </div>
             <button 
               type="submit"
-              className="w-full bg-black text-white rounded-lg px-6 py-4 font-medium hover:bg-gray-800 transition-colors"
+              className="w-full bg-[#1C1C1A] text-[#F8F7F4] uppercase tracking-widest text-sm rounded-none px-6 py-4 hover:bg-[#686661] transition-colors"
             >
               Enviar Mensaje
             </button>
