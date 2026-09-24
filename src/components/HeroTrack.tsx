@@ -3,33 +3,43 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { projects } from "@/data/projects";
+import gsap from "gsap";
 
 export default function HeroTrack() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPos = useRef(0);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    const handleWheel = (e: WheelEvent) => {
+    // Use window listener or container listener depending on the prompt.
+    // The user's code uses window but limits scroll by maxScroll of container.
+    // Since it's a full-screen hero, either is fine. I'll stick to container listener for scoping, or window as user provided. Let's use window.
+    
+    const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (container) {
-        container.scrollBy({
-          left: e.deltaY * 1.2,
-          behavior: 'smooth'
-        });
-      }
+      
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      
+      scrollPos.current = Math.min(Math.max(scrollPos.current + e.deltaY * 1.5, 0), maxScroll);
+
+      gsap.to(container, {
+        scrollLeft: scrollPos.current,
+        duration: 0.6,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
     };
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
-    return () => container.removeEventListener("wheel", handleWheel);
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
   }, []);
 
   return (
     <div 
       ref={scrollContainerRef}
-      className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-10 px-12 items-center h-[75vh] no-scrollbar scroll-smooth transform-gpu"
-      style={{ scrollBehavior: 'auto', willChange: 'transform' }}
+      className="flex flex-nowrap overflow-x-hidden overflow-y-hidden gap-10 px-12 items-center h-[75vh] no-scrollbar select-none"
     >
       {projects.map((project, i) => (
         <div 
