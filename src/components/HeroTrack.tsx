@@ -25,7 +25,7 @@ export default function HeroTrack() {
   return (
     <div 
       ref={scrollContainerRef}
-      className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-10 px-12 items-center h-[75vh] scrollbar-hide scroll-smooth"
+      className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-10 px-12 items-center h-[75vh] no-scrollbar scroll-smooth"
       style={{ scrollBehavior: 'auto' }}
     >
       {projects.map((project, i) => (
