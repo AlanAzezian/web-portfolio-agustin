@@ -6,8 +6,8 @@ import Navbar from "@/components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Agustín Fabrizio | Portfolio",
-  description: "Desarrollador Fullstack y Diseñador UI/UX",
+  title: "Agustin Fabrizio | Portfolio",
+  description: "Desarrollador Fullstack y Disenador UI/UX",
 };
 
 export default function RootLayout({

@@ -1,3 +1,5 @@
+"use client";
+
 import HeroTrack from "@/components/HeroTrack";
 
 export default function Home() {
