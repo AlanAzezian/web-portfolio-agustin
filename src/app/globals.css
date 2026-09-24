@@ -29,3 +29,14 @@ body::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
+
+/* Ocultar barras de scroll en todos los navegadores */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
