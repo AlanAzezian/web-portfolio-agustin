@@ -12,9 +12,12 @@ export default function HeroTrack() {
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        container.scrollLeft += e.deltaY;
+      e.preventDefault();
+      if (container) {
+        container.scrollBy({
+          left: e.deltaY * 1.2,
+          behavior: 'smooth'
+        });
       }
     };
 
@@ -25,13 +28,13 @@ export default function HeroTrack() {
   return (
     <div 
       ref={scrollContainerRef}
-      className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-10 px-12 items-center h-[75vh] no-scrollbar scroll-smooth"
-      style={{ scrollBehavior: 'auto' }}
+      className="flex flex-nowrap overflow-x-auto overflow-y-hidden gap-10 px-12 items-center h-[75vh] no-scrollbar scroll-smooth transform-gpu"
+      style={{ scrollBehavior: 'auto', willChange: 'transform' }}
     >
       {projects.map((project, i) => (
         <div 
           key={project.id} 
-          className={`relative w-[60vw] md:w-[40vw] lg:w-[30vw] aspect-[4/5] overflow-hidden shrink-0 ${i % 2 === 1 ? 'mt-16' : 'mb-16'}`}
+          className={`relative w-[60vw] md:w-[40vw] lg:w-[30vw] aspect-[4/5] overflow-hidden shrink-0 transform-gpu ${i % 2 === 1 ? 'mt-16' : 'mb-16'}`}
         >
           <Image
             src={project.imageUrl}

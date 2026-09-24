@@ -18,11 +18,14 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Ocultar barra de desplazamiento sin perder funcionalidad */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
+/* Ocultar barra nativa de la ventana */
+html, body {
   scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
 }
