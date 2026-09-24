@@ -11,110 +11,110 @@ export interface Project {
 export const projects: Project[] = [
   {
     id: "1",
-    title: "Brand Identity Revamp",
-    category: "Branding",
-    imageUrl: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=2029&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "TechCorp",
-    year: "2023"
+    title: "Concurso Conjunto 50 Viviendas (1er puesto)",
+    category: "Concurso / Proyecto",
+    imageUrl: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Concurso Nacional",
+    year: "2024"
   },
   {
     id: "2",
-    title: "Eco Packaging Design",
-    category: "Packaging",
-    imageUrl: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Nature's Best",
-    year: "2023"
+    title: "Concurso de Ideas Acceso PNLQ (2do puesto)",
+    category: "Concurso / Diseño Urbano",
+    imageUrl: "https://images.unsplash.com/photo-1449844908441-8829872d2607?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "PNLQ",
+    year: "2024"
   },
   {
     id: "3",
-    title: "Fintech App UI/UX",
-    category: "Product Design",
-    imageUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Wallet Co",
-    year: "2022"
+    title: "Centro de Trasbordo | Académico",
+    category: "Académico / Infraestructura",
+    imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Jury A3 Taller A77",
+    year: "2023"
   },
   {
     id: "4",
-    title: "Editorial Magazine",
-    category: "Editorial",
-    imageUrl: "https://images.unsplash.com/photo-1585779034823-7e9010fbabce?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Vogue",
-    year: "2024"
+    title: "L'Avenue | Kuanqa / Engasa",
+    category: "Experiencia Laboral / Visualización",
+    imageUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Kuanqa / Engasa",
+    year: "2023"
   },
   {
     id: "5",
-    title: "Sports Campaign",
-    category: "Advertising",
-    imageUrl: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Nike",
-    year: "2024"
+    title: "Planos Comerciales | Miranda Bosch",
+    category: "Documentación / Comercial",
+    imageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Miranda Bosch",
+    year: "2023"
   },
   {
     id: "6",
-    title: "Minimalist Furniture Web",
-    category: "Web Design",
-    imageUrl: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Muji",
-    year: "2023"
-  },
-  {
-    id: "7",
-    title: "Art Gallery Branding",
-    category: "Branding",
-    imageUrl: "https://images.unsplash.com/photo-1518998053401-a4897fbf7df1?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Modern Art",
+    title: "BAVSA x RB Espacios",
+    category: "Comisión / Visualización",
+    imageUrl: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "BAVSA / RB Espacios",
     year: "2022"
   },
   {
-    id: "8",
-    title: "Food Delivery App",
-    category: "UI/UX",
-    imageUrl: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Tasty",
-    year: "2024"
-  },
-  {
-    id: "9",
-    title: "Music Festival Posters",
-    category: "Graphic Design",
-    imageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Coachella",
+    id: "7",
+    title: "Imaginarios, Quilmes | Académico",
+    category: "Académico / Proyecto",
+    imageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "A3 Taller A77",
     year: "2023"
   },
   {
-    id: "10",
-    title: "Luxury Watch E-commerce",
-    category: "Web Design",
-    imageUrl: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=2080&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Rolex",
+    id: "8",
+    title: "Frentes para Gastón y Micaela",
+    category: "Comisión / Residencial",
+    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Privado",
+    year: "2022"
+  },
+  {
+    id: "9",
+    title: "Utopía Productiva | Académico",
+    category: "Académico / Masterplan",
+    imageUrl: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "A4 Red Ferrari",
     year: "2024"
   },
   {
+    id: "10",
+    title: "Pabellón Efímero",
+    category: "Arquitectura Efímera",
+    imageUrl: "https://images.unsplash.com/photo-1448518340475-e3c680e9b4be?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Concurso",
+    year: "2023"
+  },
+  {
     id: "11",
-    title: "Coffee Shop Identity",
-    category: "Branding",
-    imageUrl: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Brew",
+    title: "Vivienda Unifamiliar en la Costa",
+    category: "Residencial / Visualización",
+    imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Estudio Independiente",
     year: "2022"
   },
   {
     id: "12",
-    title: "Tech Conference Motion",
-    category: "Motion Graphics",
-    imageUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop",
-    link: "https://behance.net/agustinfabrizio",
-    client: "Google",
+    title: "Edificio de Oficinas Corporativas",
+    category: "Comercial / Render Exterior",
+    imageUrl: "https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=2000&auto=format&fit=crop",
+    link: "https://www.behance.net/agustinfabrizio",
+    client: "Desarrolladora XYZ",
     year: "2024"
   }
 ];

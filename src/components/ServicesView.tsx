@@ -4,24 +4,32 @@ import { motion } from "framer-motion";
 
 const services = [
   {
-    title: "Desarrollo Frontend",
-    description: "Creación de interfaces web dinámicas, rápidas y accesibles utilizando las últimas tecnologías como React, Next.js y Tailwind CSS."
+    title: "Visualización Arquitectónica & Renders",
+    description: "Creación de imágenes fotorrealistas de alta calidad que comunican la esencia y la atmósfera de cada proyecto arquitectónico."
   },
   {
-    title: "Diseño UI/UX",
-    description: "Diseño de experiencias centradas en el usuario, interfaces limpias, sistemas de diseño y prototipado de alta fidelidad."
+    title: "Modelado 3D BIM",
+    description: "Estudio detallado de volumetrías, análisis de asoleamiento y documentación técnica integral utilizando metodologías BIM."
   },
   {
-    title: "Animación Web",
-    description: "Microinteracciones y animaciones fluidas con Framer Motion para dar vida y sofisticación a los productos digitales."
+    title: "Desarrollo de Anteproyecto",
+    description: "Diseño conceptual desde cero, exploración de alternativas de distribución espacial y planimetría inicial."
+  },
+  {
+    title: "Diseño de Interiores",
+    description: "Definición minuciosa de materialidad, esquemas de iluminación y selección de mobiliario para espacios funcionales y estéticos."
+  },
+  {
+    title: "Asistencia Freelance a Estudios",
+    description: "Apoyo técnico externo a estudios de arquitectura en fases de diseño, documentación visual y representación 3D."
   }
 ];
 
 const methodology = [
-  { step: "01", title: "Descubrimiento", desc: "Entender el problema, los objetivos y la audiencia." },
-  { step: "02", title: "Diseño", desc: "Wireframing, prototipado y validación visual." },
-  { step: "03", title: "Desarrollo", desc: "Código limpio, modular y optimizado." },
-  { step: "04", title: "Lanzamiento", desc: "Testing, despliegue y monitoreo de calidad." }
+  { step: "01", title: "Briefing & Conceptualización", desc: "Análisis profundo de los requerimientos y el entorno." },
+  { step: "02", title: "Modelado Blanco", desc: "Definición de volumetría, proporciones y encuadres de cámara." },
+  { step: "03", title: "Materialidad & Iluminación", desc: "Aplicación de texturas realistas y estudio lumínico (natural/artificial)." },
+  { step: "04", title: "Render Final & Post-producción", desc: "Ajuste de detalles, ambientación, color grading y entrega en alta resolución." }
 ];
 
 export default function ServicesView() {
@@ -33,10 +41,10 @@ export default function ServicesView() {
         transition={{ duration: 0.6 }}
       >
         <h1 className="text-4xl md:text-6xl font-bold mb-24 max-w-2xl">
-          Soluciones digitales pensadas para escalar y perdurar.
+          Soluciones arquitectónicas pensadas para construir y perdurar.
         </h1>
 
-        <div className="grid md:grid-cols-3 gap-12 mb-32">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12 mb-32">
           {services.map((service, i) => (
             <motion.div 
               key={i}
@@ -52,7 +60,7 @@ export default function ServicesView() {
         </div>
 
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-12">Metodología</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-12">Metodología de Visualización</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {methodology.map((item, i) => (
               <motion.div 
