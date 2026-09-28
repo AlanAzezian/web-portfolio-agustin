@@ -5,17 +5,47 @@
   --foreground: #1C1C1A;
 }
 
+/* 
+ * FASE 0 - SISTEMA DE DISEÑO (TOKENS)
+ * 
+ * - fontFamily.editorial: Fuente serif para títulos (Playfair Display)
+ * - fontFamily.mono: Fuente mono para datos técnicos (JetBrains Mono)
+ * - color-acento: Color de alerta para CTAs (#E63946)
+ * - borderWidth: hairline (1px), rule (2px)
+ * - borderRadius: 0 (sin cantos redondeados)
+ * - grid-editorial: Clase o token para las líneas verticales sutiles
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-acento: #E63946;
+  
+  --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
+  --font-editorial: var(--font-editorial), serif;
+  --font-mono: var(--font-mono), monospace;
+  
+  --border-width-hairline: 1px;
+  --border-width-rule: 2px;
+  
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+}
+
+@layer utilities {
+  .grid-editorial {
+    background-size: 20% 100%;
+    background-image: linear-gradient(to right, rgba(28, 28, 26, 0.05) 1px, transparent 1px);
+  }
 }
 
 body {
-  background-color: #F8F7F4 !important;
-  color: #1C1C1A !important;
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
 }
 
 /* Ocultar barra nativa de la ventana */
