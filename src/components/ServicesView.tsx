@@ -40,43 +40,73 @@ export default function ServicesView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h1 className="text-4xl md:text-6xl font-light text-[#1C1C1A] mb-24 max-w-2xl">
+        <h1 className="text-5xl md:text-7xl font-editorial text-foreground mb-24 max-w-4xl leading-[0.9] tracking-tighter">
           Soluciones arquitectónicas pensadas para construir y perdurar.
         </h1>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12 mb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16 mb-32 border-t-rule border-foreground pt-12">
           {services.map((service, i) => (
             <motion.div 
               key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 + 0.2, duration: 0.5 }}
-              className="border-t border-[#E5E2DC] pt-8"
+              className="flex flex-col border-b-hairline border-foreground/20 pb-8"
             >
-              <h3 className="text-2xl font-light text-[#1C1C1A] mb-4">{service.title}</h3>
-              <p className="text-[#686661] leading-relaxed">{service.description}</p>
+              <span className="font-editorial text-4xl text-foreground/40 mb-2">{String(i + 1).padStart(2, '0')}</span>
+              <h3 className="text-3xl font-editorial text-foreground mb-4 leading-tight">{service.title}</h3>
+              <p className="text-foreground/80 font-sans leading-relaxed">{service.description}</p>
+              
+              {/* Insert CTA every 3 services (or at the end of odd indices if we want it distributed) */}
+              {(i === 1 || i === 3) && (
+                <div className="mt-8 pt-6 border-t-rule border-acento">
+                  <span className="font-mono text-xs uppercase tracking-widest text-acento block mb-2">Comencemos un proyecto</span>
+                  <a href="mailto:hola@agustinfabrizio.com" className="font-editorial text-xl text-foreground hover:text-acento transition-colors">
+                    Solicitar cotización &rarr;
+                  </a>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
 
-        <div>
-          <h2 className="text-2xl md:text-3xl font-light text-[#1C1C1A] mb-12 border-b border-[#E5E2DC] pb-4">Metodología de Visualización</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="border-t-rule border-foreground pt-12">
+          <h2 className="text-2xl md:text-3xl font-mono uppercase tracking-widest text-foreground mb-16">Metodología de Visualización</h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-0 border-l-rule border-t-rule border-foreground">
             {methodology.map((item, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.1 + 0.4, duration: 0.4 }}
-                className="bg-[#FFFFFF]/50 border border-[#E5E2DC] p-8 rounded-none relative overflow-hidden group hover:border-[#8C5E48] transition-colors"
+                className="bg-transparent border-r-rule border-b-rule border-foreground p-8 flex flex-col justify-between min-h-[320px] group hover:bg-foreground hover:text-background transition-colors"
               >
-                <span className="text-4xl font-light text-[#E5E2DC] group-hover:text-[#8C5E48] transition-colors block mb-4">{item.step}</span>
-                <h4 className="text-xl font-medium text-[#1C1C1A] mb-2">{item.title}</h4>
-                <p className="text-[#686661] text-sm">{item.desc}</p>
+                <span className="font-mono text-xs uppercase tracking-widest text-foreground/60 group-hover:text-background/60 block mb-8">
+                  [ Paso {item.step} ]
+                </span>
+                <div>
+                  <h4 className="text-3xl font-editorial text-foreground group-hover:text-background mb-4 leading-none tracking-tight">{item.title}</h4>
+                  <p className="text-foreground/80 group-hover:text-background/80 font-sans text-sm">{item.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
+
+        {/* Final CTA Block */}
+        <div className="mt-32 p-12 md:p-24 border-rule border-foreground text-center bg-foreground text-background flex flex-col items-center">
+          <span className="font-mono text-xs uppercase tracking-widest text-background/60 block mb-6">¿Tenés un proyecto en mente?</span>
+          <h2 className="text-5xl md:text-7xl font-editorial mb-12 tracking-tighter leading-none">Hagámoslo realidad.</h2>
+          <div className="flex gap-6">
+            <a href="mailto:hola@agustinfabrizio.com" className="px-8 py-4 border-hairline border-background text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors">
+              Enviar Email
+            </a>
+            <a href="https://wa.me/1234567890" className="px-8 py-4 bg-acento text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors">
+              WhatsApp
+            </a>
+          </div>
+        </div>
+
       </motion.div>
     </div>
   );
