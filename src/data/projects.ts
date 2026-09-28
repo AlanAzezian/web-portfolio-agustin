@@ -6,6 +6,7 @@ export interface Project {
   link: string;
   client?: string;
   year?: string;
+  area?: string;
 }
 
 export const projects: Project[] = [
