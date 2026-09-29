@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { projects } from "@/data/projects";
@@ -22,43 +21,29 @@ export default function HomeSlider() {
   }, [isPaused]);
 
   return (
-    <div className="relative flex-1 w-full flex flex-col items-center justify-between pt-24 pb-6 px-4 md:px-8 h-full min-h-0">
+    <div className="flex-1 w-full flex flex-col items-center justify-between pt-24 pb-8 px-[8vw] md:px-[10vw] h-full min-h-0 bg-[#F8F7F4]">
       
-      {/* Absolute Counter */}
-      <div className="absolute top-8 right-8 md:right-12 font-mono text-xs tracking-widest text-foreground/50 z-20">
-        {String(activeIndex + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}
-      </div>
-
-      {/* Image Container */}
-      <div 
-        className="relative w-full md:w-[90vw] max-w-[1600px] flex-1 min-h-0 overflow-hidden cursor-pointer group rounded-sm"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
-      >
+      {/* Contenedor del área de la imagen: Toma todo el espacio disponible, tamaño fijo dictado por flex */}
+      <div className="flex-1 w-full min-h-0 flex items-center justify-center relative">
         <AnimatePresence>
-          <motion.div
+          <motion.img
             key={activeIndex}
+            src={projects[activeIndex].imageUrl}
+            alt={projects[activeIndex].title}
+            className="absolute inset-0 m-auto max-w-full max-h-full object-contain cursor-pointer transition-transform duration-700 hover:scale-[1.02]"
+            onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: "easeInOut" }}
-            className="absolute inset-0"
-          >
-            <Image
-              src={projects[activeIndex].imageUrl}
-              alt={projects[activeIndex].title}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-              priority
-            />
-          </motion.div>
+          />
         </AnimatePresence>
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none" />
       </div>
 
       {/* Social Links Row */}
-      <div className="mt-6 shrink-0 flex gap-8 items-center text-foreground/70">
+      <div className="mt-8 shrink-0 flex gap-8 items-center text-foreground/70">
         <a 
           href="https://instagram.com/agustinfabrizio" 
           target="_blank" 
@@ -86,4 +71,3 @@ export default function HomeSlider() {
     </div>
   );
 }
-
