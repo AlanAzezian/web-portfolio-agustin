@@ -1,13 +1,31 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { projects, Project } from "@/data/projects";
 import ProjectModal from "./ProjectModal";
 
 export default function ProjectGrid() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const projectId = searchParams.get("proyecto");
+    if (projectId) {
+      const proj = projects.find(p => p.id === projectId);
+      if (proj) setSelectedProject(proj);
+    }
+  }, [searchParams]);
+
+  const handleClose = () => {
+    setSelectedProject(null);
+    if (searchParams.has("proyecto")) {
+      router.replace("/proyectos", { scroll: false });
+    }
+  };
 
   const aspectRatios = ["aspect-[16/9]", "aspect-[3/4]", "aspect-[4/3]", "aspect-[2/3]", "aspect-[3/2]"];
 
@@ -37,13 +55,13 @@ export default function ProjectGrid() {
               >
                 <div className="flex flex-col gap-2 mt-8 font-mono text-xs uppercase text-foreground/80">
                   <span className="border-b-hairline border-foreground/20 pb-1 flex justify-between">
-                    <span>Categoría</span> <span>{project.category}</span>
+                    <span>CategorÃ­a</span> <span>{project.category}</span>
                   </span>
                   <span className="border-b-hairline border-foreground/20 pb-1 flex justify-between">
-                    <span>Año</span> <span>{project.year || "2026"}</span>
+                    <span>AÃ±o</span> <span>{project.year || "2026"}</span>
                   </span>
                   <span className="border-b-hairline border-foreground/20 pb-1 flex justify-between">
-                    <span>Área</span> <span>{project.area || "N/A"} m²</span>
+                    <span>Ãrea</span> <span>{project.area || "N/A"} mÂ²</span>
                   </span>
                 </div>
                 
@@ -58,9 +76,10 @@ export default function ProjectGrid() {
 
       <AnimatePresence>
         {selectedProject && (
-          <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+          <ProjectModal project={selectedProject} onClose={handleClose} />
         )}
       </AnimatePresence>
     </>
   );
 }
+

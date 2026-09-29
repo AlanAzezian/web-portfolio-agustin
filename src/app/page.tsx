@@ -1,11 +1,11 @@
 "use client";
 
-import HeroTrack from "@/components/HeroTrack";
+import HomeSlider from "@/components/HomeSlider";
 
 export default function Home() {
   return (
-    <main className="h-screen max-h-screen overflow-hidden bg-[#F8F7F4] flex flex-col justify-center no-scrollbar">
-      <HeroTrack />
+    <main className="min-h-screen bg-[#F8F7F4] flex flex-col justify-center">
+      <HomeSlider />
     </main>
   );
 }
