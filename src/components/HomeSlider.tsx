@@ -22,60 +22,41 @@ export default function HomeSlider() {
   }, [isPaused]);
 
   return (
-    <div className="w-full h-full relative bg-[#F8F7F4]">
+    <div className="w-full flex flex-col items-center pt-[104px] pb-8 bg-[#F8F7F4]">
       
-      {/* Contenedor de la imagen, empieza exactamente 16px abajo del header (80 + 16 = 96px) */}
-      <div className="w-full flex justify-center pt-[96px]">
-        <div 
-          style={{
-            aspectRatio: "3 / 2",
-            width: "100%",
-            maxWidth: "min(90vw, calc((100dvh - 160px) * 1.5))",
-            maxHeight: "calc(100dvh - 160px)"
-          }}
-          className="relative overflow-hidden cursor-pointer group flex-none"
-          onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          <AnimatePresence>
-            <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1, ease: "easeInOut" }}
-              className="absolute inset-0"
-            >
-              <Image
-                src={projects[activeIndex].homeImage || projects[activeIndex].imageUrl}
-                alt={projects[activeIndex].title}
-                fill
-                sizes="(max-width: 768px) 90vw, (max-width: 1600px) 80vw, 1200px"
-                className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                style={{ 
-                  objectPosition: projects[activeIndex].focalPoint || "50% 50%" 
-                }}
-                priority
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
+      {/* Cuadro de la imagen: ancho máximo 1120px (o 90vw en pantallas menores), proporción fija 3:2 */}
+      <div 
+        className="relative w-[90vw] max-w-[1120px] aspect-[3/2] overflow-hidden cursor-pointer group flex-none"
+        onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <AnimatePresence>
+          <motion.div
+            key={activeIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+            <Image
+              src={projects[activeIndex].homeImage || projects[activeIndex].imageUrl}
+              alt={projects[activeIndex].title}
+              fill
+              sizes="(max-width: 768px) 90vw, 1120px"
+              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              style={{ 
+                objectPosition: projects[activeIndex].focalPoint || "50% 50%" 
+              }}
+              priority
+            />
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {/* Social Links Row */}
-      <div 
-        style={{
-          position: "fixed",
-          bottom: "12px",
-          left: 0,
-          right: 0,
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 50
-        }}
-        className="gap-8 text-foreground/70"
-      >
+      {/* Social Links Row (en flujo normal) */}
+      <div className="mt-6 flex justify-center gap-8 text-foreground/70">
         <a 
           href="https://instagram.com/agustinfabrizio" 
           target="_blank" 
