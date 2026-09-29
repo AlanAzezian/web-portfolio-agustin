@@ -7,6 +7,8 @@ export interface Project {
   client?: string;
   year?: string;
   area?: string;
+  focalPoint?: string;
+  homeImage?: string;
 }
 
 export const projects: Project[] = [

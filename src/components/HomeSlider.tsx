@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { projects } from "@/data/projects";
 
 export default function HomeSlider() {
@@ -21,25 +22,45 @@ export default function HomeSlider() {
   }, [isPaused]);
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center justify-between pt-24 pb-8 px-[8vw] md:px-[10vw] h-full min-h-0 bg-[#F8F7F4]">
+    <div className="flex-1 w-full flex flex-col items-center justify-between pt-24 pb-8 px-[5vw] md:px-[10vw] h-full min-h-0 bg-[#F8F7F4]">
       
-      {/* Contenedor del área de la imagen: Toma todo el espacio disponible, tamaño fijo dictado por flex */}
+      {/* Contenedor central flexible para alojar el cuadro de proporcin estricta */}
       <div className="flex-1 w-full min-h-0 flex items-center justify-center relative">
-        <AnimatePresence>
-          <motion.img
-            key={activeIndex}
-            src={projects[activeIndex].imageUrl}
-            alt={projects[activeIndex].title}
-            className="absolute inset-0 m-auto max-w-full max-h-full object-contain cursor-pointer transition-transform duration-700 hover:scale-[1.02]"
-            onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1, ease: "easeInOut" }}
-          />
-        </AnimatePresence>
+        {/* Cuadro fijo 3:2, calculando lmites de viewport */}
+        <div 
+          className="relative flex-none"
+          style={{ 
+            aspectRatio: "3 / 2",
+            // 90vw mximo de ancho, y alto dictado por el espacio (100dvh - 220px aprox para header y redes) * 1.5
+            width: "min(90vw, calc((100dvh - 220px) * 1.5))"
+          }}
+        >
+          <AnimatePresence>
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
+              className="absolute inset-0 overflow-hidden cursor-pointer group"
+              onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+            >
+              <Image
+                src={projects[activeIndex].homeImage || projects[activeIndex].imageUrl}
+                alt={projects[activeIndex].title}
+                fill
+                sizes="(max-width: 768px) 90vw, (max-width: 1600px) 80vw, 1200px"
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                style={{ 
+                  objectPosition: projects[activeIndex].focalPoint || "50% 50%" 
+                }}
+                priority
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Social Links Row */}
