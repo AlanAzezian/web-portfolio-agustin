@@ -22,28 +22,18 @@ export default function HomeSlider() {
   }, [isPaused]);
 
   return (
-    <div className="contents">
+    <div className="w-full h-full relative bg-[#F8F7F4]">
       
-      {/* Row 2: Picture Area */}
-      <div 
-        style={{
-          containerType: "size",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          padding: "16px 0 8px"
-        }}
-        className="w-full relative"
-      >
+      {/* Contenedor de la imagen, empieza exactamente 16px abajo del header (80 + 16 = 96px) */}
+      <div className="w-full flex justify-center pt-[96px]">
         <div 
           style={{
             aspectRatio: "3 / 2",
-            height: "100%",
-            maxWidth: "90cqw",
-            // Fallback robusto por si el navegador no achica el height al chocar con el max-width:
-            width: "min(90cqw, calc(100cqh * 1.5))"
+            width: "100%",
+            maxWidth: "min(90vw, calc((100dvh - 160px) * 1.5))",
+            maxHeight: "calc(100dvh - 160px)"
           }}
-          className="relative overflow-hidden cursor-pointer group"
+          className="relative overflow-hidden cursor-pointer group flex-none"
           onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
@@ -73,14 +63,16 @@ export default function HomeSlider() {
         </div>
       </div>
 
-      {/* Row 3: Social Links Row */}
+      {/* Social Links Row */}
       <div 
         style={{
+          position: "fixed",
+          bottom: "12px",
+          left: 0,
+          right: 0,
           display: "flex",
           justifyContent: "center",
-          alignItems: "center",
-          position: "relative",
-          zIndex: 10
+          zIndex: 50
         }}
         className="gap-8 text-foreground/70"
       >
