@@ -40,7 +40,7 @@ export default function ServicesView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h1 className="text-5xl md:text-7xl font-editorial text-foreground mb-24 max-w-4xl leading-[0.9] tracking-tighter">
+        <h1 className="text-5xl md:text-7xl font-sans font-light text-foreground mb-24 max-w-4xl leading-[0.9] tracking-tighter">
           Soluciones arquitectónicas pensadas para construir y perdurar.
         </h1>
 
@@ -53,15 +53,15 @@ export default function ServicesView() {
               transition={{ delay: i * 0.1 + 0.2, duration: 0.5 }}
               className="flex flex-col border-b-hairline border-foreground/20 pb-8"
             >
-              <span className="font-editorial text-4xl text-foreground/40 mb-2">{String(i + 1).padStart(2, '0')}</span>
-              <h3 className="text-3xl font-editorial text-foreground mb-4 leading-tight">{service.title}</h3>
+              <span className="font-sans font-light text-4xl text-foreground/40 mb-2">{String(i + 1).padStart(2, '0')}</span>
+              <h3 className="text-3xl font-sans font-light text-foreground mb-4 leading-tight">{service.title}</h3>
               <p className="text-foreground/80 font-sans leading-relaxed">{service.description}</p>
               
               {/* Insert CTA every 3 services (or at the end of odd indices if we want it distributed) */}
               {(i === 1 || i === 3) && (
                 <div className="mt-8 pt-6 border-t-rule border-acento">
                   <span className="font-mono text-xs uppercase tracking-widest text-acento block mb-2">Comencemos un proyecto</span>
-                  <a href="mailto:hola@agustinfabrizio.com" className="font-editorial text-xl text-foreground hover:text-acento transition-colors">
+                  <a href="mailto:hola@agustinfabrizio.com" className="font-sans font-light text-xl text-foreground hover:text-acento transition-colors">
                     Solicitar cotización &rarr;
                   </a>
                 </div>
@@ -85,7 +85,7 @@ export default function ServicesView() {
                   [ Paso {item.step} ]
                 </span>
                 <div>
-                  <h4 className="text-3xl font-editorial text-foreground group-hover:text-background mb-4 leading-none tracking-tight">{item.title}</h4>
+                  <h4 className="text-3xl font-sans font-light text-foreground group-hover:text-background mb-4 leading-none tracking-tight">{item.title}</h4>
                   <p className="text-foreground/80 group-hover:text-background/80 font-sans text-sm">{item.desc}</p>
                 </div>
               </motion.div>
@@ -96,7 +96,7 @@ export default function ServicesView() {
         {/* Final CTA Block */}
         <div className="mt-32 p-12 md:p-24 border-rule border-foreground text-center bg-foreground text-background flex flex-col items-center">
           <span className="font-mono text-xs uppercase tracking-widest text-background/60 block mb-6">¿Tenés un proyecto en mente?</span>
-          <h2 className="text-5xl md:text-7xl font-editorial mb-12 tracking-tighter leading-none">Hagámoslo realidad.</h2>
+          <h2 className="text-5xl md:text-7xl font-sans font-light mb-12 tracking-tighter leading-none">Hagámoslo realidad.</h2>
           <div className="flex gap-6">
             <a href="mailto:hola@agustinfabrizio.com" className="px-8 py-4 border-hairline border-background text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors">
               Enviar Email
@@ -111,3 +111,4 @@ export default function ServicesView() {
     </div>
   );
 }
+

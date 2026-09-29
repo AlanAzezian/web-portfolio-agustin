@@ -58,7 +58,7 @@ export default function ProjectModal({ project, onClose }: Props) {
             <p className="text-xs font-mono text-foreground/60 uppercase tracking-widest mb-4">
               [ {project.category} ]
             </p>
-            <h2 className="text-4xl md:text-6xl font-editorial leading-none text-foreground tracking-tighter">
+            <h2 className="text-4xl md:text-6xl font-sans font-light leading-none text-foreground tracking-tighter">
               {project.title}
             </h2>
           </div>
@@ -87,3 +87,4 @@ export default function ProjectModal({ project, onClose }: Props) {
     </motion.div>
   );
 }
+

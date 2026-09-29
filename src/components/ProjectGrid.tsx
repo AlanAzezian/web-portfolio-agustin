@@ -9,19 +9,19 @@ import ProjectModal from "./ProjectModal";
 export default function ProjectGrid() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
+  const aspectRatios = ["aspect-[16/9]", "aspect-[3/4]", "aspect-[4/3]", "aspect-[2/3]", "aspect-[3/2]"];
+
   return (
     <>
-      <div className="max-w-6xl mx-auto px-6 py-32 min-h-screen">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-32 min-h-screen">
+        <div className="columns-1 md:columns-2 lg:columns-3 2xl:columns-4 gap-8">
           {projects.map((project, i) => (
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1, duration: 0.5, ease: "easeOut" }}
-              className={`relative aspect-[3/4] cursor-pointer overflow-hidden group border-rule border-foreground bg-background ${
-                i % 3 === 1 ? "md:mt-12" : i % 3 === 2 ? "md:mt-24" : ""
-              }`}
+              transition={{ delay: (i % 8) * 0.1, duration: 0.5, ease: "easeOut" }}
+              className={`relative w-full overflow-hidden cursor-pointer group bg-background break-inside-avoid mb-8 ${aspectRatios[i % aspectRatios.length]}`}
               onClick={() => setSelectedProject(project)}
             >
               <Image
@@ -29,13 +29,8 @@ export default function ProjectGrid() {
                 alt={project.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1400px) 33vw, 25vw"
               />
-              
-              {/* Card Number Corner */}
-              <div className="absolute top-0 right-0 bg-background border-b-hairline border-l-hairline border-foreground px-3 py-1 font-mono text-xs z-10">
-                N°{String(i + 1).padStart(2, '0')}
-              </div>
 
               <motion.div 
                 className="absolute inset-0 bg-background/95 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6 z-20"
@@ -52,7 +47,7 @@ export default function ProjectGrid() {
                   </span>
                 </div>
                 
-                <h3 className="font-editorial text-5xl leading-[0.9] text-foreground -ml-1 overflow-hidden tracking-tighter">
+                <h3 className="font-sans font-light text-4xl lg:text-5xl leading-[0.9] text-foreground -ml-1 overflow-hidden tracking-tighter">
                   {project.title}
                 </h3>
               </motion.div>

@@ -21,7 +21,7 @@
   --color-acento: #E63946;
   
   --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
-  --font-editorial: var(--font-editorial), serif;
+  
   --font-mono: var(--font-mono), monospace;
   
   --border-width-hairline: 1px;
@@ -70,3 +70,4 @@ body::-webkit-scrollbar {
   -ms-overflow-style: none; /* IE/Edge */
   scrollbar-width: none; /* Firefox */
 }
+

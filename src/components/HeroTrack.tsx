@@ -44,19 +44,15 @@ export default function HeroTrack() {
       {/* Editorial Overlay Layers - Pointer Events None */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden flex items-center justify-center">
         {/* Big Background Number */}
-        <div className="font-editorial text-[25vw] text-foreground opacity-5 leading-none tracking-tighter mix-blend-multiply translate-y-12">
+        <div className="font-sans font-light text-[25vw] text-foreground opacity-5 leading-none tracking-tighter mix-blend-multiply translate-y-12">
           {String(activeIndex + 1).padStart(2, "0")}
         </div>
       </div>
 
       <div className="absolute inset-0 pointer-events-none z-20">
-        {/* Vertical Kicker */}
-        <div className="absolute left-10 top-1/2 -translate-y-1/2 -rotate-90 origin-left whitespace-nowrap font-mono text-xs uppercase tracking-widest text-foreground/70">
-          Agustín Fabrizio — Arquitecto
-        </div>
 
         {/* Counter */}
-        <div className="absolute top-8 right-12 font-mono text-sm tracking-widest text-foreground">
+        <div className="absolute top-8 right-12 font-mono text-xs tracking-widest text-foreground/50">
           {String(activeIndex + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}
         </div>
       </div>
@@ -85,3 +81,5 @@ export default function HeroTrack() {
     </div>
   );
 }
+
+

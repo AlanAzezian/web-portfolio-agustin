@@ -11,7 +11,7 @@ export default function BioContactView() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-6xl md:text-8xl font-editorial leading-[0.9] text-foreground mb-12 tracking-tighter">Sobre<br/>Mí</h1>
+          <h1 className="text-6xl md:text-8xl font-sans font-light leading-[0.9] text-foreground mb-12 tracking-tighter">Sobre<br/>Mí</h1>
           <p className="text-xl text-foreground/80 font-sans mb-16 leading-relaxed">
             Agustín Fabrizio — Arquitecto en formación avanzada / Próximo a graduarse en FADU, UBA. Especializado en visualización arquitectónica y proyecto contemporáneo. Mi enfoque se centra en la representación hiperrealista, la atención al detalle y la creación de atmósferas envolventes.
           </p>
@@ -82,7 +82,7 @@ export default function BioContactView() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="border-rule border-foreground p-8 md:p-12 bg-background sticky top-32"
         >
-          <h2 className="text-4xl font-editorial text-foreground mb-12 tracking-tight">Cotiza tu Proyecto</h2>
+          <h2 className="text-4xl font-sans font-light text-foreground mb-12 tracking-tight">Cotiza tu Proyecto</h2>
           <form className="flex flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
             <div className="relative border-b-rule border-foreground">
               <input 
@@ -129,3 +129,4 @@ export default function BioContactView() {
     </div>
   );
 }
+
