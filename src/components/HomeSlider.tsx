@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { projects } from "@/data/projects";
 
-
 export default function HomeSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -23,13 +22,16 @@ export default function HomeSlider() {
   }, [isPaused]);
 
   return (
-    <div className="w-full flex flex-col items-center pt-32 pb-16 px-6">
-      <div className="absolute top-8 right-12 font-mono text-xs tracking-widest text-foreground/50 z-20">
+    <div className="relative flex-1 w-full flex flex-col items-center justify-between pt-24 pb-6 px-4 md:px-8 h-full min-h-0">
+      
+      {/* Absolute Counter */}
+      <div className="absolute top-8 right-8 md:right-12 font-mono text-xs tracking-widest text-foreground/50 z-20">
         {String(activeIndex + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}
       </div>
 
+      {/* Image Container */}
       <div 
-        className="relative w-full md:w-[85vw] max-w-[1200px] aspect-[16/10] overflow-hidden cursor-pointer group"
+        className="relative w-full md:w-[90vw] max-w-[1600px] flex-1 min-h-0 overflow-hidden cursor-pointer group rounded-sm"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
@@ -55,7 +57,8 @@ export default function HomeSlider() {
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none" />
       </div>
 
-      <div className="mt-12 flex gap-8 items-center text-foreground/70">
+      {/* Social Links Row */}
+      <div className="mt-6 shrink-0 flex gap-8 items-center text-foreground/70">
         <a 
           href="https://instagram.com/agustinfabrizio" 
           target="_blank" 

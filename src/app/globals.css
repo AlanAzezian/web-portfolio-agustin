@@ -37,10 +37,6 @@
 }
 
 @layer utilities {
-  .grid-editorial {
-    background-size: 20% 100%;
-    background-image: linear-gradient(to right, rgba(28, 28, 26, 0.05) 1px, transparent 1px);
-  }
 }
 
 body {
@@ -70,4 +66,5 @@ body::-webkit-scrollbar {
   -ms-overflow-style: none; /* IE/Edge */
   scrollbar-width: none; /* Firefox */
 }
+
 

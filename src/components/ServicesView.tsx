@@ -44,14 +44,14 @@ export default function ServicesView() {
           Soluciones arquitectónicas pensadas para construir y perdurar.
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16 mb-32 border-t-rule border-foreground pt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16 mb-32 pt-12">
           {services.map((service, i) => (
             <motion.div 
               key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 + 0.2, duration: 0.5 }}
-              className="flex flex-col border-b-hairline border-foreground/20 pb-8"
+              className="flex flex-col pb-8"
             >
               <span className="font-sans font-light text-4xl text-foreground/40 mb-2">{String(i + 1).padStart(2, '0')}</span>
               <h3 className="text-3xl font-sans font-light text-foreground mb-4 leading-tight">{service.title}</h3>
@@ -59,7 +59,7 @@ export default function ServicesView() {
               
               {/* Insert CTA every 3 services (or at the end of odd indices if we want it distributed) */}
               {(i === 1 || i === 3) && (
-                <div className="mt-8 pt-6 border-t-rule border-acento">
+                <div className="mt-8 pt-6">
                   <span className="font-mono text-xs uppercase tracking-widest text-acento block mb-2">Comencemos un proyecto</span>
                   <a href="mailto:hola@agustinfabrizio.com" className="font-sans font-light text-xl text-foreground hover:text-acento transition-colors">
                     Solicitar cotización &rarr;
@@ -70,16 +70,16 @@ export default function ServicesView() {
           ))}
         </div>
 
-        <div className="border-t-rule border-foreground pt-12">
+        <div className="pt-12">
           <h2 className="text-2xl md:text-3xl font-mono uppercase tracking-widest text-foreground mb-16">Metodología de Visualización</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-0 border-l-rule border-t-rule border-foreground">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-0">
             {methodology.map((item, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.1 + 0.4, duration: 0.4 }}
-                className="bg-transparent border-r-rule border-b-rule border-foreground p-8 flex flex-col justify-between min-h-[320px] group hover:bg-foreground hover:text-background transition-colors"
+                className="bg-transparent p-8 flex flex-col justify-between min-h-[320px] group hover:bg-foreground hover:text-background transition-colors"
               >
                 <span className="font-mono text-xs uppercase tracking-widest text-foreground/60 group-hover:text-background/60 block mb-8">
                   [ Paso {item.step} ]
@@ -94,11 +94,11 @@ export default function ServicesView() {
         </div>
 
         {/* Final CTA Block */}
-        <div className="mt-32 p-12 md:p-24 border-rule border-foreground text-center bg-foreground text-background flex flex-col items-center">
+        <div className="mt-32 p-12 md:p-24 text-center bg-foreground text-background flex flex-col items-center">
           <span className="font-mono text-xs uppercase tracking-widest text-background/60 block mb-6">¿Tenés un proyecto en mente?</span>
           <h2 className="text-5xl md:text-7xl font-sans font-light mb-12 tracking-tighter leading-none">Hagámoslo realidad.</h2>
           <div className="flex gap-6">
-            <a href="mailto:hola@agustinfabrizio.com" className="px-8 py-4 border-hairline border-background text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors">
+            <a href="mailto:hola@agustinfabrizio.com" className="px-8 py-4 text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors">
               Enviar Email
             </a>
             <a href="https://wa.me/1234567890" className="px-8 py-4 bg-acento text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors">
@@ -111,4 +111,6 @@ export default function ServicesView() {
     </div>
   );
 }
+
+
 

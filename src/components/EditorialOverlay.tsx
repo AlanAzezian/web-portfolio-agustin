@@ -31,8 +31,8 @@ export default function EditorialOverlay() {
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Líneas de regla verticales (Márgenes laterales) */}
-      <div className="absolute inset-y-0 left-8 w-[1px] bg-foreground/15"></div>
-      <div className="absolute inset-y-0 right-8 w-[1px] bg-foreground/15"></div>
+      
+      
 
       {/* Cursor Custom */}
       <motion.div
@@ -58,4 +58,6 @@ export default function EditorialOverlay() {
     </div>
   );
 }
+
+
 

@@ -15,7 +15,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F8F7F4]/80 backdrop-blur-md border-b border-[#E5E2DC]">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F8F7F4]/80 backdrop-blur-md">
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
         <Link href="/" className="text-xl font-light tracking-tight text-[#1C1C1A]">
           Agustín Fabrizio
@@ -45,3 +45,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
