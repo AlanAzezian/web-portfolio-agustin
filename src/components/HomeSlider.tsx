@@ -22,18 +22,31 @@ export default function HomeSlider() {
   }, [isPaused]);
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center justify-between pt-24 pb-8 px-[5vw] md:px-[10vw] h-full min-h-0 bg-[#F8F7F4]">
+    <div className="contents">
       
-      {/* Contenedor central flexible para alojar el cuadro de proporcin estricta */}
-      <div className="flex-1 w-full min-h-0 flex items-center justify-center relative">
-        {/* Cuadro fijo 3:2, calculando lmites de viewport */}
+      {/* Row 2: Picture Area */}
+      <div 
+        style={{
+          containerType: "size",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          padding: "16px 0 8px"
+        }}
+        className="w-full relative"
+      >
         <div 
-          className="relative flex-none"
-          style={{ 
+          style={{
             aspectRatio: "3 / 2",
-            // 90vw mximo de ancho, y alto dictado por el espacio (100dvh - 220px aprox para header y redes) * 1.5
-            width: "min(90vw, calc((100dvh - 220px) * 1.5))"
+            height: "100%",
+            maxWidth: "90cqw",
+            // Fallback robusto por si el navegador no achica el height al chocar con el max-width:
+            width: "min(90cqw, calc(100cqh * 1.5))"
           }}
+          className="relative overflow-hidden cursor-pointer group"
+          onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
         >
           <AnimatePresence>
             <motion.div
@@ -42,10 +55,7 @@ export default function HomeSlider() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 1, ease: "easeInOut" }}
-              className="absolute inset-0 overflow-hidden cursor-pointer group"
-              onClick={() => router.push(`/proyectos?proyecto=${projects[activeIndex].id}`)}
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
+              className="absolute inset-0"
             >
               <Image
                 src={projects[activeIndex].homeImage || projects[activeIndex].imageUrl}
@@ -63,8 +73,17 @@ export default function HomeSlider() {
         </div>
       </div>
 
-      {/* Social Links Row */}
-      <div className="mt-8 shrink-0 flex gap-8 items-center text-foreground/70">
+      {/* Row 3: Social Links Row */}
+      <div 
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          position: "relative",
+          zIndex: 10
+        }}
+        className="gap-8 text-foreground/70"
+      >
         <a 
           href="https://instagram.com/agustinfabrizio" 
           target="_blank" 

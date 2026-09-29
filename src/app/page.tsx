@@ -14,7 +14,16 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="h-[100dvh] w-full overflow-hidden bg-background flex flex-col justify-center">
+    <main 
+      className="w-full bg-background"
+      style={{
+        height: "100dvh",
+        display: "grid",
+        gridTemplateRows: "80px minmax(0, 1fr) 56px",
+        overflow: "hidden"
+      }}
+    >
+      <div /> {/* Row 1: Header space */}
       <HomeSlider />
     </main>
   );
