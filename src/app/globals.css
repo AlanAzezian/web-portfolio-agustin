@@ -1,6 +1,23 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Redaction';
+  src: url('/fonts/Redaction-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Redaction';
+  src: url('/fonts/Redaction-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
+  --font-redaction: 'Redaction', Georgia, serif;
   --background: #F8F7F4;
   --foreground: #1C1C1A;
 }
@@ -21,7 +38,7 @@
   --color-acento: #E63946;
   
   --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
-  
+  --font-redaction: var(--font-redaction), Georgia, serif;
   --font-mono: var(--font-mono), monospace;
   
   --border-width-hairline: 1px;

@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
+import React, { useEffect, useRef } from "react";
+import gsap from "gsap";
+
 const links = [
   { name: "Inicio", path: "/" },
   { name: "Proyectos", path: "/proyectos" },
@@ -11,15 +14,53 @@ const links = [
   { name: "Bio & Contacto", path: "/bio" },
 ];
 
+function AnimatedLogo() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      
+      if (prefersReducedMotion) {
+        gsap.set(".logo-char", { display: "inline-block" });
+        return;
+      }
+
+      const tl = gsap.timeline({ delay: 0.8 });
+      tl.to(".logo-char", {
+        display: "inline-block",
+        duration: 0.01,
+        stagger: 0.08,
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <Link href="/" aria-label="Agustín Fabrizio" className="font-redaction italic text-xl flex relative items-center">
+      <span className="invisible opacity-0 select-none pointer-events-none">Agustín Fabrizio</span>
+      <div ref={containerRef} className="absolute left-0 top-0 flex whitespace-pre text-[#1C1C1A]" aria-hidden="true">
+        <span>A</span>
+        {'gustín '.split('').map((char, i) => (
+          <span key={`p1-${i}`} className="logo-char hidden">{char}</span>
+        ))}
+        <span>F</span>
+        {'abrizio'.split('').map((char, i) => (
+          <span key={`p2-${i}`} className="logo-char hidden">{char}</span>
+        ))}
+      </div>
+    </Link>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F8F7F4]/80 backdrop-blur-md">
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
-        <Link href="/" className="text-xl font-light tracking-tight text-[#1C1C1A]">
-          Agustín Fabrizio
-        </Link>
+        <AnimatedLogo />
         <div className="hidden md:flex items-center gap-8">
           {links.map((link) => (
             <Link
