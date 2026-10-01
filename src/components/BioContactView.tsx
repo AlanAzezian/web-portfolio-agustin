@@ -20,23 +20,23 @@ export default function BioContactView() {
             <h3 className="font-mono text-sm uppercase tracking-widest text-foreground/50 mb-8">Stack de Software</h3>
             <ul className="flex flex-col text-foreground font-sans text-sm">
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase">BIM</span>
+                <span className="font-mono uppercase text-acento">BIM</span>
                 <span>Revit & Archicad</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase">Modelado</span>
+                <span className="font-mono uppercase text-acento">Modelado</span>
                 <span>Rhinoceros & AutoCAD</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase">Render</span>
+                <span className="font-mono uppercase text-acento">Render</span>
                 <span>3ds Max + Corona / V-Ray</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase">Tiempo Real</span>
+                <span className="font-mono uppercase text-acento">Tiempo Real</span>
                 <span>Enscape & Twinmotion</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase">Post</span>
+                <span className="font-mono uppercase text-acento">Post</span>
                 <span>Suite Adobe</span>
               </li>
             </ul>
@@ -46,15 +46,15 @@ export default function BioContactView() {
             <h3 className="font-mono text-sm uppercase tracking-widest text-foreground/50 mb-8">Premios & Reconocimientos</h3>
             <ul className="flex flex-col text-foreground font-sans text-sm">
               <li className="flex justify-between items-start md:items-center py-2 gap-4">
-                <span className="font-mono uppercase shrink-0">1er Premio</span>
+                <span className="font-mono uppercase shrink-0 text-acento">1er Premio</span>
                 <span className="text-right">Concurso Nacional Espacio Público (2024)</span>
               </li>
               <li className="flex justify-between items-start md:items-center py-2 gap-4">
-                <span className="font-mono uppercase shrink-0">Publicación</span>
+                <span className="font-mono uppercase shrink-0 text-acento">Publicación</span>
                 <span className="text-right">Revista Summa+ - Edición 190 (2023)</span>
               </li>
               <li className="flex justify-between items-start md:items-center py-2 gap-4">
-                <span className="font-mono uppercase shrink-0">Mención</span>
+                <span className="font-mono uppercase shrink-0 text-acento">Mención</span>
                 <span className="text-right">Bienal de Arquitectura Joven (2022)</span>
               </li>
             </ul>
@@ -84,7 +84,7 @@ export default function BioContactView() {
         >
           <h2 className="text-4xl font-sans font-light text-foreground mb-12 tracking-tight">Cotiza tu Proyecto</h2>
           <form className="flex flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
-            <div className="relative border-b-rule border-foreground">
+            <div className="relative border-b-rule border-foreground focus-within:border-acento transition-colors">
               <input 
                 type="text" 
                 id="name" 
@@ -92,10 +92,10 @@ export default function BioContactView() {
                 placeholder="Tu nombre"
                 required
               />
-              <label htmlFor="name" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-foreground">Nombre</label>
+              <label htmlFor="name" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Nombre</label>
             </div>
             
-            <div className="relative border-b-rule border-foreground mt-4">
+            <div className="relative border-b-rule border-foreground focus-within:border-acento transition-colors mt-4">
               <input 
                 type="email" 
                 id="email" 
@@ -103,10 +103,10 @@ export default function BioContactView() {
                 placeholder="tu@email.com"
                 required
               />
-              <label htmlFor="email" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-foreground">Email</label>
+              <label htmlFor="email" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Email</label>
             </div>
             
-            <div className="relative border-b-rule border-foreground mt-4">
+            <div className="relative border-b-rule border-foreground focus-within:border-acento transition-colors mt-4">
               <textarea 
                 id="message" 
                 rows={4}
@@ -114,7 +114,7 @@ export default function BioContactView() {
                 placeholder="Detalles"
                 required
               ></textarea>
-              <label htmlFor="message" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-foreground">Detalles del encargo</label>
+              <label htmlFor="message" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Detalles del encargo</label>
             </div>
             
             <button 

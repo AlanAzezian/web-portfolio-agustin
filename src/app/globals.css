@@ -35,7 +35,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-acento: #E63946;
+  --color-acento: #099AD7;
   
   --font-sans: var(--font-inter), Arial, Helvetica, sans-serif;
   --font-redaction: var(--font-redaction), Georgia, serif;

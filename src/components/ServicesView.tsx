@@ -64,12 +64,12 @@ export default function ServicesView() {
                       {service.title}
                     </h3>
                   </div>
-                  <div className="text-3xl font-light text-foreground/40 transition-transform duration-300">
+                  <div className="text-3xl font-light text-acento transition-transform duration-300">
                     <motion.div
                       animate={{ rotate: isOpen ? 180 : 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      {isOpen ? '−' : '+'}
+                      {isOpen ? '×' : '+'}
                     </motion.div>
                   </div>
                 </button>
@@ -89,7 +89,7 @@ export default function ServicesView() {
                         <div className="mt-4">
                           <span className="font-mono text-xs uppercase tracking-widest text-acento block mb-2">Comencemos un proyecto</span>
                           <a href="mailto:hola@agustinfabrizio.com" className="font-sans font-light text-xl text-foreground hover:text-acento transition-colors">
-                            Solicitar cotización &rarr;
+                            Solicitar cotización <span className="text-acento">&rarr;</span>
                           </a>
                         </div>
                       </div>
@@ -112,7 +112,7 @@ export default function ServicesView() {
                 transition={{ delay: i * 0.1 + 0.4, duration: 0.4 }}
                 className="bg-transparent p-8 flex flex-col justify-between min-h-[320px] group hover:bg-foreground hover:text-background transition-colors"
               >
-                <span className="font-mono text-xs uppercase tracking-widest text-foreground/60 group-hover:text-background/60 block mb-8">
+                <span className="font-mono text-xs uppercase tracking-widest text-acento group-hover:text-background/60 block mb-8">
                   [ Paso {item.step} ]
                 </span>
                 <div>

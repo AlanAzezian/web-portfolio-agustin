@@ -152,14 +152,14 @@ export default function Navbar() {
               key={link.path}
               href={link.path}
               className={`relative text-sm font-medium transition-colors ${
-                pathname === link.path ? "text-[#1C1C1A]" : "text-[#686661] hover:text-[#1C1C1A]"
+                pathname === link.path ? "text-acento" : "text-[#686661] hover:text-acento"
               }`}
             >
               {link.name}
               {pathname === link.path && (
                 <motion.div
                   layoutId="navbar-indicator"
-                  className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#1C1C1A]"
+                  className="absolute -bottom-1 left-0 right-0 h-[2px] bg-acento"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
