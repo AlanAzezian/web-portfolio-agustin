@@ -90,7 +90,7 @@ function AnimatedLogo() {
     : STATES[step];
 
   return (
-    <Link href="/" aria-label="Agustín Fabrizio" className="font-redaction italic text-xl flex relative items-center whitespace-pre">
+    <Link href="/" aria-label="Agustín Fabrizio" className="font-redaction italic text-3xl flex relative items-center whitespace-pre">
       <span className="invisible select-none pointer-events-none" aria-hidden="true">Agustín Fabrizio</span>
       <div className="absolute left-0 top-0 flex text-[#1C1C1A]">
         <span>A</span>
