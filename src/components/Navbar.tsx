@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
-import React, { useEffect, useRef } from "react";
-import gsap from "gsap";
+import React, { useEffect, useRef, useState } from "react";
 
 const links = [
   { name: "Inicio", path: "/" },
@@ -14,41 +13,92 @@ const links = [
   { name: "Bio & Contacto", path: "/bio" },
 ];
 
+const sequence = [
+  { gustin: false, abrizio: false, pause: 5500 }, // 1. AF
+  { gustin: true,  abrizio: true,  pause: 2500 }, // 2. Agustín Fabrizio
+  { gustin: false, abrizio: false, pause: 5500 }, // 3. AF
+  { gustin: true,  abrizio: false, pause: 2500 }, // 4. Agustín F
+  { gustin: false, abrizio: true,  pause: 2500 }, // 5. A Fabrizio
+];
+
 function AnimatedLogo() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const isInitial = useRef(true);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      
-      if (prefersReducedMotion) {
-        gsap.set(".logo-char", { display: "inline-block" });
-        return;
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setReducedMotion(prefersReduced);
+    if (prefersReduced) return;
+
+    let timer: NodeJS.Timeout;
+    let startTime = Date.now();
+    let remaining = sequence[step].pause + (isInitial.current ? 0 : 2000);
+    isInitial.current = false;
+
+    const tick = () => {
+      setStep((s) => (s + 1) % sequence.length);
+    };
+
+    const startTimer = (timeToWait: number) => {
+      timer = setTimeout(tick, timeToWait);
+      startTime = Date.now();
+      remaining = timeToWait;
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        clearTimeout(timer);
+        remaining = Math.max(0, remaining - (Date.now() - startTime));
+      } else {
+        startTimer(remaining);
       }
+    };
 
-      const tl = gsap.timeline({ delay: 0.8 });
-      tl.to(".logo-char", {
-        display: "inline-block",
-        duration: 0.01,
-        stagger: 0.08,
-      });
-    }, containerRef);
+    startTimer(remaining);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [step]);
 
-    return () => ctx.revert();
-  }, []);
+  const { gustin, abrizio } = reducedMotion 
+    ? { gustin: true, abrizio: true } 
+    : sequence[step];
 
   return (
     <Link href="/" aria-label="Agustín Fabrizio" className="font-redaction italic text-xl flex relative items-center">
-      <span className="invisible opacity-0 select-none pointer-events-none">Agustín Fabrizio</span>
-      <div ref={containerRef} className="absolute left-0 top-0 flex whitespace-pre text-[#1C1C1A]" aria-hidden="true">
+      <span className="invisible select-none pointer-events-none">Agustín Fabrizio</span>
+      <div className="absolute left-0 top-0 flex whitespace-pre text-[#1C1C1A]" aria-hidden="true">
         <span>A</span>
-        {'gustín '.split('').map((char, i) => (
-          <span key={`p1-${i}`} className="logo-char hidden">{char}</span>
-        ))}
+        <motion.div
+          initial={false}
+          animate={{ width: gustin ? "auto" : 0, opacity: gustin ? 1 : 0 }}
+          transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
+          className="overflow-hidden flex"
+        >
+          <span>gustín</span>
+        </motion.div>
+        
+        <motion.div
+          initial={false}
+          animate={{ width: (gustin || abrizio) ? "auto" : 0, opacity: (gustin || abrizio) ? 1 : 0 }}
+          transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
+          className="overflow-hidden flex"
+        >
+          <span> </span>
+        </motion.div>
+
         <span>F</span>
-        {'abrizio'.split('').map((char, i) => (
-          <span key={`p2-${i}`} className="logo-char hidden">{char}</span>
-        ))}
+        <motion.div
+          initial={false}
+          animate={{ width: abrizio ? "auto" : 0, opacity: abrizio ? 1 : 0 }}
+          transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
+          className="overflow-hidden flex"
+        >
+          <span>abrizio</span>
+        </motion.div>
       </div>
     </Link>
   );
