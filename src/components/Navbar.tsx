@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 import React, { useEffect, useRef, useState } from "react";
 
@@ -14,107 +14,126 @@ const links = [
 ];
 
 const STATES = [
-  { mid: "", tail: "", pause: 5500 },
-  { mid: "gustín ", tail: "abrizio", pause: 2750 },
-  { mid: "", tail: "", pause: 5500 },
-  { mid: "gustín ", tail: "", pause: 2750 },
-  { mid: " ", tail: "abrizio", pause: 2750 },
+  { gustin: false, abrizio: false, pause: 5500 }, // AF
+  { gustin: true,  abrizio: true,  pause: 2750 }, // Agustín Fabrizio
+  { gustin: false, abrizio: false, pause: 5500 }, // AF
+  { gustin: true,  abrizio: false, pause: 2750 }, // Agustín F
+  { gustin: false, abrizio: true,  pause: 2750 }, // A Fabrizio
 ];
 
-function getCommonPrefix(a: string, b: string) {
-  let i = 0;
-  while (i < a.length && i < b.length && a[i] === b[i]) {
-    i++;
+const containerVariants: Variants = {
+  visible: {
+    transition: { staggerChildren: 0.08 }
+  },
+  hidden: {
+    transition: { staggerChildren: 0.04, staggerDirection: -1 }
   }
-  return a.substring(0, i);
-}
+};
+
+const charVariants: Variants = {
+  visible: { 
+    width: "auto", 
+    opacity: 1, 
+    transition: { duration: 0.4, ease: "easeOut" } 
+  },
+  hidden: { 
+    width: 0, 
+    opacity: 0, 
+    transition: { duration: 0.4, ease: "easeIn" } 
+  }
+};
 
 function AnimatedLogo() {
-  const [currentMid, setCurrentMid] = useState("");
-  const [currentTail, setCurrentTail] = useState("");
+  const [step, setStep] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const isInitial = useRef(true);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setReducedMotion(prefersReduced);
-    if (prefersReduced) {
-      setCurrentMid("gustín ");
-      setCurrentTail("abrizio");
-      return;
-    }
+    if (prefersReduced) return;
 
-    let isUnmounted = false;
     let timer: NodeJS.Timeout;
-    
-    // Internal mutable state to track current string during async loop
-    let mid = "";
-    let tail = "";
-    let stateIdx = 0;
-    
-    const tick = async () => {
-      while (!isUnmounted) {
-        if (document.hidden) {
-          // Poll every 500ms when hidden
-          await new Promise(r => { timer = setTimeout(r, 500) });
-          continue;
-        }
+    let startTime = Date.now();
+    let remaining = STATES[step].pause + (isInitial.current ? 0 : 1500); // approx transition time
+    isInitial.current = false;
 
-        const targetMid = STATES[stateIdx].mid;
-        const targetTail = STATES[stateIdx].tail;
-        const pauseTime = STATES[stateIdx].pause;
+    const tick = () => {
+      setStep((s) => (s + 1) % STATES.length);
+    };
 
-        // 1. Delete tail
-        const prefixTail = getCommonPrefix(tail, targetTail);
-        while (tail.length > prefixTail.length && !isUnmounted) {
-          tail = tail.slice(0, -1);
-          setCurrentTail(tail);
-          await new Promise(r => { timer = setTimeout(r, 140) });
-        }
+    const startTimer = (timeToWait: number) => {
+      timer = setTimeout(tick, timeToWait);
+      startTime = Date.now();
+      remaining = timeToWait;
+    };
 
-        // 2. Delete mid
-        const prefixMid = getCommonPrefix(mid, targetMid);
-        while (mid.length > prefixMid.length && !isUnmounted) {
-          mid = mid.slice(0, -1);
-          setCurrentMid(mid);
-          await new Promise(r => { timer = setTimeout(r, 140) });
-        }
-
-        // 3. Type mid
-        while (mid.length < targetMid.length && !isUnmounted) {
-          mid = targetMid.substring(0, mid.length + 1);
-          setCurrentMid(mid);
-          await new Promise(r => { timer = setTimeout(r, 140) });
-        }
-
-        // 4. Type tail
-        while (tail.length < targetTail.length && !isUnmounted) {
-          tail = targetTail.substring(0, tail.length + 1);
-          setCurrentTail(tail);
-          await new Promise(r => { timer = setTimeout(r, 140) });
-        }
-
-        if (isUnmounted) break;
-
-        // Wait for pause time
-        await new Promise(r => { timer = setTimeout(r, pauseTime) });
-        
-        stateIdx = (stateIdx + 1) % STATES.length;
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        clearTimeout(timer);
+        remaining = Math.max(0, remaining - (Date.now() - startTime));
+      } else {
+        startTimer(remaining);
       }
     };
 
-    tick();
-
+    startTimer(remaining);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      isUnmounted = true;
       clearTimeout(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [step]);
+
+  const { gustin, abrizio } = reducedMotion 
+    ? { gustin: true, abrizio: true } 
+    : STATES[step];
 
   return (
     <Link href="/" aria-label="Agustín Fabrizio" className="font-redaction italic text-xl flex relative items-center whitespace-pre">
       <span className="invisible select-none pointer-events-none" aria-hidden="true">Agustín Fabrizio</span>
       <div className="absolute left-0 top-0 flex text-[#1C1C1A]">
-        <span>A{currentMid}F{currentTail}</span>
+        <span>A</span>
+        
+        <motion.div
+          variants={containerVariants}
+          initial={false}
+          animate={gustin ? "visible" : "hidden"}
+          className="flex overflow-hidden"
+        >
+          {"gustín".split("").map((char, i) => (
+            <motion.span key={i} variants={charVariants} className="inline-block">
+              {char}
+            </motion.span>
+          ))}
+        </motion.div>
+
+        <motion.div
+          variants={containerVariants}
+          initial={false}
+          animate={(gustin || abrizio) ? "visible" : "hidden"}
+          className="flex overflow-hidden"
+        >
+          <motion.span variants={charVariants} className="inline-block">
+            {" "}
+          </motion.span>
+        </motion.div>
+
+        <span>F</span>
+
+        <motion.div
+          variants={containerVariants}
+          initial={false}
+          animate={abrizio ? "visible" : "hidden"}
+          className="flex overflow-hidden"
+        >
+          {"abrizio".split("").map((char, i) => (
+            <motion.span key={i} variants={charVariants} className="inline-block">
+              {char}
+            </motion.span>
+          ))}
+        </motion.div>
+        
       </div>
     </Link>
   );
