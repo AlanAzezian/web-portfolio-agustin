@@ -36,7 +36,7 @@ export default function EditorialOverlay() {
 
       {/* Cursor Custom */}
       <motion.div
-        className="fixed top-0 left-0 w-4 h-4 rounded-full bg-acento mix-blend-difference flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2"
+        className="fixed top-0 left-0 w-4 h-4 rounded-full bg-white mix-blend-difference flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2"
         animate={{
           x: mousePosition.x,
           y: mousePosition.y,
@@ -50,7 +50,7 @@ export default function EditorialOverlay() {
         }}
       >
         {isHovering && cursorLabel && (
-          <span className="text-[4px] font-mono text-background tracking-widest uppercase">
+          <span className="text-[4px] font-mono text-black tracking-widest uppercase">
             {cursorLabel}
           </span>
         )}

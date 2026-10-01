@@ -13,92 +13,108 @@ const links = [
   { name: "Bio & Contacto", path: "/bio" },
 ];
 
-const sequence = [
-  { gustin: false, abrizio: false, pause: 5500 }, // 1. AF
-  { gustin: true,  abrizio: true,  pause: 2500 }, // 2. Agustín Fabrizio
-  { gustin: false, abrizio: false, pause: 5500 }, // 3. AF
-  { gustin: true,  abrizio: false, pause: 2500 }, // 4. Agustín F
-  { gustin: false, abrizio: true,  pause: 2500 }, // 5. A Fabrizio
+const STATES = [
+  { mid: "", tail: "", pause: 5500 },
+  { mid: "gustín ", tail: "abrizio", pause: 2750 },
+  { mid: "", tail: "", pause: 5500 },
+  { mid: "gustín ", tail: "", pause: 2750 },
+  { mid: " ", tail: "abrizio", pause: 2750 },
 ];
 
+function getCommonPrefix(a: string, b: string) {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) {
+    i++;
+  }
+  return a.substring(0, i);
+}
+
 function AnimatedLogo() {
-  const [step, setStep] = useState(0);
+  const [currentMid, setCurrentMid] = useState("");
+  const [currentTail, setCurrentTail] = useState("");
   const [reducedMotion, setReducedMotion] = useState(false);
-  const isInitial = useRef(true);
 
   useEffect(() => {
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setReducedMotion(prefersReduced);
-    if (prefersReduced) return;
+    if (prefersReduced) {
+      setCurrentMid("gustín ");
+      setCurrentTail("abrizio");
+      return;
+    }
 
+    let isUnmounted = false;
     let timer: NodeJS.Timeout;
-    let startTime = Date.now();
-    let remaining = sequence[step].pause + (isInitial.current ? 0 : 2000);
-    isInitial.current = false;
+    
+    // Internal mutable state to track current string during async loop
+    let mid = "";
+    let tail = "";
+    let stateIdx = 0;
+    
+    const tick = async () => {
+      while (!isUnmounted) {
+        if (document.hidden) {
+          // Poll every 500ms when hidden
+          await new Promise(r => { timer = setTimeout(r, 500) });
+          continue;
+        }
 
-    const tick = () => {
-      setStep((s) => (s + 1) % sequence.length);
-    };
+        const targetMid = STATES[stateIdx].mid;
+        const targetTail = STATES[stateIdx].tail;
+        const pauseTime = STATES[stateIdx].pause;
 
-    const startTimer = (timeToWait: number) => {
-      timer = setTimeout(tick, timeToWait);
-      startTime = Date.now();
-      remaining = timeToWait;
-    };
+        // 1. Delete tail
+        const prefixTail = getCommonPrefix(tail, targetTail);
+        while (tail.length > prefixTail.length && !isUnmounted) {
+          tail = tail.slice(0, -1);
+          setCurrentTail(tail);
+          await new Promise(r => { timer = setTimeout(r, 140) });
+        }
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        clearTimeout(timer);
-        remaining = Math.max(0, remaining - (Date.now() - startTime));
-      } else {
-        startTimer(remaining);
+        // 2. Delete mid
+        const prefixMid = getCommonPrefix(mid, targetMid);
+        while (mid.length > prefixMid.length && !isUnmounted) {
+          mid = mid.slice(0, -1);
+          setCurrentMid(mid);
+          await new Promise(r => { timer = setTimeout(r, 140) });
+        }
+
+        // 3. Type mid
+        while (mid.length < targetMid.length && !isUnmounted) {
+          mid = targetMid.substring(0, mid.length + 1);
+          setCurrentMid(mid);
+          await new Promise(r => { timer = setTimeout(r, 140) });
+        }
+
+        // 4. Type tail
+        while (tail.length < targetTail.length && !isUnmounted) {
+          tail = targetTail.substring(0, tail.length + 1);
+          setCurrentTail(tail);
+          await new Promise(r => { timer = setTimeout(r, 140) });
+        }
+
+        if (isUnmounted) break;
+
+        // Wait for pause time
+        await new Promise(r => { timer = setTimeout(r, pauseTime) });
+        
+        stateIdx = (stateIdx + 1) % STATES.length;
       }
     };
 
-    startTimer(remaining);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [step]);
+    tick();
 
-  const { gustin, abrizio } = reducedMotion 
-    ? { gustin: true, abrizio: true } 
-    : sequence[step];
+    return () => {
+      isUnmounted = true;
+      clearTimeout(timer);
+    };
+  }, []);
 
   return (
-    <Link href="/" aria-label="Agustín Fabrizio" className="font-redaction italic text-xl flex relative items-center">
-      <span className="invisible select-none pointer-events-none">Agustín Fabrizio</span>
-      <div className="absolute left-0 top-0 flex whitespace-pre text-[#1C1C1A]" aria-hidden="true">
-        <span>A</span>
-        <motion.div
-          initial={false}
-          animate={{ width: gustin ? "auto" : 0, opacity: gustin ? 1 : 0 }}
-          transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
-          className="overflow-hidden flex"
-        >
-          <span>gustín</span>
-        </motion.div>
-        
-        <motion.div
-          initial={false}
-          animate={{ width: (gustin || abrizio) ? "auto" : 0, opacity: (gustin || abrizio) ? 1 : 0 }}
-          transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
-          className="overflow-hidden flex"
-        >
-          <span> </span>
-        </motion.div>
-
-        <span>F</span>
-        <motion.div
-          initial={false}
-          animate={{ width: abrizio ? "auto" : 0, opacity: abrizio ? 1 : 0 }}
-          transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
-          className="overflow-hidden flex"
-        >
-          <span>abrizio</span>
-        </motion.div>
+    <Link href="/" aria-label="Agustín Fabrizio" className="font-redaction italic text-xl flex relative items-center whitespace-pre">
+      <span className="invisible select-none pointer-events-none" aria-hidden="true">Agustín Fabrizio</span>
+      <div className="absolute left-0 top-0 flex text-[#1C1C1A]">
+        <span>A{currentMid}F{currentTail}</span>
       </div>
     </Link>
   );
