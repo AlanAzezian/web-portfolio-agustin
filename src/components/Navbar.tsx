@@ -23,10 +23,10 @@ const STATES = [
 
 const containerVariants: Variants = {
   visible: {
-    transition: { staggerChildren: 0.08 }
+    transition: { staggerChildren: 0.15 }
   },
   hidden: {
-    transition: { staggerChildren: 0.04, staggerDirection: -1 }
+    transition: { staggerChildren: 0.1, staggerDirection: -1 }
   }
 };
 
@@ -55,7 +55,7 @@ function AnimatedLogo() {
 
     let timer: NodeJS.Timeout;
     let startTime = Date.now();
-    let remaining = STATES[step].pause + (isInitial.current ? 0 : 1500); // approx transition time
+    let remaining = STATES[step].pause + (isInitial.current ? 0 : 2500); // approx transition time
     isInitial.current = false;
 
     const tick = () => {
