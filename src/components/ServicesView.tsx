@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 const services = [
   {
@@ -33,6 +34,8 @@ const methodology = [
 ];
 
 export default function ServicesView() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
   return (
     <div className="max-w-6xl mx-auto px-6 md:px-12 py-32 min-h-screen">
       <motion.div
@@ -44,30 +47,58 @@ export default function ServicesView() {
           Soluciones arquitectónicas pensadas para construir y perdurar.
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16 mb-32 pt-12">
-          {services.map((service, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 + 0.2, duration: 0.5 }}
-              className="flex flex-col pb-8"
-            >
-              <span className="font-sans font-light text-4xl text-foreground/40 mb-2">{String(i + 1).padStart(2, '0')}</span>
-              <h3 className="text-3xl font-sans font-light text-foreground mb-4 leading-tight">{service.title}</h3>
-              <p className="text-foreground/80 font-sans leading-relaxed">{service.description}</p>
-              
-              {/* Insert CTA every 3 services (or at the end of odd indices if we want it distributed) */}
-              {(i === 1 || i === 3) && (
-                <div className="mt-8 pt-6">
-                  <span className="font-mono text-xs uppercase tracking-widest text-acento block mb-2">Comencemos un proyecto</span>
-                  <a href="mailto:hola@agustinfabrizio.com" className="font-sans font-light text-xl text-foreground hover:text-acento transition-colors">
-                    Solicitar cotización &rarr;
-                  </a>
-                </div>
-              )}
-            </motion.div>
-          ))}
+        <div className="flex flex-col mb-32 pt-12 border-t border-foreground/10">
+          {services.map((service, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <div key={i} className="border-b border-foreground/10">
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  className="w-full py-8 flex items-center justify-between focus:outline-none group text-left"
+                >
+                  <div className="flex items-baseline space-x-6 md:space-x-12">
+                    <span className="font-sans font-light text-xl text-foreground/40 w-8">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <h3 className="text-2xl md:text-4xl font-sans font-light text-foreground group-hover:text-foreground/70 transition-colors">
+                      {service.title}
+                    </h3>
+                  </div>
+                  <div className="text-3xl font-light text-foreground/40 transition-transform duration-300">
+                    <motion.div
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {isOpen ? '−' : '+'}
+                    </motion.div>
+                  </div>
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pb-12 pl-14 md:pl-20">
+                        <p className="text-foreground/80 font-sans leading-relaxed text-lg max-w-3xl mb-8">
+                          {service.description}
+                        </p>
+                        <div className="mt-4">
+                          <span className="font-mono text-xs uppercase tracking-widest text-acento block mb-2">Comencemos un proyecto</span>
+                          <a href="mailto:hola@agustinfabrizio.com" className="font-sans font-light text-xl text-foreground hover:text-acento transition-colors">
+                            Solicitar cotización &rarr;
+                          </a>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
 
         <div className="pt-12">
