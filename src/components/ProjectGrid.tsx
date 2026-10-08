@@ -1,75 +1,44 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { projects, Project } from "@/data/projects";
-import ProjectModal from "./ProjectModal";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { projects } from "@/data/projects";
 
 export default function ProjectGrid() {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  useEffect(() => {
-    const projectId = searchParams.get("proyecto");
-    if (projectId) {
-      const proj = projects.find(p => p.id === projectId);
-      if (proj) setSelectedProject(proj);
-    }
-  }, [searchParams]);
-
-  const handleClose = () => {
-    setSelectedProject(null);
-    if (searchParams.has("proyecto")) {
-      router.replace("/proyectos", { scroll: false });
-    }
-  };
-
-  const aspectRatios = ["aspect-[16/9]", "aspect-[3/4]", "aspect-[4/3]", "aspect-[2/3]", "aspect-[3/2]"];
-
   return (
-    <>
-      <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-32 min-h-screen">
-        <div className="columns-1 md:columns-2 lg:columns-3 2xl:columns-4 gap-8">
-          {projects.map((project, i) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: (i % 8) * 0.1, duration: 0.5, ease: "easeOut" }}
-              className={`relative w-full overflow-hidden cursor-pointer group bg-background break-inside-avoid mb-8 ${aspectRatios[i % aspectRatios.length]}`}
-              onClick={() => setSelectedProject(project)}
+    <div className="max-w-4xl mx-auto px-6 lg:px-12 py-32 min-h-screen flex flex-col items-center justify-center">
+      {projects.map((project, i) => (
+        <Link href={`/proyectos/${project.id}`} key={project.id} className="w-full block">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
+            className="relative w-full overflow-hidden cursor-pointer group bg-[#F8F7F4]"
+          >
+            <Image
+              src={project.coverImage}
+              alt={project.title}
+              width={1920}
+              height={1080}
+              className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              sizes="(max-width: 1024px) 100vw, 1024px"
+              priority
+            />
+
+            <motion.div 
+              className="absolute inset-0 bg-[#F8F7F4]/90 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-8 z-20 text-center"
             >
-              <Image
-                src={project.coverImage}
-                alt={project.title}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1400px) 33vw, 25vw"
-              />
-
-              <motion.div 
-                className="absolute inset-0 bg-background/95 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6 z-20"
-              >
-                <h3 className="font-sans font-light text-4xl lg:text-5xl leading-[0.9] text-foreground -ml-1 overflow-hidden tracking-tighter">
-                  {project.title}
-                </h3>
-              </motion.div>
+              <h3 className="font-sans font-light text-3xl md:text-5xl leading-tight text-[#1C1C1A] tracking-tight max-w-2xl">
+                {project.title}
+              </h3>
+              <span className="mt-8 text-[#099AD7] font-mono text-sm uppercase tracking-widest flex items-center gap-2">
+                Ver proyecto <span className="text-lg">→</span>
+              </span>
             </motion.div>
-          ))}
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {selectedProject && (
-          <ProjectModal project={selectedProject} onClose={handleClose} />
-        )}
-      </AnimatePresence>
-    </>
+          </motion.div>
+        </Link>
+      ))}
+    </div>
   );
 }
-
-
-
