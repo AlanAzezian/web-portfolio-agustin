@@ -12,8 +12,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <main className="min-h-screen bg-[#F8F7F4] text-[#1C1C1A] flex flex-col pt-24">
-      <div className="px-6 md:px-12 py-8 flex flex-col md:flex-row justify-between items-start md:items-end shrink-0 gap-6">
+    <main className="h-screen max-h-screen overflow-hidden bg-[#F8F7F4] text-[#1C1C1A] flex flex-col justify-between py-6 px-8 md:px-16 pt-24">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end shrink-0 gap-6 mb-8">
         <h1 className="font-sans font-light text-3xl md:text-5xl tracking-tighter max-w-4xl">
           {project.title}
         </h1>
@@ -25,8 +25,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </Link>
       </div>
 
-      <div className="flex-1 w-full overflow-hidden relative flex items-center pb-12">
-        <HorizontalScrollGallery images={project.images} title={project.title} />
+      <div className="flex-1 w-full relative flex items-center justify-center min-h-0 pb-4">
+        <div className="h-full w-full">
+          <HorizontalScrollGallery images={project.images} title={project.title} />
+        </div>
       </div>
     </main>
   );
