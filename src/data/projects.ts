@@ -1,87 +1,28 @@
 export interface Project {
   id: string;
   title: string;
-  category: string;
-  imageUrl: string;
-  link: string;
-  client?: string;
-  year?: string;
-  area?: string;
-  focalPoint?: string;
-  homeImage?: string;
+  coverImage: string;
+  images: string[];
 }
 
 export const projects: Project[] = [
   {
-    id: "1",
-    title: "Utopía Productiva | A4 Red Ferrari",
-    category: "Académico",
-    imageUrl: "/projects/utopia.png",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "A4 Red Ferrari",
-    year: "2024"
+    id: "centro-de-trasbordo-quilmes",
+    title: "Centro de Trasbordo — Triángulo de Bernal, Quilmes",
+    coverImage: "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",
+    images: [
+      // 1. RENDERS 3D PRIMERO:
+      "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",
+      "/projects/projects/centro-de-trasbordo/02-render-hall-escalera.jpg.png",
+      "/projects/projects/centro-de-trasbordo/03-render-patio-vidriado.jpg.png",
+      "/projects/projects/centro-de-trasbordo/04-render-cafeteria-exterior.jpg.png",
+      "/projects/projects/centro-de-trasbordo/05-render-nave-darsena.jpg.png",
+
+      // 2. PLANOS TÉCNICOS AL FINAL:
+      "/projects/projects/centro-de-trasbordo/06-plano-planta-baja.jpg.png",
+      "/projects/projects/centro-de-trasbordo/07-plano-planta-alta.png.png",
+      "/projects/projects/centro-de-trasbordo/08-plano-vistas.jpg.png",
+      "/projects/projects/centro-de-trasbordo/09-plano-secciones-cortes.jpg.png",
+    ],
   },
-  {
-    id: "2",
-    title: "Centro de Trasbordo | Taller A77",
-    category: "Académico",
-    imageUrl: "/projects/transbordo.jpg",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Taller A77",
-    year: "2023"
-  },
-  {
-    id: "3",
-    title: "L'Avenue | Kuanqa / Engasa",
-    category: "Experiencia Laboral",
-    imageUrl: "/projects/lavenue.jpg",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Kuanqa / Engasa",
-    year: "2023"
-  },
-  {
-    id: "4",
-    title: "Planos Comerciales | Miranda Bosch",
-    category: "Comercial",
-    imageUrl: "/projects/miranda-bosch.jpg",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Miranda Bosch",
-    year: "2023"
-  },
-  {
-    id: "5",
-    title: "Concurso Conjunto 50 Viviendas",
-    category: "Concursos",
-    imageUrl: "/projects/50-viviendas.jpg",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Concurso",
-    year: "2024"
-  },
-  {
-    id: "6",
-    title: "Frentes para Gastón y Micaela",
-    category: "Residencial",
-    imageUrl: "/projects/frentes.png",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "Gastón y Micaela",
-    year: "2022"
-  },
-  {
-    id: "7",
-    title: "BAVSA x RB Espacios",
-    category: "Interiores",
-    imageUrl: "/projects/bavsa.png",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "BAVSA / RB Espacios",
-    year: "2022"
-  },
-  {
-    id: "8",
-    title: "Acceso PNLQ",
-    category: "Diseño Urbano",
-    imageUrl: "/projects/acceso-pnlq.png",
-    link: "https://www.behance.net/agustinfabrizio",
-    client: "PNLQ",
-    year: "2024"
-  }
 ];

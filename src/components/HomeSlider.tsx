@@ -41,13 +41,13 @@ export default function HomeSlider() {
             className="absolute inset-0"
           >
             <Image
-              src={projects[activeIndex].homeImage || projects[activeIndex].imageUrl}
+              src={projects[activeIndex].coverImage}
               alt={projects[activeIndex].title}
               fill
               sizes="(max-width: 768px) 90vw, 1120px"
               className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
               style={{ 
-                objectPosition: projects[activeIndex].focalPoint || "50% 50%" 
+                objectPosition: "50% 50%" 
               }}
               priority
             />

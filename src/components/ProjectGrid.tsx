@@ -43,7 +43,7 @@ export default function ProjectGrid() {
               onClick={() => setSelectedProject(project)}
             >
               <Image
-                src={project.imageUrl}
+                src={project.coverImage}
                 alt={project.title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -51,20 +51,8 @@ export default function ProjectGrid() {
               />
 
               <motion.div 
-                className="absolute inset-0 bg-background/95 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6 z-20"
+                className="absolute inset-0 bg-background/95 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-6 z-20"
               >
-                <div className="flex flex-col gap-2 mt-8 font-mono text-xs uppercase text-foreground/80">
-                  <span className="pb-1 flex justify-between">
-                    <span>CategorÃ­a</span> <span>{project.category}</span>
-                  </span>
-                  <span className="pb-1 flex justify-between">
-                    <span>AÃ±o</span> <span>{project.year || "2026"}</span>
-                  </span>
-                  <span className="pb-1 flex justify-between">
-                    <span>Ãrea</span> <span>{project.area || "N/A"} mÂ²</span>
-                  </span>
-                </div>
-                
                 <h3 className="font-sans font-light text-4xl lg:text-5xl leading-[0.9] text-foreground -ml-1 overflow-hidden tracking-tighter">
                   {project.title}
                 </h3>
