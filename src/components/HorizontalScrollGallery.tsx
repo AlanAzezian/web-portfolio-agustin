@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 
 export default function HorizontalScrollGallery({ images, title }: { images: string[], title: string }) {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, Variants } from "framer-motion";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const links = [
   { name: "Inicio", path: "/" },
@@ -43,15 +43,37 @@ const charVariants: Variants = {
   }
 };
 
+function subscribeReducedMotion(callback: () => void) {
+  if (typeof window === "undefined" || !window.matchMedia) {
+    return () => {};
+  }
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+
+function getReducedMotionSnapshot() {
+  if (typeof window === "undefined" || !window.matchMedia) {
+    return false;
+  }
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
 function AnimatedLogo() {
   const [step, setStep] = useState(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getServerSnapshot
+  );
   const isInitial = useRef(true);
 
   useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setReducedMotion(prefersReduced);
-    if (prefersReduced) return;
+    if (reducedMotion) return;
 
     let timer: NodeJS.Timeout;
     let startTime = Date.now();
@@ -83,7 +105,7 @@ function AnimatedLogo() {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [step]);
+  }, [step, reducedMotion]);
 
   const { gustin, abrizio } = reducedMotion 
     ? { gustin: true, abrizio: true } 
