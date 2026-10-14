@@ -171,14 +171,14 @@ export default function Navbar() {
     }`}>
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
         <AnimatedLogo />
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-8 font-sans">
           {links.map((link) => {
             const isActive = link.path === "/" ? pathname === "/" : pathname.startsWith(link.path);
             return (
               <Link
                 key={link.path}
                 href={link.path}
-                className={`text-sm transition-colors duration-200 ${
+                className={`font-sans text-sm transition-colors duration-200 ${
                   isActive
                     ? "text-[#099AD7] font-bold"
                     : "text-[#686661] font-normal hover:text-[#099AD7]"

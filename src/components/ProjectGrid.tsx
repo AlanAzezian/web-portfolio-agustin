@@ -27,7 +27,7 @@ export default function ProjectGrid() {
           <button
             type="button"
             onClick={() => setSelectedTag(null)}
-            className={`text-xs uppercase tracking-widest font-mono transition-colors duration-200 cursor-pointer ${
+            className={`text-xs uppercase tracking-wider font-unica transition-colors duration-200 cursor-pointer ${
               selectedTag === null
                 ? "text-[#099AD7] font-bold"
                 : "text-[#686661] font-normal hover:text-[#099AD7]"
@@ -43,7 +43,7 @@ export default function ProjectGrid() {
                 key={tag}
                 type="button"
                 onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
-                className={`text-xs uppercase tracking-widest font-mono transition-colors duration-200 cursor-pointer ${
+                className={`text-xs uppercase tracking-wider font-unica transition-colors duration-200 cursor-pointer ${
                   isSelected
                     ? "text-[#099AD7] font-bold"
                     : "text-[#686661] font-normal hover:text-[#099AD7]"

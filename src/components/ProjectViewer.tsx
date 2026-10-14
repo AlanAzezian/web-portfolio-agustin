@@ -122,9 +122,9 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
         </Link>
       </div>
 
-      {/* Esquina inferior derecha: Contador numérico editorial */}
+      {/* Esquina inferior derecha: Contador numérico editorial estilo plano */}
       <div className="fixed bottom-6 right-8 md:bottom-8 md:right-16 z-30 pointer-events-auto">
-        <span className="font-mono text-xs md:text-sm text-[#1C1C1A] tracking-widest tabular-nums">
+        <span className="font-unica text-xs md:text-sm text-[#1C1C1A] tracking-wider tabular-nums">
           {formattedCurrent} / {formattedTotal}
         </span>
       </div>
