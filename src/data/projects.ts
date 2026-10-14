@@ -3,6 +3,7 @@ export interface Project {
   title: string;
   coverImage: string;
   images: string[];
+  tags?: string[];
 }
 
 export const projects: Project[] = [
@@ -10,6 +11,7 @@ export const projects: Project[] = [
     id: "centro-de-trasbordo-quilmes",
     title: "Centro de Trasbordo — Triángulo de Bernal, Quilmes",
     coverImage: "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",
+    tags: ["Visualización", "Renders", "Planimetría", "Concurso"],
     images: [
       // 1. RENDERS 3D PRIMERO:
       "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",
