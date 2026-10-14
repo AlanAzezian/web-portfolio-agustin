@@ -63,7 +63,11 @@ body {
   color: var(--foreground) !important;
 }
 
-/* Ocultar barra nativa de la ventana */
+/* Ocultar barra nativa de la ventana y scroll suave */
+html {
+  scroll-behavior: smooth;
+}
+
 html, body {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
