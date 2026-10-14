@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 export default function Template({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isProjectDetail = pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -13,7 +15,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="pt-20"
+        className={isProjectDetail ? "bg-white" : "pt-20"}
       >
         {children}
       </motion.div>
