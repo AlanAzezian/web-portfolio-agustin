@@ -78,8 +78,8 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Visor central de imagen/plano */}
-      <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 pt-20 pb-16">
+      {/* Visor central de imagen/plano perfectamente centrado sin Navbar */}
+      <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14">
         <AnimatePresence mode="wait">
           <motion.img
             key={currentIndex}
@@ -89,7 +89,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="h-[78vh] md:h-[80vh] w-auto max-w-full max-h-[80vh] object-contain block pointer-events-none shadow-none"
+            className="h-[80vh] md:h-[82vh] w-auto max-w-full max-h-[82vh] object-contain block pointer-events-none shadow-none"
           />
         </AnimatePresence>
 

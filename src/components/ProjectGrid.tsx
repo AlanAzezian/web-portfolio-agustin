@@ -20,10 +20,10 @@ export default function ProjectGrid() {
   }, [selectedTag]);
 
   return (
-    <div className="w-full px-6 md:px-12 lg:px-16 max-w-none py-28 md:py-32 min-h-screen">
-      {/* Selector de tags / filtros preparado en la parte superior */}
+    <div className="w-full px-8 md:px-16 max-w-none pt-4 md:pt-6 pb-24 md:pb-32 min-h-screen">
+      {/* Selector de tags / filtros preparado en la parte superior (compactado respecto al Navbar) */}
       {allTags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-4 md:gap-6 mb-10">
+        <div className="flex flex-wrap items-center gap-4 md:gap-6">
           <button
             type="button"
             onClick={() => setSelectedTag(null)}
@@ -56,8 +56,8 @@ export default function ProjectGrid() {
         </div>
       )}
 
-      {/* Retícula de 4 columnas a ancho completo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      {/* Retícula de 4 columnas con métricas exactas Adamo-Faiden: gap de 13.5px y mt de 23px */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] mt-[23px]">
         <AnimatePresence mode="popLayout">
           {filteredProjects.map((project, i) => (
             <Link href={`/proyectos/${project.id}`} key={project.id} className="group block w-full">
@@ -69,18 +69,18 @@ export default function ProjectGrid() {
                 transition={{ delay: i * 0.05, duration: 0.4, ease: "easeOut" }}
                 className="flex flex-col w-full"
               >
-                {/* Contenedor de la portada respetando la proporción natural */}
-                <div className="w-full overflow-hidden bg-[#F8F7F4]">
+                {/* Portadas a ancho completo de celda, aspect 3:2 y max-h 310px */}
+                <div className="w-full aspect-[3/2] max-h-[310px] overflow-hidden bg-[#F8F7F4]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={project.coverImage}
                     alt={project.title}
-                    className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02] block"
+                    className="w-full h-full max-h-[310px] object-cover transition-transform duration-500 group-hover:scale-[1.02] block"
                   />
                 </div>
 
-                {/* Título debajo de la imagen con hover al celeste acento */}
-                <h2 className="mt-3.5 text-sm md:text-base font-normal tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
+                {/* Título debajo con métricas Adamo-Faiden: font-unica, 21.12px, line-height 25.344px, color base #999999, hover #099AD7, mt-2.5 */}
+                <h2 className="mt-2.5 font-unica text-[18px] md:text-[21.12px] leading-[22px] md:leading-[25.344px] tracking-tight text-[#999999] group-hover:text-[#099AD7] transition-colors duration-200">
                   {project.title}
                 </h2>
               </motion.div>

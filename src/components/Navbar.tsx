@@ -165,10 +165,12 @@ export default function Navbar() {
   const pathname = usePathname();
   const isProjectDetail = pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
 
+  if (isProjectDetail) {
+    return null;
+  }
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-colors duration-300 ${
-      isProjectDetail ? "bg-white/80" : "bg-[#F8F7F4]/80"
-    }`}>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F8F7F4] transition-colors duration-300">
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
         <AnimatedLogo />
         <div className="hidden md:flex items-center gap-8 font-sans">
