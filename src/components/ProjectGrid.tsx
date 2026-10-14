@@ -27,7 +27,7 @@ export default function ProjectGrid() {
           <button
             type="button"
             onClick={() => setSelectedTag(null)}
-            className={`text-xs uppercase tracking-wider font-unica transition-colors duration-200 cursor-pointer ${
+            className={`text-xs uppercase tracking-wider font-roboto transition-colors duration-200 cursor-pointer ${
               selectedTag === null
                 ? "text-[#099AD7] font-bold"
                 : "text-[#686661] font-normal hover:text-[#099AD7]"
@@ -43,7 +43,7 @@ export default function ProjectGrid() {
                 key={tag}
                 type="button"
                 onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
-                className={`text-xs uppercase tracking-wider font-unica transition-colors duration-200 cursor-pointer ${
+                className={`text-xs uppercase tracking-wider font-roboto transition-colors duration-200 cursor-pointer ${
                   isSelected
                     ? "text-[#099AD7] font-bold"
                     : "text-[#686661] font-normal hover:text-[#099AD7]"
@@ -79,8 +79,8 @@ export default function ProjectGrid() {
                   />
                 </div>
 
-                {/* Título debajo con métricas Adamo-Faiden: font-unica, 21.12px, line-height 25.344px, color base #999999, hover #099AD7, mt-2.5 */}
-                <h2 className="mt-2.5 font-unica text-[18px] md:text-[21.12px] leading-[22px] md:leading-[25.344px] tracking-tight text-[#999999] group-hover:text-[#099AD7] transition-colors duration-200">
+                {/* Título debajo con EB Garamond, color base #999999, hover #099AD7, mt-2.5 */}
+                <h2 className="mt-2.5 font-garamond text-[20px] md:text-[23px] leading-[24px] md:leading-[27px] tracking-tight text-[#999999] group-hover:text-[#099AD7] transition-colors duration-200">
                   {project.title}
                 </h2>
               </motion.div>

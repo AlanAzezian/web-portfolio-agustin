@@ -78,6 +78,14 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Botón superior derecho: Volver a proyectos */}
+      <Link
+        href="/proyectos"
+        className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto text-xs md:text-sm font-normal text-[#1C1C1A] hover:text-[#099AD7] transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto"
+      >
+        <span>←</span> Volver a proyectos
+      </Link>
+
       {/* Visor central de imagen/plano perfectamente centrado sin Navbar */}
       <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14">
         <AnimatePresence mode="wait">
@@ -93,38 +101,34 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
           />
         </AnimatePresence>
 
-        {/* Áreas interactivas transparentes de clic (izquierda / derecha estilo Adamo-Faiden) */}
+        {/* Áreas interactivas con flechas Iconly (izquierda / derecha) */}
         <button
           type="button"
           onClick={prevSlide}
           aria-label="Imagen anterior"
-          data-cursor="PREV"
-          className="absolute inset-y-0 left-0 w-1/2 h-full z-10 cursor-w-resize md:cursor-pointer bg-transparent border-0 outline-none focus:outline-none"
+          data-cursor="arrow-left"
+          className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none"
         />
         <button
           type="button"
           onClick={nextSlide}
           aria-label="Siguiente imagen"
-          data-cursor="NEXT"
-          className="absolute inset-y-0 right-0 w-1/2 h-full z-10 cursor-e-resize md:cursor-pointer bg-transparent border-0 outline-none focus:outline-none"
+          data-cursor="arrow-right"
+          className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none"
         />
       </div>
 
       {/* Metadatos fijos inferiores */}
-      {/* Esquina inferior izquierda: Título del proyecto */}
+      {/* Esquina inferior izquierda: Título del proyecto en EB Garamond */}
       <div className="fixed bottom-6 left-8 md:bottom-8 md:left-16 z-30 pointer-events-auto">
-        <Link
-          href="/proyectos"
-          className="font-sans text-xs md:text-sm font-normal text-[#1C1C1A] hover:text-[#099AD7] transition-colors tracking-tight"
-          title="Volver a Proyectos"
-        >
+        <span className="font-garamond text-base md:text-xl font-normal text-[#1C1C1A] tracking-normal select-none">
           {title}
-        </Link>
+        </span>
       </div>
 
-      {/* Esquina inferior derecha: Contador numérico editorial estilo plano */}
+      {/* Esquina inferior derecha: Contador numérico editorial en Roboto */}
       <div className="fixed bottom-6 right-8 md:bottom-8 md:right-16 z-30 pointer-events-auto">
-        <span className="font-unica text-xs md:text-sm text-[#1C1C1A] tracking-wider tabular-nums">
+        <span className="font-roboto text-xs md:text-sm text-[#1C1C1A] tracking-wider tabular-nums select-none font-normal">
           {formattedCurrent} / {formattedTotal}
         </span>
       </div>

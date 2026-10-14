@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
-import { Roboto, Unica_One, JetBrains_Mono } from "next/font/google";
+import { Roboto, EB_Garamond, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import EditorialOverlay from "@/components/EditorialOverlay";
 
 const roboto = Roboto({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["100", "300", "400", "500", "700", "900"],
   variable: "--font-roboto",
   display: "swap",
 });
 
-const unica = Unica_One({
+const garamond = EB_Garamond({
   subsets: ["latin"],
-  weight: "400",
-  variable: "--font-unica",
+  variable: "--font-garamond",
   display: "swap",
 });
 
@@ -35,8 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${roboto.variable} ${unica.variable} ${jetbrains.variable}`}>
-      <body className="font-sans antialiased bg-background text-foreground min-h-screen">
+    <html lang="es" className={`${roboto.variable} ${garamond.variable} ${jetbrains.variable}`}>
+      <body className="font-roboto antialiased bg-background text-foreground min-h-screen">
         <EditorialOverlay />
         <Navbar />
         {children}

@@ -9,9 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        roboto: ["var(--font-roboto)", "sans-serif"],
         sans: ["var(--font-roboto)", "sans-serif"],
-        unica: ["var(--font-unica)", "sans-serif"],
-        technical: ["var(--font-unica)", "sans-serif"],
+        garamond: ["var(--font-garamond)", "serif"],
+        serif: ["var(--font-garamond)", "serif"],
         redaction: ["var(--font-redaction)", "Georgia", "serif"],
         mono: ["var(--font-mono)", "monospace"],
       },

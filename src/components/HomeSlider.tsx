@@ -53,21 +53,6 @@ export default function HomeSlider() {
             </motion.div>
           </AnimatePresence>
         </div>
-
-        {/* Indicador discreto para descubrir redes */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-40 hover:opacity-100 transition-opacity">
-          <span className="font-unica text-[10px] uppercase tracking-widest text-[#686661] mb-1">
-            Scroll
-          </span>
-          <svg
-            className="w-3.5 h-3.5 text-[#686661] animate-bounce"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
       </section>
 
       {/* 2. SEGUNDO BLOQUE: Redes sociales y créditos descubierto al scrollear */}
