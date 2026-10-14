@@ -9,29 +9,27 @@ export default function ProjectGrid() {
     <div className="max-w-7xl mx-auto px-6 md:px-12 py-32 min-h-screen">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
         {projects.map((project, i) => (
-          <Link href={`/proyectos/${project.id}`} key={project.id} className="w-full block">
+          <Link href={`/proyectos/${project.id}`} key={project.id} className="group block w-full">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
-              className="relative w-full overflow-hidden cursor-pointer group flex flex-col items-center bg-[#F8F7F4]"
+              transition={{ delay: i * 0.08, duration: 0.5, ease: "easeOut" }}
+              className="flex flex-col w-full"
             >
-              <img
-                src={project.coverImage}
-                alt={project.title}
-                className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-[1.03] block"
-              />
+              {/* Contenedor de la portada del proyecto sin overlays */}
+              <div className="w-full overflow-hidden bg-[#F8F7F4]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={project.coverImage}
+                  alt={project.title}
+                  className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02] block"
+                />
+              </div>
 
-              <motion.div 
-                className="absolute inset-0 bg-[#F8F7F4]/90 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-8 z-20 text-center"
-              >
-                <h3 className="font-sans font-light text-2xl md:text-3xl leading-tight text-[#1C1C1A] tracking-tight">
-                  {project.title}
-                </h3>
-                <span className="mt-4 text-[#099AD7] font-mono text-xs uppercase tracking-widest flex items-center gap-2">
-                  Ver proyecto <span>→</span>
-                </span>
-              </motion.div>
+              {/* Título debajo de la imagen */}
+              <h2 className="mt-3.5 text-sm md:text-base font-normal tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
+                {project.title}
+              </h2>
             </motion.div>
           </Link>
         ))}
