@@ -27,6 +27,7 @@ export default function HomeSlider() {
       <section className="w-full h-[calc(100vh-5rem)] flex flex-col items-center justify-center -mt-4 md:-mt-8 px-4 md:px-12 select-none relative">
         {/* Cuadro de la imagen: ancho máximo 1120px, relación 3:2, centrado armónico y elevado */}
         <div
+          role="button"
           className="relative w-[90vw] max-w-[1120px] max-h-[calc(100vh-12rem)] aspect-[3/2] overflow-hidden cursor-pointer group flex-none shadow-none"
           onClick={() => router.push(`/proyectos/${projects[activeIndex].id}`)}
           onMouseEnter={() => setIsPaused(true)}

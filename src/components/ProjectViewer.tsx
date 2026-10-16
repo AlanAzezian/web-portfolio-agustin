@@ -119,9 +119,9 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       </div>
 
       {/* Metadatos fijos inferiores */}
-      {/* Esquina inferior izquierda: Título del proyecto en Roboto Regular estilo técnico limpio */}
+      {/* Esquina inferior izquierda: Título del proyecto en Source Sans 3 Regular (400) */}
       <div className="fixed bottom-6 left-8 md:bottom-8 md:left-16 z-30 pointer-events-auto">
-        <span className="font-roboto font-normal text-xs md:text-sm text-[#1C1C1A] tracking-normal select-none">
+        <span className="font-source-sans font-normal font-[400] text-xs md:text-sm text-[#1C1C1A] tracking-normal select-none">
           {title}
         </span>
       </div>

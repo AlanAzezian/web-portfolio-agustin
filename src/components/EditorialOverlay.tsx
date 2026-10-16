@@ -1,31 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { IconlyArrowRight2 } from "./icons/IconlyArrowRight2";
 
 export default function EditorialOverlay() {
-  const [mousePosition, setMousePosition] = useState({ x: -100, y: -100 });
+  const cursorRef = useRef<HTMLDivElement>(null);
   const [cursorType, setCursorType] = useState<string | null>(null);
-  const [isInteractive, setIsInteractive] = useState(false);
+  const [useNativeCursor, setUseNativeCursor] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const updateMousePosition = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    const updatePointer = (e: PointerEvent) => {
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      }
       setIsVisible(true);
 
-      const target = e.target as HTMLElement;
-      const cursorElement = target.closest("[data-cursor]");
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
 
+      const cursorElement = target.closest("[data-cursor]");
       if (cursorElement) {
         setCursorType(cursorElement.getAttribute("data-cursor"));
-      } else {
-        setCursorType(null);
+        setUseNativeCursor(false);
+        return;
       }
 
-      const interactiveElement = target.closest("a, button, [role='button'], input, textarea");
-      setIsInteractive(!!interactiveElement && !cursorElement);
+      setCursorType(null);
+      const nativeRegion = target.closest(
+        "nav, a, button:not([data-cursor]), [role='button']:not([data-cursor]), input, textarea, select"
+      );
+      setUseNativeCursor(!!nativeRegion);
     };
 
     const handleMouseLeave = () => {
@@ -36,33 +41,25 @@ export default function EditorialOverlay() {
       setIsVisible(true);
     };
 
-    window.addEventListener("mousemove", updateMousePosition);
+    window.addEventListener("pointermove", updatePointer, { passive: true });
     document.addEventListener("mouseleave", handleMouseLeave);
     document.addEventListener("mouseenter", handleMouseEnter);
 
     return () => {
-      window.removeEventListener("mousemove", updateMousePosition);
+      window.removeEventListener("pointermove", updatePointer);
       document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("mouseenter", handleMouseEnter);
     };
   }, []);
 
-  if (!isVisible) return null;
-
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
-      <motion.div
-        className="fixed top-0 left-0 flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-        animate={{
-          x: mousePosition.x,
-          y: mousePosition.y,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 700,
-          damping: 35,
-          mass: 0.25,
-        }}
+    <div className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden">
+      <div
+        ref={cursorRef}
+        style={{ transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)" }}
+        className={`fixed top-0 left-0 flex items-center justify-center pointer-events-none will-change-transform ${
+          !isVisible || useNativeCursor ? "opacity-0" : "opacity-100"
+        }`}
       >
         {cursorType === "arrow-left" ? (
           <div className="rotate-180 flex items-center justify-center">
@@ -73,15 +70,9 @@ export default function EditorialOverlay() {
             <IconlyArrowRight2 size={26} color="#1C1C1A" />
           </div>
         ) : (
-          <motion.div
-            className="w-3.5 h-3.5 rounded-full bg-[#1C1C1A]"
-            animate={{
-              scale: isInteractive ? 1.8 : 1,
-            }}
-            transition={{ duration: 0.15 }}
-          />
+          <div className="w-3.5 h-3.5 rounded-full bg-[#1C1C1A]" />
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }
