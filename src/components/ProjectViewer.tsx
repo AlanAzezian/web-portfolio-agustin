@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { blurDataMap, DEFAULT_BLUR_DATA_URL } from "@/data/projects";
 
@@ -15,6 +16,7 @@ interface ProjectViewerProps {
 export default function ProjectViewer({ title, images }: ProjectViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const router = useRouter();
 
   const total = images.length;
 
@@ -28,10 +30,13 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  // Navegación por teclado (← / → y Barra Espaciadora)
+  // Navegación por teclado (← / →, Barra Espaciadora y Escape para volver a /proyectos)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === " ") {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        router.push("/proyectos");
+      } else if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
         nextSlide();
       } else if (e.key === "ArrowLeft") {
@@ -42,7 +47,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nextSlide, prevSlide]);
+  }, [nextSlide, prevSlide, router]);
 
   // Precarga de diapositiva contigua (siguiente y anterior) para transición instantánea
   useEffect(() => {
@@ -85,7 +90,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       {/* Botón superior derecho: Proyectos */}
       <Link
         href="/proyectos"
-        className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-acento transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto"
+        className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-acento transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
       >
         <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
       </Link>
@@ -120,14 +125,14 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
           onClick={prevSlide}
           aria-label="Imagen anterior"
           data-cursor="arrow-left"
-          className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none"
+          className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento"
         />
         <button
           type="button"
           onClick={nextSlide}
-          aria-label="Siguiente imagen"
+          aria-label="Imagen siguiente"
           data-cursor="arrow-right"
-          className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none"
+          className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento"
         />
       </div>
 
