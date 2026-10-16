@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { projects } from "@/data/projects";
+import { gsap } from "@/lib/gsap";
+import { NAV_ACTIVE_DOT } from "@/components/Navbar";
 
 const FILTER_TAGS = ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"] as const;
 
 export default function ProjectGrid() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const filterBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const filterDotRef = useRef<HTMLSpanElement>(null);
 
   // Proyectos filtrados según la etiqueta seleccionada
   const filteredProjects = useMemo(() => {
@@ -16,27 +21,93 @@ export default function ProjectGrid() {
     return projects.filter((p) => p.tags?.includes(selectedTag));
   }, [selectedTag]);
 
+  useEffect(() => {
+    if (!filterBarRef.current) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const ctx = gsap.context(() => {
+      FILTER_TAGS.forEach((tag, idx) => {
+        const el = filterBtnRefs.current[idx];
+        if (!el) return;
+        const isSelected = selectedTag === tag;
+
+        if (!NAV_ACTIVE_DOT) {
+          gsap.to(el, {
+            scale: isSelected ? 1.25 : 1,
+            duration: prefersReducedMotion ? 0 : isSelected ? 0.45 : 0.25,
+            ease: isSelected ? "back.out(1.6)" : "power2.out",
+            overwrite: "auto",
+          });
+        } else {
+          gsap.set(el, { scale: 1 });
+          if (isSelected && filterDotRef.current && filterBarRef.current) {
+            const barRect = filterBarRef.current.getBoundingClientRect();
+            const btnRect = el.getBoundingClientRect();
+            const targetX = btnRect.left - barRect.left + btnRect.width / 2 - 3;
+            gsap.to(filterDotRef.current, {
+              x: targetX,
+              opacity: 1,
+              duration: prefersReducedMotion ? 0 : 0.4,
+              ease: "power3.out",
+              overwrite: "auto",
+            });
+          } else if (!selectedTag && filterDotRef.current) {
+            gsap.to(filterDotRef.current, {
+              opacity: 0,
+              duration: 0.2,
+              overwrite: "auto",
+            });
+          }
+        }
+      });
+    }, filterBarRef);
+
+    return () => ctx.revert();
+  }, [selectedTag]);
+
   return (
     <div className="w-full px-8 md:px-16 max-w-none pt-4 md:pt-6 pb-24 md:pb-32 min-h-screen">
       {/* Selector de 3 filtros centrado horizontalmente, sin contadores numéricos */}
-      <div className="flex justify-center items-center gap-6 md:gap-10 mx-auto w-full h-6">
-        {FILTER_TAGS.map((tag) => {
+      <div
+        ref={filterBarRef}
+        className="relative flex justify-center items-center gap-8 md:gap-12 mx-auto w-full h-6"
+      >
+        {FILTER_TAGS.map((tag, idx) => {
           const isSelected = selectedTag === tag;
           return (
             <button
               key={tag}
+              ref={(el) => {
+                filterBtnRefs.current[idx] = el;
+              }}
               type="button"
               onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
-              className={`uppercase tracking-wider font-roboto transition-all duration-200 cursor-pointer ${
+              className={`relative inline-flex flex-col items-center justify-center origin-center uppercase tracking-wider font-roboto text-[12px] px-1 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                 isSelected
-                  ? "text-[15px] font-semibold font-[600] text-[#099AD7]"
-                  : "text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                  ? "font-semibold font-[600] text-acento"
+                  : "font-medium font-[500] text-[#1C1C1A] hover:text-acento"
               }`}
             >
-              {tag}
+              <span>{tag}</span>
+              <span
+                aria-hidden="true"
+                className="invisible font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+              >
+                {tag}
+              </span>
             </button>
           );
         })}
+        {NAV_ACTIVE_DOT && (
+          <span
+            ref={filterDotRef}
+            aria-hidden="true"
+            className="absolute -bottom-2 left-0 w-1.5 h-1.5 rounded-full bg-acento opacity-0 pointer-events-none"
+          />
+        )}
       </div>
 
       {/* Retícula de 4 columnas con métricas exactas Adamo-Faiden: gap de 13.5px y mt de 23px */}

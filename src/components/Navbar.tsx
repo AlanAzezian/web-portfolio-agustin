@@ -204,7 +204,7 @@ function AnimatedLogo() {
       ref={containerRef}
       href="/"
       aria-label="Agustín Fabrizio"
-      className="font-roboto font-medium font-[500] tracking-tight text-3xl text-[#1C1C1A] flex relative items-center whitespace-pre"
+      className="font-roboto font-medium font-[500] tracking-tight text-3xl text-[#1C1C1A] flex relative items-center whitespace-pre focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
     >
       {/* Contenedor invisible que reserva el ancho máximo completo sin layout shift */}
       <span
@@ -241,10 +241,61 @@ function AnimatedLogo() {
   );
 }
 
+export const NAV_ACTIVE_DOT = false;
+
 export default function Navbar() {
   const pathname = usePathname();
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
+
+  const navListRef = useRef<HTMLDivElement>(null);
+  const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const dotRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!navListRef.current) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const ctx = gsap.context(() => {
+      links.forEach((link, idx) => {
+        const el = linkRefs.current[idx];
+        if (!el) return;
+
+        const isActive =
+          link.path === "/"
+            ? pathname === "/"
+            : pathname.startsWith(link.path);
+
+        if (!NAV_ACTIVE_DOT) {
+          gsap.to(el, {
+            scale: isActive ? 1.23 : 1,
+            duration: prefersReducedMotion ? 0 : isActive ? 0.45 : 0.25,
+            ease: isActive ? "back.out(1.6)" : "power2.out",
+            overwrite: "auto",
+          });
+        } else {
+          gsap.set(el, { scale: 1 });
+          if (isActive && dotRef.current && navListRef.current) {
+            const navRect = navListRef.current.getBoundingClientRect();
+            const linkRect = el.getBoundingClientRect();
+            const targetX = linkRect.left - navRect.left + linkRect.width / 2 - 3;
+            gsap.to(dotRef.current, {
+              x: targetX,
+              opacity: 1,
+              duration: prefersReducedMotion ? 0 : 0.4,
+              ease: "power3.out",
+              overwrite: "auto",
+            });
+          }
+        }
+      });
+    }, navListRef);
+
+    return () => ctx.revert();
+  }, [pathname]);
 
   return (
     <nav
@@ -255,8 +306,11 @@ export default function Navbar() {
     >
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
         <AnimatedLogo />
-        <div className="hidden md:flex items-center gap-8 font-roboto">
-          {links.map((link) => {
+        <div
+          ref={navListRef}
+          className="relative hidden md:flex items-center gap-9 font-roboto"
+        >
+          {links.map((link, idx) => {
             const isActive =
               link.path === "/"
                 ? pathname === "/"
@@ -265,16 +319,33 @@ export default function Navbar() {
               <Link
                 key={link.path}
                 href={link.path}
-                className={`font-roboto transition-all duration-200 ${
+                ref={(el) => {
+                  linkRefs.current[idx] = el;
+                }}
+                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto text-[13px] px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isActive
-                    ? "text-[16px] font-semibold font-[600] text-[#099AD7]"
-                    : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                    ? "font-semibold font-[600] text-acento"
+                    : "font-medium font-[500] text-[#1C1C1A] hover:text-acento"
                 }`}
               >
-                {link.name}
+                <span>{link.name}</span>
+                {/* Reserva de ancho en peso 600 para evitar desplazamiento de vecinos */}
+                <span
+                  aria-hidden="true"
+                  className="invisible font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+                >
+                  {link.name}
+                </span>
               </Link>
             );
           })}
+          {NAV_ACTIVE_DOT && (
+            <span
+              ref={dotRef}
+              aria-hidden="true"
+              className="absolute -bottom-2.5 left-0 w-1.5 h-1.5 rounded-full bg-acento opacity-0 pointer-events-none"
+            />
+          )}
         </div>
       </div>
     </nav>
