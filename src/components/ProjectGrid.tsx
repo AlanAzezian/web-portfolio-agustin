@@ -27,10 +27,10 @@ export default function ProjectGrid() {
               key={tag}
               type="button"
               onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
-              className={`text-xs uppercase tracking-wider font-source-sans transition-colors duration-200 cursor-pointer ${
+              className={`text-sm md:text-[15px] uppercase tracking-wider font-source-sans transition-colors duration-200 cursor-pointer ${
                 isSelected
-                  ? "font-bold font-[700] text-[#099AD7]"
-                  : "font-medium font-[500] text-[#686661] hover:text-[#099AD7]"
+                  ? "font-semibold font-[600] text-[#099AD7]"
+                  : "font-medium font-[500] text-[#222220] hover:text-[#099AD7]"
               }`}
             >
               {tag}

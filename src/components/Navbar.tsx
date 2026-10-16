@@ -112,7 +112,7 @@ function AnimatedLogo() {
     : STATES[step];
 
   return (
-    <Link href="/" aria-label="Agustín Fabrizio" className="font-source-sans font-semibold tracking-tight text-3xl flex relative items-center whitespace-pre">
+    <Link href="/" aria-label="Agustín Fabrizio" className="font-source-sans font-medium font-[500] tracking-tight text-3xl flex relative items-center whitespace-pre">
       <span className="invisible select-none pointer-events-none" aria-hidden="true">Agustín Fabrizio</span>
       <div className="absolute left-0 top-0 flex text-[#1C1C1A]">
         <span>A</span>
@@ -180,10 +180,10 @@ export default function Navbar() {
               <Link
                 key={link.path}
                 href={link.path}
-                className={`font-source-sans text-sm transition-colors duration-200 ${
+                className={`font-source-sans text-sm md:text-base transition-colors duration-200 ${
                   isActive
-                    ? "font-bold font-[700] text-[#099AD7]"
-                    : "font-medium font-[500] text-[#686661] hover:text-[#099AD7]"
+                    ? "font-semibold font-[600] text-[#099AD7]"
+                    : "font-medium font-[500] text-[#222220] hover:text-[#099AD7]"
                 }`}
               >
                 {link.name}
