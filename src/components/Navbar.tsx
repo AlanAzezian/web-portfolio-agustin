@@ -182,8 +182,8 @@ export default function Navbar() {
                 href={link.path}
                 className={`font-roboto text-sm transition-colors duration-200 ${
                   isActive
-                    ? "font-medium text-[#099AD7]"
-                    : "font-normal text-[#686661] hover:text-[#099AD7]"
+                    ? "font-bold font-[700] text-[#099AD7]"
+                    : "font-medium font-[500] text-[#686661] hover:text-[#099AD7]"
                 }`}
               >
                 {link.name}

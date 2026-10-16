@@ -29,8 +29,8 @@ export default function ProjectGrid() {
               onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
               className={`text-xs uppercase tracking-wider font-roboto transition-colors duration-200 cursor-pointer ${
                 isSelected
-                  ? "font-medium text-[#099AD7]"
-                  : "font-normal text-[#686661] hover:text-[#099AD7]"
+                  ? "font-bold font-[700] text-[#099AD7]"
+                  : "font-medium font-[500] text-[#686661] hover:text-[#099AD7]"
               }`}
             >
               {tag}
@@ -62,8 +62,8 @@ export default function ProjectGrid() {
                   />
                 </div>
 
-                {/* Título debajo con Source Sans 3 Regular (400), color base #1C1C1A, hover #099AD7, mt-2.5 */}
-                <h2 className="mt-2.5 font-source-sans font-normal font-[400] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
+                {/* Título debajo con Source Sans 3 Medium (500), color base #1C1C1A, hover #099AD7, mt-2.5 */}
+                <h2 className="mt-2.5 font-source-sans font-medium font-[500] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
                   {project.title}
                 </h2>
               </motion.div>

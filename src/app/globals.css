@@ -66,22 +66,10 @@ body {
   color: var(--foreground) !important;
 }
 
-/* Cursor custom sin lag en el lienzo y flechas del visor, restaurando cursor nativo en Navbar, enlaces y botones */
+/* Ocultar cursor nativo globalmente en toda la web para usar el punto negro custom permanente */
 @media (pointer: fine) {
-  html, body {
-    cursor: none;
-  }
-  [data-cursor] {
+  html, body, nav, a, button, input, textarea, select, [role="button"], [data-cursor], * {
     cursor: none !important;
-  }
-  nav {
-    cursor: default !important;
-  }
-  nav a, nav button, a, button:not([data-cursor]), [role="button"]:not([data-cursor]) {
-    cursor: pointer !important;
-  }
-  input, textarea, select {
-    cursor: auto !important;
   }
 }
 
