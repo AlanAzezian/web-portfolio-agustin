@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface ProjectViewerProps {
   title: string;
@@ -83,7 +84,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
         href="/proyectos"
         className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-[#099AD7] transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto"
       >
-        <span>←</span> Proyectos
+        <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
       </Link>
 
       {/* Visor central de imagen/plano perfectamente centrado sin Navbar */}

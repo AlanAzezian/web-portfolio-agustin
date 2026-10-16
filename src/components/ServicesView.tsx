@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
+import { Plus, X, ArrowUpRight } from "lucide-react";
 import { servicesData } from "@/data/services";
 
 export default function ServicesView() {
@@ -52,13 +53,12 @@ export default function ServicesView() {
                       {service.title}
                     </h3>
                   </div>
-                  <div className="text-3xl font-light text-acento transition-transform duration-300">
-                    <motion.div
-                      animate={{ rotate: isOpen ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {isOpen ? "×" : "+"}
-                    </motion.div>
+                  <div className="text-acento transition-transform duration-300 flex items-center justify-center">
+                    {isOpen ? (
+                      <X size={24} strokeWidth={1.5} />
+                    ) : (
+                      <Plus size={24} strokeWidth={1.5} />
+                    )}
                   </div>
                 </button>
 
@@ -103,7 +103,11 @@ export default function ServicesView() {
                             className="font-sans font-light text-xl text-foreground hover:text-acento transition-colors inline-flex items-center gap-2 group"
                           >
                             <span>Solicitar cotización</span>
-                            <span className="text-acento transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+                            <ArrowUpRight
+                              size={18}
+                              strokeWidth={1.5}
+                              className="text-acento transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                            />
                           </Link>
                         </div>
                       </div>
