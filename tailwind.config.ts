@@ -11,8 +11,6 @@ const config: Config = {
       fontFamily: {
         roboto: ["var(--font-roboto)", "sans-serif"],
         sans: ["var(--font-roboto)", "sans-serif"],
-        garamond: ["var(--font-garamond)", "serif"],
-        serif: ["var(--font-garamond)", "serif"],
         redaction: ["var(--font-redaction)", "Georgia", "serif"],
         mono: ["var(--font-mono)", "monospace"],
       },

@@ -11,7 +11,7 @@ export const projects: Project[] = [
     id: "centro-de-trasbordo-quilmes",
     title: "Centro de Trasbordo — Triángulo de Bernal, Quilmes",
     coverImage: "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",
-    tags: ["Visualización", "Renders", "Planimetría", "Concurso"],
+    tags: ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"],
     images: [
       // 1. RENDERS 3D PRIMERO:
       "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",

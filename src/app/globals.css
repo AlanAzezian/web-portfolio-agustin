@@ -39,8 +39,6 @@
   
   --font-roboto: var(--font-roboto), Arial, Helvetica, sans-serif;
   --font-sans: var(--font-roboto), Arial, Helvetica, sans-serif;
-  --font-garamond: var(--font-garamond), Georgia, serif;
-  --font-serif: var(--font-garamond), Georgia, serif;
   --font-redaction: var(--font-redaction), Georgia, serif;
   --font-mono: var(--font-mono), monospace;
   

@@ -5,13 +5,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { projects } from "@/data/projects";
 
+const FILTER_TAGS = ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"] as const;
+
 export default function ProjectGrid() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-
-  // Obtener lista única de tags a partir de los proyectos disponibles
-  const allTags = useMemo(() => {
-    return Array.from(new Set(projects.flatMap((p) => p.tags || [])));
-  }, []);
 
   // Proyectos filtrados según la etiqueta seleccionada
   const filteredProjects = useMemo(() => {
@@ -21,40 +18,26 @@ export default function ProjectGrid() {
 
   return (
     <div className="w-full px-8 md:px-16 max-w-none pt-4 md:pt-6 pb-24 md:pb-32 min-h-screen">
-      {/* Selector de tags / filtros preparado en la parte superior (compactado respecto al Navbar) */}
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-4 md:gap-6">
-          <button
-            type="button"
-            onClick={() => setSelectedTag(null)}
-            className={`text-xs uppercase tracking-wider font-roboto transition-colors duration-200 cursor-pointer ${
-              selectedTag === null
-                ? "text-[#099AD7] font-bold"
-                : "text-[#686661] font-normal hover:text-[#099AD7]"
-            }`}
-          >
-            Todos ({projects.length})
-          </button>
-          {allTags.map((tag) => {
-            const count = projects.filter((p) => p.tags?.includes(tag)).length;
-            const isSelected = selectedTag === tag;
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
-                className={`text-xs uppercase tracking-wider font-roboto transition-colors duration-200 cursor-pointer ${
-                  isSelected
-                    ? "text-[#099AD7] font-bold"
-                    : "text-[#686661] font-normal hover:text-[#099AD7]"
-                }`}
-              >
-                {tag} ({count})
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Selector de 3 filtros centrado horizontalmente, sin contadores numéricos */}
+      <div className="flex justify-center items-center gap-6 md:gap-10 mx-auto w-full">
+        {FILTER_TAGS.map((tag) => {
+          const isSelected = selectedTag === tag;
+          return (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
+              className={`text-xs uppercase tracking-wider font-roboto cursor-pointer ${
+                isSelected
+                  ? "font-bold font-[700] text-[#099AD7]"
+                  : "font-thin font-[100] text-[#686661] hover:text-[#099AD7] transition-colors duration-200"
+              }`}
+            >
+              {tag}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Retícula de 4 columnas con métricas exactas Adamo-Faiden: gap de 13.5px y mt de 23px */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] mt-[23px]">
@@ -79,8 +62,8 @@ export default function ProjectGrid() {
                   />
                 </div>
 
-                {/* Título debajo con EB Garamond, color base #999999, hover #099AD7, mt-2.5 */}
-                <h2 className="mt-2.5 font-garamond text-[20px] md:text-[23px] leading-[24px] md:leading-[27px] tracking-tight text-[#999999] group-hover:text-[#099AD7] transition-colors duration-200">
+                {/* Título debajo con Roboto Bold 700, color base #1C1C1A, hover #099AD7, mt-2.5 */}
+                <h2 className="mt-2.5 font-roboto font-bold font-[700] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
                   {project.title}
                 </h2>
               </motion.div>
