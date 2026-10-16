@@ -6,25 +6,49 @@ export interface Project {
   tags?: string[];
 }
 
+export const DEFAULT_BLUR_DATA_URL =
+  "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAAAQAgCdASoQAAkAA4BaJZQC7AERH+xsKNwwAP7nIaT4TX0+MHu+tw9XzVuQY8s0u7M2jQGwe0VTPcQ9bYwAAA==";
+
+export const blurDataMap: Record<string, string> = {
+  "/projects/centro-de-trasbordo/01-render-exterior.webp":
+    "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAAAQAgCdASoQAAkAA4BaJZQC7AERH+xsKNwwAP7nIaT4TX0+MHu+tw9XzVuQY8s0u7M2jQGwe0VTPcQ9bYwAAA==",
+  "/projects/centro-de-trasbordo/02-render-hall-escalera.webp":
+    "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAADwAQCdASoQAAkAA4BaJQBOgB6UZ6wjVcAA+p8BnZrb5EuyT0KPr0qF5G7/IM8b3CnbLPwH4UfTaQ+qyHsAAA==",
+  "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp":
+    "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAAAwAgCdASoQAAkAA4BaJYwCdADp+hesgfjuAADyo5c5ZRaLVnY8awL3hyd+s60oMwtl+W9uK58FS6p91TOSIgqMN71H9ZPuR8muAAAA",
+  "/projects/centro-de-trasbordo/04-render-cafeteria-exterior.webp":
+    "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAACwAQCdASoQAAkAA4BaJZQCdAEOFQoAAP60LhYFcqMfkNwJr3J6QfyD0tAY9FJVgCHEPLEQtANMZl38QAA=",
+  "/projects/centro-de-trasbordo/05-render-nave-darsena.webp":
+    "data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAADwAQCdASoQAAkAA4BaJYwCdAEWwaigmoAA/PKAK6H/M854FMsLZmLUrtZnz0GS8qlIUGRRNc4W7LVnRBu1dDCq28VyGkcgAAA=",
+  "/projects/centro-de-trasbordo/06-plano-planta-baja.webp":
+    "data:image/webp;base64,UklGRioAAABXRUJQVlA4IB4AAAAwAQCdASoQAAsAA4BaJaQAA3AA/vRCR5c7JRzgAAA=",
+  "/projects/centro-de-trasbordo/07-plano-planta-alta.webp":
+    "data:image/webp;base64,UklGRigAAABXRUJQVlA4IBwAAAAwAQCdASoQAAoAA4BaJaQAA3AA/vSoWt/7qzAA",
+  "/projects/centro-de-trasbordo/08-plano-vistas.webp":
+    "data:image/webp;base64,UklGRi4AAABXRUJQVlA4ICIAAAAwAQCdASoQAAoAA4BaJaQAA3AA/vR1TipU7frllbIcAAAA",
+  "/projects/centro-de-trasbordo/09-plano-secciones-cortes.webp":
+    "data:image/webp;base64,UklGRjYAAABXRUJQVlA4ICoAAACwAQCdASoQAAoAA4BaJaQAAqH2STQAAP73IA6Gzf0Fk320TnpBhwAAAAA=",
+};
+
 export const projects: Project[] = [
   {
     id: "centro-de-trasbordo-quilmes",
     title: "Centro de Trasbordo — Triángulo de Bernal, Quilmes",
-    coverImage: "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",
+    coverImage: "/projects/centro-de-trasbordo/01-render-exterior.webp",
     tags: ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"],
     images: [
       // 1. RENDERS 3D PRIMERO:
-      "/projects/projects/centro-de-trasbordo/01-render-exterior.jpg.png",
-      "/projects/projects/centro-de-trasbordo/02-render-hall-escalera.jpg.png",
-      "/projects/projects/centro-de-trasbordo/03-render-patio-vidriado.jpg.png",
-      "/projects/projects/centro-de-trasbordo/04-render-cafeteria-exterior.jpg.png",
-      "/projects/projects/centro-de-trasbordo/05-render-nave-darsena.jpg.png",
+      "/projects/centro-de-trasbordo/01-render-exterior.webp",
+      "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
+      "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
+      "/projects/centro-de-trasbordo/04-render-cafeteria-exterior.webp",
+      "/projects/centro-de-trasbordo/05-render-nave-darsena.webp",
 
       // 2. PLANOS TÉCNICOS AL FINAL:
-      "/projects/projects/centro-de-trasbordo/06-plano-planta-baja.jpg.png",
-      "/projects/projects/centro-de-trasbordo/07-plano-planta-alta.png.png",
-      "/projects/projects/centro-de-trasbordo/08-plano-vistas.jpg.png",
-      "/projects/projects/centro-de-trasbordo/09-plano-secciones-cortes.jpg.png",
+      "/projects/centro-de-trasbordo/06-plano-planta-baja.webp",
+      "/projects/centro-de-trasbordo/07-plano-planta-alta.webp",
+      "/projects/centro-de-trasbordo/08-plano-vistas.webp",
+      "/projects/centro-de-trasbordo/09-plano-secciones-cortes.webp",
     ],
   },
 ];

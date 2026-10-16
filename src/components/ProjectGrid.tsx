@@ -2,8 +2,9 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { projects } from "@/data/projects";
+import { projects, blurDataMap, DEFAULT_BLUR_DATA_URL } from "@/data/projects";
 import { gsap } from "@/lib/gsap";
 import { NAV_ACTIVE_DOT } from "@/components/Navbar";
 
@@ -124,17 +125,20 @@ export default function ProjectGrid() {
                 className="flex flex-col w-full"
               >
                 {/* Portadas a ancho completo de celda, aspect 3:2 y max-h 310px */}
-                <div className="w-full aspect-[3/2] max-h-[310px] overflow-hidden bg-[#F8F7F4]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                <div className="relative w-full aspect-[3/2] max-h-[310px] overflow-hidden bg-[#F8F7F4]">
+                  <Image
                     src={project.coverImage}
                     alt={project.title}
-                    className="w-full h-full max-h-[310px] object-cover transition-transform duration-500 group-hover:scale-[1.02] block"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    placeholder="blur"
+                    blurDataURL={blurDataMap[project.coverImage] ?? DEFAULT_BLUR_DATA_URL}
+                    className="object-cover block"
                   />
                 </div>
 
                 {/* Título debajo con Roboto Medium (500), color base #1C1C1A, hover #099AD7, mt-2.5 */}
-                <h2 className="mt-2.5 font-roboto font-medium font-[500] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
+                <h2 className="mt-2.5 font-roboto font-medium font-[500] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-acento transition-colors duration-200">
                   {project.title}
                 </h2>
               </motion.div>

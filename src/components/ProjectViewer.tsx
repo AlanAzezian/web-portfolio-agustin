@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import { blurDataMap, DEFAULT_BLUR_DATA_URL } from "@/data/projects";
 
 interface ProjectViewerProps {
   title: string;
@@ -47,9 +49,9 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
     if (total > 1) {
       const nextIdx = (currentIndex + 1) % total;
       const prevIdx = (currentIndex - 1 + total) % total;
-      const imgNext = new Image();
+      const imgNext = new window.Image();
       imgNext.src = images[nextIdx];
-      const imgPrev = new Image();
+      const imgPrev = new window.Image();
       imgPrev.src = images[prevIdx];
     }
   }, [currentIndex, images, total]);
@@ -72,6 +74,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
 
   const formattedCurrent = String(currentIndex + 1).padStart(2, "0");
   const formattedTotal = String(total).padStart(2, "0");
+  const currentSrc = images[currentIndex];
 
   return (
     <main
@@ -82,7 +85,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       {/* Botón superior derecho: Proyectos */}
       <Link
         href="/proyectos"
-        className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-[#099AD7] transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto"
+        className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-acento transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto"
       >
         <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
       </Link>
@@ -90,16 +93,25 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       {/* Visor central de imagen/plano perfectamente centrado sin Navbar */}
       <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14">
         <AnimatePresence mode="wait">
-          <motion.img
+          <motion.div
             key={currentIndex}
-            src={images[currentIndex]}
-            alt={`${title} - Imagen ${currentIndex + 1}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="h-[80vh] md:h-[82vh] w-auto max-w-full max-h-[82vh] object-contain block pointer-events-none shadow-none"
-          />
+            className="relative w-full h-[80vh] md:h-[82vh] max-h-[82vh] pointer-events-none"
+          >
+            <Image
+              src={currentSrc}
+              alt={`${title} - Imagen ${currentIndex + 1}`}
+              fill
+              sizes="100vw"
+              priority={currentIndex === 0}
+              placeholder="blur"
+              blurDataURL={blurDataMap[currentSrc] ?? DEFAULT_BLUR_DATA_URL}
+              className="object-contain pointer-events-none select-none shadow-none"
+            />
+          </motion.div>
         </AnimatePresence>
 
         {/* Áreas interactivas con flechas Iconly (izquierda / derecha) */}
