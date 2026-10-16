@@ -6,10 +6,10 @@
 }
 
 /* 
- * FASE 0 - SISTEMA DE DISEÑO (TOKENS)
+ * SISTEMA DE DISEÑO v2 (TOKENS)
  * 
- * - fontFamily.roboto / sans: Fuente única principal (Roboto)
- * - color-acento: Color institucional para CTAs y estados activos (#099AD7)
+ * - fontFamily.roboto: Fuente única principal en toda la interfaz (Roboto)
+ * - color-acento: Celeste institucional (#099AD7) para estados activos y CTAs
  * - borderWidth: hairline (1px), rule (2px)
  * - borderRadius: 0 (sin cantos redondeados)
  */
@@ -49,9 +49,14 @@ body {
   }
 }
 
-/* Ocultar barra nativa de la ventana y scroll suave */
-html {
-  scroll-behavior: smooth;
+/* Ocultar barra nativa de la ventana y compatibilidad con Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
 }
 
 html, body {

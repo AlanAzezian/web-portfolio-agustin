@@ -63,7 +63,7 @@ export default function HomeSlider() {
             href="https://instagram.com/agustinfabrizio"
             target="_blank"
             rel="noreferrer"
-            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-[#099AD7] transition-colors"
+            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-acento transition-colors"
             aria-label="Instagram"
           >
             <svg
@@ -86,7 +86,7 @@ export default function HomeSlider() {
             href="https://www.behance.net/agustinfabrizio"
             target="_blank"
             rel="noreferrer"
-            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-[#099AD7] transition-colors"
+            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-acento transition-colors"
             aria-label="Behance"
           >
             <svg
@@ -110,7 +110,7 @@ export default function HomeSlider() {
             href="https://wa.me/"
             target="_blank"
             rel="noreferrer"
-            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-[#099AD7] transition-colors"
+            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-acento transition-colors"
             aria-label="WhatsApp"
           >
             <svg
@@ -129,7 +129,7 @@ export default function HomeSlider() {
 
           <a
             href="mailto:hola@agustinfabrizio.com"
-            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-[#099AD7] transition-colors"
+            className="group flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#686661] hover:text-acento transition-colors"
             aria-label="Email"
           >
             <svg
