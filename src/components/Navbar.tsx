@@ -180,10 +180,10 @@ export default function Navbar() {
               <Link
                 key={link.path}
                 href={link.path}
-                className={`font-roboto text-sm ${
+                className={`font-roboto text-sm transition-colors duration-200 ${
                   isActive
-                    ? "font-bold font-[700] text-[#099AD7]"
-                    : "font-thin font-[100] text-[#686661] hover:text-[#099AD7] transition-colors duration-200"
+                    ? "font-medium text-[#099AD7]"
+                    : "font-normal text-[#686661] hover:text-[#099AD7]"
                 }`}
               >
                 {link.name}

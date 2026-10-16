@@ -81,7 +81,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       {/* Botón superior derecho: Proyectos */}
       <Link
         href="/proyectos"
-        className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-bold font-[700] text-sm tracking-tight text-[#1C1C1A] hover:text-[#099AD7] transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto"
+        className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-normal text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-[#099AD7] transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto"
       >
         <span>←</span> Proyectos
       </Link>
@@ -119,9 +119,9 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       </div>
 
       {/* Metadatos fijos inferiores */}
-      {/* Esquina inferior izquierda: Título del proyecto en Roboto Bold 700 */}
+      {/* Esquina inferior izquierda: Título del proyecto en Roboto Regular estilo técnico limpio */}
       <div className="fixed bottom-6 left-8 md:bottom-8 md:left-16 z-30 pointer-events-auto">
-        <span className="font-roboto font-bold font-[700] text-base md:text-lg text-[#1C1C1A] tracking-normal select-none">
+        <span className="font-roboto font-normal text-xs md:text-sm text-[#1C1C1A] tracking-normal select-none">
           {title}
         </span>
       </div>

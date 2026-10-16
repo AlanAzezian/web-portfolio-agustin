@@ -27,10 +27,10 @@ export default function ProjectGrid() {
               key={tag}
               type="button"
               onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
-              className={`text-xs uppercase tracking-wider font-roboto cursor-pointer ${
+              className={`text-xs uppercase tracking-wider font-roboto transition-colors duration-200 cursor-pointer ${
                 isSelected
-                  ? "font-bold font-[700] text-[#099AD7]"
-                  : "font-thin font-[100] text-[#686661] hover:text-[#099AD7] transition-colors duration-200"
+                  ? "font-medium text-[#099AD7]"
+                  : "font-normal text-[#686661] hover:text-[#099AD7]"
               }`}
             >
               {tag}
@@ -62,8 +62,8 @@ export default function ProjectGrid() {
                   />
                 </div>
 
-                {/* Título debajo con Roboto Bold 700, color base #1C1C1A, hover #099AD7, mt-2.5 */}
-                <h2 className="mt-2.5 font-roboto font-bold font-[700] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
+                {/* Título debajo con Roboto Regular (400), color base #1C1C1A, hover #099AD7, mt-2.5 */}
+                <h2 className="mt-2.5 font-roboto font-normal text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200">
                   {project.title}
                 </h2>
               </motion.div>
