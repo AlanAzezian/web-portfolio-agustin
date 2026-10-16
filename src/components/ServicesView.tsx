@@ -78,14 +78,14 @@ export default function ServicesView() {
 
                         {service.subservices && service.subservices.length > 0 && (
                           <div className="mb-8">
-                            <span className="font-mono text-xs uppercase tracking-widest text-foreground/40 block mb-3">
+                            <span className="font-roboto text-xs uppercase tracking-widest text-foreground/40 block mb-3">
                               Especialidades & Alcance
                             </span>
                             <div className="flex flex-wrap gap-2 md:gap-2.5">
                               {service.subservices.map((sub) => (
                                 <span
                                   key={sub.id}
-                                  className="text-xs tracking-wider uppercase text-neutral-600 bg-neutral-100/70 px-3 py-1.5 rounded-full border border-neutral-200/60 font-mono"
+                                  className="text-xs tracking-wider uppercase text-neutral-600 bg-neutral-100/70 px-3 py-1.5 rounded-full border border-neutral-200/60 font-roboto"
                                 >
                                   {sub.title}
                                 </span>
@@ -95,7 +95,7 @@ export default function ServicesView() {
                         )}
 
                         <div className="mt-4 pt-4 border-t border-foreground/5">
-                          <span className="font-mono text-xs uppercase tracking-widest text-acento block mb-2">
+                          <span className="font-roboto text-xs uppercase tracking-widest text-acento block mb-2">
                             COMENCEMOS UN PROYECTO
                           </span>
                           <Link
@@ -120,7 +120,7 @@ export default function ServicesView() {
         </div>
 
         <div className="pt-12">
-          <h2 className="text-2xl md:text-3xl font-mono uppercase tracking-widest text-foreground mb-16">
+          <h2 className="text-2xl md:text-3xl font-roboto uppercase tracking-widest text-foreground mb-16">
             {activeService.methodologyTitle}
           </h2>
           <motion.div
@@ -135,7 +135,7 @@ export default function ServicesView() {
                 key={i}
                 className="bg-transparent p-8 flex flex-col justify-between min-h-[320px] group hover:bg-foreground hover:text-background transition-colors border-t md:border-t-0 md:border-l first:border-l-0 border-foreground/10"
               >
-                <span className="font-mono text-xs uppercase tracking-widest text-acento group-hover:text-background/60 block mb-8">
+                <span className="font-roboto text-xs uppercase tracking-widest text-acento group-hover:text-background/60 block mb-8">
                   [ {item.stepNumber} ]
                 </span>
                 <div>
@@ -153,7 +153,7 @@ export default function ServicesView() {
 
         {/* Final CTA Block */}
         <div className="mt-32 p-12 md:p-24 text-center bg-foreground text-background flex flex-col items-center">
-          <span className="font-mono text-xs uppercase tracking-widest text-background/60 block mb-6">
+          <span className="font-roboto text-xs uppercase tracking-widest text-background/60 block mb-6">
             ¿Tenés un proyecto en mente?
           </span>
           <h2 className="text-5xl md:text-7xl font-sans font-light mb-12 tracking-tighter leading-none">
@@ -162,7 +162,7 @@ export default function ServicesView() {
           <div className="flex gap-6">
             <a
               href="mailto:hola@agustinfabrizio.com"
-              className="px-8 py-4 text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors border border-background/20"
+              className="px-8 py-4 text-background font-roboto text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors border border-background/20"
             >
               Enviar Email
             </a>
@@ -170,7 +170,7 @@ export default function ServicesView() {
               href="https://wa.me/1234567890"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-4 bg-acento text-background font-mono text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors"
+              className="px-8 py-4 bg-acento text-background font-roboto text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors"
             >
               WhatsApp
             </a>

@@ -1,23 +1,6 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Redaction';
-  src: url('/fonts/Redaction-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Redaction';
-  src: url('/fonts/Redaction-Italic.woff2') format('woff2');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
 :root {
-  --font-redaction: 'Redaction', Georgia, serif;
   --background: #F8F7F4;
   --foreground: #1C1C1A;
 }
@@ -25,12 +8,10 @@
 /* 
  * FASE 0 - SISTEMA DE DISEÑO (TOKENS)
  * 
- * - fontFamily.editorial: Fuente serif para títulos (Playfair Display)
- * - fontFamily.mono: Fuente mono para datos técnicos (JetBrains Mono)
- * - color-acento: Color de alerta para CTAs (#E63946)
+ * - fontFamily.roboto / sans: Fuente única principal (Roboto)
+ * - color-acento: Color institucional para CTAs y estados activos (#099AD7)
  * - borderWidth: hairline (1px), rule (2px)
  * - borderRadius: 0 (sin cantos redondeados)
- * - grid-editorial: Clase o token para las líneas verticales sutiles
  */
 @theme inline {
   --color-background: var(--background);
@@ -39,8 +20,7 @@
   
   --font-roboto: var(--font-roboto), Arial, Helvetica, sans-serif;
   --font-sans: var(--font-roboto), Arial, Helvetica, sans-serif;
-  --font-redaction: var(--font-redaction), Georgia, serif;
-  --font-mono: var(--font-mono), monospace;
+  --font-mono: var(--font-roboto), Arial, Helvetica, sans-serif;
   
   --border-width-hairline: 1px;
   --border-width-rule: 2px;

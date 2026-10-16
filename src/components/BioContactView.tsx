@@ -17,59 +17,59 @@ export default function BioContactView() {
           </p>
           
           <div className="mb-16 pt-4">
-            <h3 className="font-mono text-sm uppercase tracking-widest text-foreground/50 mb-8">Stack de Software</h3>
+            <h3 className="font-roboto text-sm uppercase tracking-widest text-foreground/50 mb-8">Stack de Software</h3>
             <ul className="flex flex-col text-foreground font-sans text-sm">
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase text-acento">BIM</span>
+                <span className="font-roboto uppercase text-acento">BIM</span>
                 <span>Revit & Archicad</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase text-acento">Modelado</span>
+                <span className="font-roboto uppercase text-acento">Modelado</span>
                 <span>Rhinoceros & AutoCAD</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase text-acento">Render</span>
+                <span className="font-roboto uppercase text-acento">Render</span>
                 <span>3ds Max + Corona / V-Ray</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase text-acento">Tiempo Real</span>
+                <span className="font-roboto uppercase text-acento">Tiempo Real</span>
                 <span>Enscape & Twinmotion</span>
               </li>
               <li className="flex justify-between py-2">
-                <span className="font-mono uppercase text-acento">Post</span>
+                <span className="font-roboto uppercase text-acento">Post</span>
                 <span>Suite Adobe</span>
               </li>
             </ul>
           </div>
           
           <div className="mb-16 pt-4">
-            <h3 className="font-mono text-sm uppercase tracking-widest text-foreground/50 mb-8">Premios & Reconocimientos</h3>
+            <h3 className="font-roboto text-sm uppercase tracking-widest text-foreground/50 mb-8">Premios & Reconocimientos</h3>
             <ul className="flex flex-col text-foreground font-sans text-sm">
               <li className="flex justify-between items-start md:items-center py-2 gap-4">
-                <span className="font-mono uppercase shrink-0 text-acento">1er Premio</span>
+                <span className="font-roboto uppercase shrink-0 text-acento">1er Premio</span>
                 <span className="text-right">Concurso Nacional Espacio Público (2024)</span>
               </li>
               <li className="flex justify-between items-start md:items-center py-2 gap-4">
-                <span className="font-mono uppercase shrink-0 text-acento">Publicación</span>
+                <span className="font-roboto uppercase shrink-0 text-acento">Publicación</span>
                 <span className="text-right">Revista Summa+ - Edición 190 (2023)</span>
               </li>
               <li className="flex justify-between items-start md:items-center py-2 gap-4">
-                <span className="font-mono uppercase shrink-0 text-acento">Mención</span>
+                <span className="font-roboto uppercase shrink-0 text-acento">Mención</span>
                 <span className="text-right">Bienal de Arquitectura Joven (2022)</span>
               </li>
             </ul>
           </div>
           
           <div className="pt-4">
-            <h3 className="font-mono text-sm uppercase tracking-widest text-foreground/50 mb-8">Canales Directos</h3>
+            <h3 className="font-roboto text-sm uppercase tracking-widest text-foreground/50 mb-8">Canales Directos</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <a href="mailto:hola@agustinfabrizio.com" className="block bg-foreground/5 p-4 text-center font-mono text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors">
+              <a href="mailto:hola@agustinfabrizio.com" className="block bg-foreground/5 p-4 text-center font-roboto text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors">
                 Email
               </a>
-              <a href="https://behance.net/agustinfabrizio" target="_blank" rel="noreferrer" className="block bg-foreground/5 p-4 text-center font-mono text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors">
+              <a href="https://behance.net/agustinfabrizio" target="_blank" rel="noreferrer" className="block bg-foreground/5 p-4 text-center font-roboto text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors">
                 Behance
               </a>
-              <a href="#" className="block bg-foreground/5 p-4 text-center font-mono text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors md:col-span-2">
+              <a href="#" className="block bg-foreground/5 p-4 text-center font-roboto text-sm uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors md:col-span-2">
                 WhatsApp
               </a>
             </div>
@@ -92,7 +92,7 @@ export default function BioContactView() {
                 placeholder="Tu nombre"
                 required
               />
-              <label htmlFor="name" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Nombre</label>
+              <label htmlFor="name" className="absolute left-0 -top-6 text-xs font-roboto uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Nombre</label>
             </div>
             
             <div className="relative border-b-rule border-foreground focus-within:border-acento transition-colors mt-4">
@@ -103,7 +103,7 @@ export default function BioContactView() {
                 placeholder="tu@email.com"
                 required
               />
-              <label htmlFor="email" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Email</label>
+              <label htmlFor="email" className="absolute left-0 -top-6 text-xs font-roboto uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Email</label>
             </div>
             
             <div className="relative border-b-rule border-foreground focus-within:border-acento transition-colors mt-4">
@@ -114,12 +114,12 @@ export default function BioContactView() {
                 placeholder="Detalles"
                 required
               ></textarea>
-              <label htmlFor="message" className="absolute left-0 -top-6 text-xs font-mono uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Detalles del encargo</label>
+              <label htmlFor="message" className="absolute left-0 -top-6 text-xs font-roboto uppercase tracking-widest text-foreground/50 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:top-2 peer-focus:-top-6 peer-focus:text-xs peer-focus:text-acento">Detalles del encargo</label>
             </div>
             
             <button 
               type="submit"
-              className="w-full border-rule border-acento bg-acento text-background uppercase font-mono tracking-widest text-sm px-6 py-4 hover:bg-transparent hover:text-acento transition-colors mt-8"
+              className="w-full border-rule border-acento bg-acento text-background uppercase font-roboto tracking-widest text-sm px-6 py-4 hover:bg-transparent hover:text-acento transition-colors mt-8"
             >
               Enviar Mensaje
             </button>

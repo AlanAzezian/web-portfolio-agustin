@@ -129,7 +129,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
 
       {/* Esquina inferior derecha: Contador numérico editorial en Roboto */}
       <div className="fixed bottom-6 right-8 md:bottom-8 md:right-16 z-30 pointer-events-auto">
-        <span className="font-roboto text-xs md:text-sm text-[#1C1C1A] tracking-wider tabular-nums select-none font-normal">
+        <span className="font-roboto tabular-nums tracking-wider text-[13px] text-[#1C1C1A] select-none font-normal">
           {formattedCurrent} / {formattedTotal}
         </span>
       </div>
