@@ -39,7 +39,6 @@
   
   --font-roboto: var(--font-roboto), Arial, Helvetica, sans-serif;
   --font-sans: var(--font-roboto), Arial, Helvetica, sans-serif;
-  --font-source-sans: 'Source Sans 3', sans-serif;
   --font-redaction: var(--font-redaction), Georgia, serif;
   --font-mono: var(--font-mono), monospace;
   
@@ -56,9 +55,6 @@
 }
 
 @layer utilities {
-  .font-source-sans {
-    font-family: 'Source Sans 3', sans-serif;
-  }
 }
 
 body {

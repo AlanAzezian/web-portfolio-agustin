@@ -19,7 +19,7 @@ export default function ProjectGrid() {
   return (
     <div className="w-full px-8 md:px-16 max-w-none pt-4 md:pt-6 pb-24 md:pb-32 min-h-screen">
       {/* Selector de 3 filtros centrado horizontalmente, sin contadores numéricos */}
-      <div className="flex justify-center items-center gap-6 md:gap-10 mx-auto w-full">
+      <div className="flex justify-center items-center gap-6 md:gap-10 mx-auto w-full h-6">
         {FILTER_TAGS.map((tag) => {
           const isSelected = selectedTag === tag;
           return (
@@ -27,10 +27,10 @@ export default function ProjectGrid() {
               key={tag}
               type="button"
               onClick={() => setSelectedTag((curr) => (curr === tag ? null : tag))}
-              className={`text-sm md:text-[15px] uppercase tracking-wider font-source-sans transition-colors duration-200 cursor-pointer ${
+              className={`uppercase tracking-wider font-roboto transition-all duration-200 cursor-pointer ${
                 isSelected
-                  ? "font-semibold font-[600] text-[#099AD7]"
-                  : "font-medium font-[500] text-[#222220] hover:text-[#099AD7]"
+                  ? "text-[15px] font-semibold font-[600] text-[#099AD7]"
+                  : "text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
               }`}
             >
               {tag}
