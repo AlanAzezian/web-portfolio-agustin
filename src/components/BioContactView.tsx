@@ -23,9 +23,9 @@ interface SkillCard {
 }
 
 const BIO_SECTIONS = [
-  { id: "sobre-mi", label: "[ 01 / SOBRE MÍ ]" },
-  { id: "experiencia", label: "[ 02 / EXPERIENCIA ]" },
-  { id: "habilidades", label: "[ 03 / HABILIDADES ]" },
+  { id: "sobre-mi", label: "SOBRE MÍ" },
+  { id: "experiencia", label: "EXPERIENCIA" },
+  { id: "habilidades", label: "HABILIDADES" },
 ] as const;
 
 type BioSectionId = (typeof BIO_SECTIONS)[number]["id"];
@@ -123,7 +123,7 @@ export default function BioContactView() {
 
     if (typeof window !== "undefined" && window.__lenis) {
       window.__lenis.scrollTo(el, {
-        offset: -116,
+        offset: -112,
         duration: 0.85,
       });
     } else {
@@ -159,9 +159,9 @@ export default function BioContactView() {
 
   return (
     <div className="w-full bg-[#F8F7F4] text-[#1C1C1A] font-roboto pt-20">
-      {/* Barra superior sticky de filtros / anclas de sub-secciones */}
-      <div className="sticky top-20 z-40 w-full bg-[#F8F7F4]/95 backdrop-blur-xs border-b border-[#1C1C1A]/10">
-        <div className="max-w-6xl mx-auto px-6 md:px-16 h-12 flex items-center justify-center sm:justify-start gap-4 sm:gap-8 overflow-x-auto no-scrollbar">
+      {/* Barra de filtros / anclas en el flujo natural superior (idéntica a Proyectos, sin contadores numéricos) */}
+      <div className="max-w-6xl mx-auto px-6 md:px-16">
+        <div className="flex justify-center items-center gap-6 md:gap-10 py-6 md:py-8">
           {BIO_SECTIONS.map((sec) => {
             const isActive = activeSection === sec.id;
             return (
@@ -169,13 +169,13 @@ export default function BioContactView() {
                 key={sec.id}
                 type="button"
                 onClick={() => handleScrollToSection(sec.id)}
-                className={`font-roboto text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap py-1 transition-colors cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto px-1 transition-all duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isActive
-                    ? "text-acento font-semibold font-[600]"
-                    : "text-[#1C1C1A]/65 hover:text-acento font-medium font-[500]"
+                    ? "text-[14px] font-semibold font-[600] text-[#099AD7]"
+                    : "text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
                 }`}
               >
-                {sec.label}
+                <span>{sec.label}</span>
               </button>
             );
           })}
@@ -187,7 +187,7 @@ export default function BioContactView() {
       ===================================================================== */}
       <section
         id="sobre-mi"
-        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-10 md:py-16 border-b border-[#1C1C1A]/15"
       >
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -195,8 +195,8 @@ export default function BioContactView() {
           transition={{ duration: 0.5 }}
         >
           <div className="flex items-center gap-3 mb-8 md:mb-12">
-            <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#1C1C1A] uppercase">
-              <span className="text-[#099AD7]">01 /</span> SOBRE MÍ
+            <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
+              01 / SOBRE MÍ
             </h2>
           </div>
 
@@ -244,10 +244,10 @@ export default function BioContactView() {
             {/* Columna Derecha: Declaración de CV + Bloque de Educación */}
             <div className="lg:col-span-7 flex flex-col justify-between gap-10">
               <div>
-                <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50 block mb-3">
+                <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50 block mb-2.5">
                   PRESENTACIÓN PROFESIONAL
                 </span>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-roboto font-light leading-[1.05] tracking-tight text-[#1C1C1A] mb-8">
+                <h1 className="text-xl md:text-[26px] font-roboto font-light leading-snug tracking-tight text-[#1C1C1A] mb-7">
                   Agustín Fabrizio — Arquitectura & Visualización Contemporánea.
                 </h1>
 
@@ -322,15 +322,15 @@ export default function BioContactView() {
       </section>
 
       {/* =====================================================================
-          BLOQUE 02: TRAYECTORIA — PARTICIPACIONES Y CONCURSOS
+          BLOQUE 02: EXPERIENCIA — PARTICIPACIONES Y CONCURSOS
       ===================================================================== */}
       <section
         id="experiencia"
-        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center gap-3 mb-4">
-          <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#1C1C1A] uppercase">
-            <span className="text-[#099AD7]">02 /</span> TRAYECTORIA & PARTICIPACIONES
+          <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
+            02 / EXPERIENCIA
           </h2>
         </div>
 
@@ -412,11 +412,11 @@ export default function BioContactView() {
       ===================================================================== */}
       <section
         id="habilidades"
-        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center gap-3 mb-8 md:mb-10">
-          <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#1C1C1A] uppercase">
-            <span className="text-[#099AD7]">03 /</span> HABILIDADES
+          <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
+            03 / HABILIDADES
           </h2>
         </div>
 
