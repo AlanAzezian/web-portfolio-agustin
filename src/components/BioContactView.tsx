@@ -6,13 +6,20 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 
-interface ParticipationItem {
+interface WorkExperienceItem {
+  id: string;
+  role: string;
+  company: string;
+  period: string;
+  scope: string;
+}
+
+interface CompetitionItem {
   id: string;
   year: string;
   badge?: string;
   title: string;
-  role: string;
-  detail: string;
+  description: string;
   image: string;
   imageCaption: string;
 }
@@ -23,9 +30,9 @@ interface SkillCard {
 }
 
 const BIO_SECTIONS = [
-  { id: "sobre-mi", label: "SOBRE MÍ" },
-  { id: "experiencia", label: "EXPERIENCIA" },
-  { id: "habilidades", label: "HABILIDADES" },
+  { id: "sobre-mi", label: "[ 01 / SOBRE MÍ ]" },
+  { id: "experiencia", label: "[ 02 / EXPERIENCIA ]" },
+  { id: "habilidades", label: "[ 03 / HABILIDADES ]" },
 ] as const;
 
 type BioSectionId = (typeof BIO_SECTIONS)[number]["id"];
@@ -45,47 +52,71 @@ const EDUCATION_ITEMS = [
   },
 ];
 
-const PARTICIPATION_ITEMS: ParticipationItem[] = [
+const WORK_EXPERIENCE_ITEMS: WorkExperienceItem[] = [
   {
-    id: "part-01",
+    id: "work-01",
+    role: "Asistente de Arquitectura",
+    company: "ENGAPA (Uruguay) | KUAARA (Argentina)",
+    period: "Dic. 2023 – Jul. 2025",
+    scope:
+      "Desarrollo de documentación técnica BIM para proyectos de hormigón premoldeado, planimetrías para fabricación de piezas de GRC, coordinación intersectorial y relevamiento en obra.",
+  },
+  {
+    id: "work-02",
+    role: "Renderista y Delineante",
+    company: "Práctica Freelance",
+    period: "2021 – Presente",
+    scope:
+      "Modelado 3D, composición de imágenes realistas, planimetría comercial y asesoramiento en diseño de interiores y exteriores.",
+  },
+  {
+    id: "work-03",
+    role: "Diseñador Técnico y Presupuestos",
+    company: "Fabrizio Amoblamientos",
+    period: "2021 – Presente (Empresa familiar)",
+    scope:
+      "Diseño de equipamiento y mobiliario a medida, seguimiento de fabricación y relevamiento métrico en obra.",
+  },
+];
+
+const COMPETITION_ITEMS: CompetitionItem[] = [
+  {
+    id: "comp-01",
     year: "2026",
     badge: "LA BIENAL XX",
     title: "Maqueta Casa Chacra — BAAG | La Bienal XX (2026)",
-    role: "Colaborador en producción y montaje de maqueta expositiva.",
-    detail: "XX Bienal Internacional de Arquitectura de Buenos Aires.",
+    description:
+      "Colaborador en producción y montaje de maqueta expositiva en la XX Bienal Internacional de Arquitectura de Buenos Aires.",
     image: "/projects/centro-de-trasbordo/01-render-exterior.webp",
     imageCaption: "Maqueta Casa Chacra — BAAG | XX Bienal Internacional de Arquitectura de Buenos Aires",
   },
   {
-    id: "part-02",
+    id: "comp-02",
     year: "2026",
     badge: "CLAVE 0178",
     title: "Concurso Provincial Crematorio Parque CEyS (2026)",
-    role: "Colaborador | Clave 0178 (Nueve de Julio, Buenos Aires).",
-    detail: "Concurso Provincial de Anteproyectos — Nueve de Julio, Provincia de Buenos Aires.",
+    description: "Colaborador | Clave 0178 (Nueve de Julio, Buenos Aires).",
     image: "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
     imageCaption: "Concurso Provincial Crematorio Parque CEyS — Nueve de Julio, Buenos Aires",
   },
   {
-    id: "part-03",
+    id: "comp-03",
     year: "2023",
-    badge: "2° PREMIO",
+    badge: "2° PUESTO",
     title: "Nuevo Acceso al Parque Natural Laguna de Gómez (2023 — 2° Puesto)",
-    role: "Distinción: 2° Premio.",
-    detail: "Concurso de ideas municipal (Junín, Buenos Aires).",
+    description: "Concurso de ideas municipal (Junín, Buenos Aires).",
     image: "/projects/acceso-pnlq.png",
-    imageCaption: "2° Premio — Nuevo Acceso al Parque Natural Laguna de Gómez (Junín, Buenos Aires)",
+    imageCaption: "2° Puesto — Nuevo Acceso al Parque Natural Laguna de Gómez (Junín, Buenos Aires)",
   },
   {
-    id: "part-04",
+    id: "comp-04",
     year: "2023",
-    badge: "1° PREMIO",
-    title: "Concurso de viviendas colectivas de SteelHouse (2023 — 1° Puesto)",
-    role: "Distinción: 1° Premio.",
-    detail:
-      "Concurso interno en la materia Construcciones II (Cátedra Castellano / Patrocinó Tubos Argentinos).",
+    badge: "1° PUESTO",
+    title: "Concurso de Viviendas Colectivas en SteelHouse (2023 — 1° Puesto)",
+    description:
+      "Concurso interno en Construcciones II (Cátedra Castellano / Patrocinio Tubos Argentinos).",
     image: "/projects/50-viviendas.jpg",
-    imageCaption: "1° Premio — Concurso de viviendas colectivas de SteelHouse (FADU, UBA)",
+    imageCaption: "1° Puesto — Concurso de Viviendas Colectivas en SteelHouse (FADU, UBA)",
   },
 ];
 
@@ -123,7 +154,7 @@ export default function BioContactView() {
 
     if (typeof window !== "undefined" && window.__lenis) {
       window.__lenis.scrollTo(el, {
-        offset: -112,
+        offset: -128,
         duration: 0.85,
       });
     } else {
@@ -131,7 +162,7 @@ export default function BioContactView() {
     }
   };
 
-  // Detectar sección activa durante el scroll natural
+  // ScrollSpy dinámico con IntersectionObserver
   useEffect(() => {
     const elements = BIO_SECTIONS.map((s) => document.getElementById(s.id)).filter(
       Boolean
@@ -148,7 +179,7 @@ export default function BioContactView() {
         });
       },
       {
-        rootMargin: "-25% 0px -60% 0px",
+        rootMargin: "-20% 0px -65% 0px",
         threshold: 0,
       }
     );
@@ -159,9 +190,9 @@ export default function BioContactView() {
 
   return (
     <div className="w-full bg-[#F8F7F4] text-[#1C1C1A] font-roboto pt-20">
-      {/* Barra de filtros / anclas en el flujo natural superior (idéntica a Proyectos, sin contadores numéricos) */}
-      <div className="max-w-6xl mx-auto px-6 md:px-16">
-        <div className="flex justify-center items-center gap-6 md:gap-10 py-6 md:py-8">
+      {/* Barra de sub-filtros Sticky con ScrollSpy */}
+      <div className="sticky top-16 md:top-20 z-30 w-full bg-[#F8F7F4]/90 backdrop-blur-sm py-4 border-b border-[#E5E2DC]/50">
+        <div className="max-w-6xl mx-auto px-6 md:px-16 flex justify-center items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar">
           {BIO_SECTIONS.map((sec) => {
             const isActive = activeSection === sec.id;
             return (
@@ -169,10 +200,10 @@ export default function BioContactView() {
                 key={sec.id}
                 type="button"
                 onClick={() => handleScrollToSection(sec.id)}
-                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto px-1 transition-all duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto px-1 transition-all duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isActive
-                    ? "text-[14px] font-semibold font-[600] text-[#099AD7]"
-                    : "text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                    ? "text-[13px] md:text-[14px] font-semibold font-[600] text-[#099AD7] scale-105"
+                    : "text-[11px] md:text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7] scale-100"
                 }`}
               >
                 <span>{sec.label}</span>
@@ -187,7 +218,7 @@ export default function BioContactView() {
       ===================================================================== */}
       <section
         id="sobre-mi"
-        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-10 md:py-16 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-32 max-w-6xl mx-auto px-6 md:px-16 py-10 md:py-16 border-b border-[#1C1C1A]/15"
       >
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -322,88 +353,128 @@ export default function BioContactView() {
       </section>
 
       {/* =====================================================================
-          BLOQUE 02: EXPERIENCIA — PARTICIPACIONES Y CONCURSOS
+          BLOQUE 02: EXPERIENCIA (A. Trayectoria Laboral + B. Concursos y Distinciones)
       ===================================================================== */}
       <section
         id="experiencia"
-        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-32 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-10 md:mb-14">
           <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
             02 / EXPERIENCIA
           </h2>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 md:mb-16">
-          <p className="text-2xl sm:text-4xl font-roboto font-light tracking-tight text-[#1C1C1A] leading-tight">
-            Participaciones, Concursos & Distinciones
-          </p>
           <Link
             href="/proyectos"
-            className="inline-flex items-center gap-2 font-roboto text-xs uppercase tracking-widest text-[#1C1C1A] hover:text-acento transition-colors self-start md:self-auto"
+            className="inline-flex items-center gap-2 font-roboto text-xs uppercase tracking-widest text-[#1C1C1A] hover:text-acento transition-colors"
           >
             <span>Ver archivo de obras</span>
             <ArrowUpRight size={15} strokeWidth={1.75} className="text-acento" />
           </Link>
         </div>
 
-        <div className="flex flex-col divide-y divide-[#1C1C1A]/15 border-t border-[#1C1C1A]/15">
-          {PARTICIPATION_ITEMS.map((item) => (
-            <article
-              key={item.id}
-              className="py-10 md:py-14 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 items-start"
-            >
-              {/* Columna de Metadatos y Descripción */}
-              <div className="lg:col-span-7 flex flex-col justify-between">
+        {/* SUBDIVISIÓN A: Trayectoria Laboral (Estudios y Práctica Profesional) */}
+        <div className="mb-16 md:mb-20">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-semibold">
+              A. TRAYECTORIA LABORAL
+            </span>
+            <span className="w-8 h-[1px] bg-[#1C1C1A]/15" />
+            <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
+              ESTUDIOS & PRÁCTICA PROFESIONAL
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {WORK_EXPERIENCE_ITEMS.map((job) => (
+              <article
+                key={job.id}
+                className="border border-[#1C1C1A]/15 bg-[#F8F7F4] p-6 sm:p-7 flex flex-col justify-between"
+              >
                 <div>
-                  <div className="flex flex-wrap items-center gap-3 mb-3">
-                    <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium">
-                      {item.year}
-                    </span>
-                    {item.badge && (
-                      <>
-                        <span className="text-[#1C1C1A]/30">•</span>
-                        <span className="font-roboto text-[11px] uppercase tracking-widest px-2.5 py-0.5 bg-[#099AD7]/10 text-[#099AD7] font-medium">
-                          {item.badge}
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  <h3 className="text-2xl sm:text-3xl font-roboto font-light text-[#1C1C1A] tracking-tight mb-4">
-                    {item.title}
+                  <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium block mb-2">
+                    {job.period}
+                  </span>
+                  <h3 className="text-xl font-roboto font-medium text-[#1C1C1A] tracking-tight leading-snug mb-1">
+                    {job.role}
                   </h3>
-
-                  <p className="text-base font-roboto font-medium text-[#1C1C1A] leading-relaxed mb-2">
-                    {item.role}
+                  <p className="font-roboto text-xs uppercase tracking-wider text-[#1C1C1A]/60 pb-4 mb-4 border-b border-[#1C1C1A]/10">
+                    {job.company}
                   </p>
-
-                  <p className="text-base font-roboto text-[#1C1C1A]/75 leading-relaxed">
-                    {item.detail}
+                  <p className="font-roboto text-sm text-[#1C1C1A]/80 leading-relaxed">
+                    {job.scope}
                   </p>
                 </div>
-              </div>
+              </article>
+            ))}
+          </div>
+        </div>
 
-              {/* Tarjeta Fotográfica Representativa */}
-              <div className="lg:col-span-5 w-full">
-                <div className="border border-[#1C1C1A]/15 bg-[#F8F7F4] p-2.5">
-                  <div className="relative w-full overflow-hidden bg-[#1C1C1A]/5">
-                    <Image
-                      src={item.image}
-                      alt={item.imageCaption}
-                      width={1200}
-                      height={800}
-                      sizes="(max-width: 1024px) 100vw, 40vw"
-                      className="w-full h-auto object-contain block"
-                    />
+        {/* SUBDIVISIÓN B: Concursos, Montajes y Distinciones */}
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-semibold">
+              B. CONCURSOS, MONTAJES & DISTINCIONES
+            </span>
+            <span className="w-8 h-[1px] bg-[#1C1C1A]/15" />
+            <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
+              PREMIOS & PARTICIPACIONES
+            </span>
+          </div>
+
+          <div className="flex flex-col divide-y divide-[#1C1C1A]/15 border-t border-[#1C1C1A]/15">
+            {COMPETITION_ITEMS.map((item) => (
+              <article
+                key={item.id}
+                className="py-10 md:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 items-start"
+              >
+                {/* Columna de Metadatos y Descripción */}
+                <div className="lg:col-span-7 flex flex-col justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                      <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium">
+                        {item.year}
+                      </span>
+                      {item.badge && (
+                        <>
+                          <span className="text-[#1C1C1A]/30">•</span>
+                          <span className="font-roboto text-[11px] uppercase tracking-widest px-2.5 py-0.5 bg-[#099AD7]/10 text-[#099AD7] font-medium">
+                            {item.badge}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    <h3 className="text-2xl sm:text-3xl font-roboto font-light text-[#1C1C1A] tracking-tight mb-3">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-base font-roboto text-[#1C1C1A]/80 leading-relaxed">
+                      {item.description}
+                    </p>
                   </div>
-                  <p className="mt-2.5 font-roboto text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 leading-snug">
-                    {item.imageCaption}
-                  </p>
                 </div>
-              </div>
-            </article>
-          ))}
+
+                {/* Tarjeta Fotográfica Representativa */}
+                <div className="lg:col-span-5 w-full">
+                  <div className="border border-[#1C1C1A]/15 bg-[#F8F7F4] p-2.5">
+                    <div className="relative w-full overflow-hidden bg-[#1C1C1A]/5">
+                      <Image
+                        src={item.image}
+                        alt={item.imageCaption}
+                        width={1200}
+                        height={800}
+                        sizes="(max-width: 1024px) 100vw, 40vw"
+                        className="w-full h-auto object-contain block"
+                      />
+                    </div>
+                    <p className="mt-2.5 font-roboto text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 leading-snug">
+                      {item.imageCaption}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -412,7 +483,7 @@ export default function BioContactView() {
       ===================================================================== */}
       <section
         id="habilidades"
-        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-32 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center gap-3 mb-8 md:mb-10">
           <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
