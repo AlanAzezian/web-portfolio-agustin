@@ -4,16 +4,16 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Check } from "lucide-react";
 import type { ServiceItem } from "@/data/services";
+import { getWhatsAppLink, SERVICE_WHATSAPP_MESSAGES } from "@/lib/whatsapp";
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
 }
 
 export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
-  const whatsappText = encodeURIComponent(
-    `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`
-  );
-  const mailtoSubject = encodeURIComponent(`Cotización: ${service.title}`);
+  const whatsappMessage =
+    SERVICE_WHATSAPP_MESSAGES[service.id] ??
+    `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
 
   return (
     <div className="max-w-6xl mx-auto px-6 md:px-16 py-28 md:py-36 min-h-screen bg-[#F8F7F4] text-[#1C1C1A]">
@@ -179,36 +179,24 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
           </div>
         </section>
 
-        {/* Bloque de Contacto Directo (WhatsApp / Email) */}
-        <section className="mt-8 p-8 sm:p-12 md:p-20 bg-foreground text-background flex flex-col items-start md:items-center md:text-center">
-          <span className="font-roboto text-xs uppercase tracking-widest text-acento block mb-4">
-            COTIZACIÓN DIRECTA — {service.title.toUpperCase()}
-          </span>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-sans font-light mb-6 tracking-tighter leading-none max-w-3xl">
-            Coordinemos alcances, plazos y presupuesto para tu proyecto.
+        {/* Bloque Minimalista: Trabajemos juntos */}
+        <section className="pt-12 border-t border-[#1C1C1A]/15 flex flex-col items-start">
+          <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
+            Trabajemos juntos
           </h2>
-          <p className="text-background/70 font-sans text-base md:text-lg max-w-2xl mb-10 leading-relaxed">
-            Enviá la planimetría o referencias iniciales por WhatsApp o correo electrónico para recibir una propuesta técnica a medida.
-          </p>
-
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 sm:gap-6">
-            <a
-              href={`https://wa.me/5491100000000?text=${whatsappText}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-acento text-background font-roboto text-xs sm:text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors"
-            >
-              <span>Contactar por WhatsApp</span>
-              <ArrowUpRight size={16} strokeWidth={1.75} />
-            </a>
-            <a
-              href={`mailto:hola@agustinfabrizio.com?subject=${mailtoSubject}`}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-background font-roboto text-xs sm:text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors border border-background/25"
-            >
-              <span>Enviar Email Directo</span>
-              <ArrowUpRight size={16} strokeWidth={1.75} />
-            </a>
-          </div>
+          <a
+            href={getWhatsAppLink(whatsappMessage)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-[#F8F7F4] font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
+          >
+            <span>Contactar por WhatsApp</span>
+            <ArrowUpRight
+              size={15}
+              strokeWidth={1.75}
+              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </a>
         </section>
       </motion.div>
     </div>

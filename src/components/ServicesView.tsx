@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Plus, X, ArrowUpRight } from "lucide-react";
 import { servicesData } from "@/data/services";
+import { getWhatsAppLink } from "@/lib/whatsapp";
 
 export default function ServicesView() {
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
@@ -149,30 +150,26 @@ export default function ServicesView() {
           })}
         </div>
 
-        {/* Final CTA Block */}
-        <div className="p-8 sm:p-12 md:p-16 text-center bg-foreground text-background flex flex-col items-center">
-          <span className="font-roboto text-xs uppercase tracking-widest text-background/60 block mb-3">
-            ¿Tenés un proyecto en mente?
-          </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-sans font-light mb-8 tracking-tighter leading-none">
-            Hagámoslo realidad.
+        {/* Bloque Minimalista: Trabajemos juntos */}
+        <div className="pt-8 border-t border-[#1C1C1A]/15 flex flex-col items-start">
+          <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
+            Trabajemos juntos
           </h2>
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 sm:gap-6">
-            <a
-              href="mailto:hola@agustinfabrizio.com"
-              className="px-8 py-4 text-background font-roboto text-xs sm:text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors border border-background/20 text-center"
-            >
-              Enviar Email
-            </a>
-            <a
-              href="https://wa.me/5491100000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-4 bg-acento text-background font-roboto text-xs sm:text-sm uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors text-center"
-            >
-              WhatsApp
-            </a>
-          </div>
+          <a
+            href={getWhatsAppLink(
+              "Hola Agustín, me gustaría iniciar un proyecto contigo. ¿Podemos coordinar?"
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-[#F8F7F4] font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
+          >
+            <span>Contactar por WhatsApp</span>
+            <ArrowUpRight
+              size={15}
+              strokeWidth={1.75}
+              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </a>
         </div>
       </motion.div>
     </div>

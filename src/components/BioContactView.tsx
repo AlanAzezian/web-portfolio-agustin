@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { getWhatsAppLink } from "@/lib/whatsapp";
 
 interface WorkExperienceItem {
   id: string;
@@ -523,37 +524,25 @@ export default function BioContactView() {
           PIE DE CONTACTO DIRECTO (Cierre de la Landing Vertical)
       ===================================================================== */}
       <section className="max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20">
-        <div className="p-8 sm:p-12 md:p-16 bg-[#1C1C1A] text-[#F8F7F4] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          <div className="max-w-2xl">
-            <span className="font-roboto text-xs uppercase tracking-widest text-acento block mb-3">
-              CONTACTO DIRECTO
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-roboto font-light tracking-tight leading-none mb-4">
-              ¿Conversamos sobre un próximo proyecto o colaboración?
-            </h2>
-            <p className="font-roboto text-sm sm:text-base text-[#F8F7F4]/70 leading-relaxed">
-              Disponible para encargos de visualización arquitectónica, modelado BIM y asistencia proyectual para estudios.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row w-full lg:w-auto gap-4 shrink-0">
-            <a
-              href="https://wa.me/5491100000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-7 py-4 bg-acento text-[#F8F7F4] font-roboto text-xs uppercase tracking-widest hover:bg-[#F8F7F4] hover:text-[#1C1C1A] transition-colors"
-            >
-              <span>WhatsApp</span>
-              <ArrowUpRight size={15} strokeWidth={1.75} />
-            </a>
-            <a
-              href="mailto:hola@agustinfabrizio.com"
-              className="inline-flex items-center justify-center gap-2 px-7 py-4 border border-[#F8F7F4]/25 text-[#F8F7F4] font-roboto text-xs uppercase tracking-widest hover:bg-[#F8F7F4] hover:text-[#1C1C1A] transition-colors"
-            >
-              <span>hola@agustinfabrizio.com</span>
-              <ArrowUpRight size={15} strokeWidth={1.75} />
-            </a>
-          </div>
+        <div className="flex flex-col items-start">
+          <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
+            Trabajemos juntos
+          </h2>
+          <a
+            href={getWhatsAppLink(
+              "Hola Agustín, vi tu portfolio y me gustaría ponerme en contacto contigo para una propuesta de trabajo/proyecto."
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-[#F8F7F4] font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
+          >
+            <span>Contactar por WhatsApp</span>
+            <ArrowUpRight
+              size={15}
+              strokeWidth={1.75}
+              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </a>
         </div>
       </section>
     </div>
