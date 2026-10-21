@@ -1,107 +1,140 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { IconlyArrowRight2 } from "./icons/IconlyArrowRight2";
 
 export default function EditorialOverlay() {
   const cursorRef = useRef<HTMLDivElement>(null);
-  const [cursorType, setCursorType] = useState<string | null>(null);
-  const [isInteractive, setIsInteractive] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const arrowLeftRef = useRef<HTMLDivElement>(null);
+  const arrowRightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const targetPos = { x: -100, y: -100 };
-    const currentPos = { x: -100, y: -100 };
-    let initialized = false;
-    let rafId: number;
+    if (typeof window === "undefined") return;
+    const isFinePointer = window.matchMedia("(pointer: fine)").matches;
+    if (!isFinePointer) return;
 
-    const renderLoop = () => {
-      if (initialized && cursorRef.current) {
-        currentPos.x += (targetPos.x - currentPos.x) * 0.22;
-        currentPos.y += (targetPos.y - currentPos.y) * 0.22;
-        cursorRef.current.style.transform = `translate3d(${currentPos.x}px, ${currentPos.y}px, 0) translate(-50%, -50%)`;
+    const cursorEl = cursorRef.current;
+    const dotEl = dotRef.current;
+    const leftEl = arrowLeftRef.current;
+    const rightEl = arrowRightRef.current;
+    if (!cursorEl || !dotEl || !leftEl || !rightEl) return;
+
+    let mouseX = -100;
+    let mouseY = -100;
+    let rafId: number | null = null;
+    let isVisible = false;
+    let currentMode: "dot" | "interactive" | "arrow-left" | "arrow-right" = "dot";
+
+    const applyMode = (mode: typeof currentMode) => {
+      if (mode === currentMode) return;
+      currentMode = mode;
+
+      if (mode === "arrow-left") {
+        dotEl.style.display = "none";
+        rightEl.style.display = "none";
+        leftEl.style.display = "flex";
+      } else if (mode === "arrow-right") {
+        dotEl.style.display = "none";
+        leftEl.style.display = "none";
+        rightEl.style.display = "flex";
+      } else {
+        leftEl.style.display = "none";
+        rightEl.style.display = "none";
+        dotEl.style.display = "block";
+        dotEl.style.transform =
+          mode === "interactive" ? "scale(1.3)" : "scale(1)";
       }
-      rafId = requestAnimationFrame(renderLoop);
     };
 
-    rafId = requestAnimationFrame(renderLoop);
+    const updatePosition = () => {
+      rafId = null;
+      cursorEl.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+    };
 
-    const updatePointer = (e: PointerEvent) => {
-      targetPos.x = e.clientX;
-      targetPos.y = e.clientY;
+    const handlePointerMove = (e: PointerEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
 
-      if (!initialized) {
-        currentPos.x = e.clientX;
-        currentPos.y = e.clientY;
-        initialized = true;
-        if (cursorRef.current) {
-          cursorRef.current.style.transform = `translate3d(${currentPos.x}px, ${currentPos.y}px, 0) translate(-50%, -50%)`;
-        }
+      if (!isVisible) {
+        isVisible = true;
+        cursorEl.style.opacity = "1";
       }
 
-      setIsVisible(true);
+      if (rafId === null) {
+        rafId = requestAnimationFrame(updatePosition);
+      }
 
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
-      const cursorElement = target.closest("[data-cursor]");
-      if (cursorElement) {
-        setCursorType(cursorElement.getAttribute("data-cursor"));
-        setIsInteractive(false);
-        return;
+      const cursorAttrEl = target.closest("[data-cursor]");
+      if (cursorAttrEl) {
+        const attr = cursorAttrEl.getAttribute("data-cursor");
+        if (attr === "arrow-left" || attr === "arrow-right") {
+          applyMode(attr);
+          return;
+        }
       }
 
-      setCursorType(null);
-      const interactiveElement = target.closest(
+      const interactiveEl = target.closest(
         "a, button, [role='button'], input, textarea, select"
       );
-      setIsInteractive(!!interactiveElement);
+      applyMode(interactiveEl ? "interactive" : "dot");
     };
 
     const handleMouseLeave = () => {
-      setIsVisible(false);
+      isVisible = false;
+      cursorEl.style.opacity = "0";
     };
 
     const handleMouseEnter = () => {
-      setIsVisible(true);
+      isVisible = true;
+      cursorEl.style.opacity = "1";
     };
 
-    window.addEventListener("pointermove", updatePointer, { passive: true });
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
     document.addEventListener("mouseleave", handleMouseLeave);
     document.addEventListener("mouseenter", handleMouseEnter);
 
     return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener("pointermove", updatePointer);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      window.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("mouseenter", handleMouseEnter);
     };
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden">
+    <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden hidden [@media(pointer:fine)]:block">
       <div
         ref={cursorRef}
-        style={{ transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)" }}
-        className={`fixed top-0 left-0 z-[99999] flex items-center justify-center pointer-events-none will-change-transform ${
-          isVisible ? "opacity-100" : "opacity-0"
-        }`}
+        style={{
+          transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
+          opacity: 0,
+        }}
+        className="fixed top-0 left-0 z-[99999] flex items-center justify-center pointer-events-none will-change-transform transition-opacity duration-150"
       >
-        {cursorType === "arrow-left" ? (
-          <div className="rotate-180 flex items-center justify-center">
-            <IconlyArrowRight2 size={26} color="#1C1C1A" />
-          </div>
-        ) : cursorType === "arrow-right" ? (
-          <div className="flex items-center justify-center">
-            <IconlyArrowRight2 size={26} color="#1C1C1A" />
-          </div>
-        ) : (
-          <div
-            className={`w-3.5 h-3.5 rounded-full bg-[#1C1C1A] transition-transform duration-150 ease-out ${
-              isInteractive ? "scale-[1.3]" : "scale-100"
-            }`}
-          />
-        )}
+        <div
+          ref={dotRef}
+          className="w-3.5 h-3.5 rounded-full bg-[#1C1C1A] transition-transform duration-150 ease-out will-change-transform"
+        />
+        <div
+          ref={arrowLeftRef}
+          style={{ display: "none" }}
+          className="rotate-180 items-center justify-center"
+        >
+          <IconlyArrowRight2 size={26} color="#1C1C1A" />
+        </div>
+        <div
+          ref={arrowRightRef}
+          style={{ display: "none" }}
+          className="items-center justify-center"
+        >
+          <IconlyArrowRight2 size={26} color="#1C1C1A" />
+        </div>
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import { blurDataMap, DEFAULT_BLUR_DATA_URL } from "@/data/projects";
 
 interface ExperienceItem {
   id: string;
@@ -27,6 +27,14 @@ interface SkillCategory {
     level: string;
   }[];
 }
+
+const BIO_SECTIONS = [
+  { id: "sobre-mi", label: "[ 01 / SOBRE MÍ ]" },
+  { id: "experiencia", label: "[ 02 / EXPERIENCIA ]" },
+  { id: "habilidades", label: "[ 03 / HABILIDADES ]" },
+] as const;
+
+type BioSectionId = (typeof BIO_SECTIONS)[number]["id"];
 
 const EXPERIENCE_ITEMS: ExperienceItem[] = [
   {
@@ -167,18 +175,88 @@ const SKILL_CATEGORIES: SkillCategory[] = [
 ];
 
 export default function BioContactView() {
+  const [activeSection, setActiveSection] = useState<BioSectionId>("sobre-mi");
+  const [profileImgError, setProfileImgError] = useState(false);
+
+  const handleScrollToSection = (sectionId: BioSectionId) => {
+    setActiveSection(sectionId);
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.scrollTo(el, {
+        offset: -116,
+        duration: 0.85,
+      });
+    } else {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Detectar sección activa durante el scroll natural
+  useEffect(() => {
+    const elements = BIO_SECTIONS.map((s) => document.getElementById(s.id)).filter(
+      Boolean
+    ) as HTMLElement[];
+
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id as BioSectionId);
+          }
+        });
+      },
+      {
+        rootMargin: "-25% 0px -60% 0px",
+        threshold: 0,
+      }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="w-full bg-[#F8F7F4] text-[#1C1C1A] font-roboto pt-20">
+      {/* Barra superior sticky de filtros / anclas de sub-secciones */}
+      <div className="sticky top-20 z-40 w-full bg-[#F8F7F4]/95 backdrop-blur-xs border-b border-[#1C1C1A]/10">
+        <div className="max-w-6xl mx-auto px-6 md:px-16 h-12 flex items-center justify-center sm:justify-start gap-4 sm:gap-8 overflow-x-auto no-scrollbar">
+          {BIO_SECTIONS.map((sec) => {
+            const isActive = activeSection === sec.id;
+            return (
+              <button
+                key={sec.id}
+                type="button"
+                onClick={() => handleScrollToSection(sec.id)}
+                className={`font-roboto text-[11px] sm:text-xs uppercase tracking-widest whitespace-nowrap py-1 transition-colors cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                  isActive
+                    ? "text-acento font-semibold font-[600]"
+                    : "text-[#1C1C1A]/65 hover:text-acento font-medium font-[500]"
+                }`}
+              >
+                {sec.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* =====================================================================
-          BLOQUE 01: SOBRE MÍ (Declaración de perfil, filosofía y enfoque)
+          BLOQUE 01: SOBRE MÍ (Foto de perfil a la izquierda + Texto CV derecha)
       ===================================================================== */}
-      <section className="max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15">
+      <section
+        id="sobre-mi"
+        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+      >
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
         >
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-8 md:mb-12">
             <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
               01 / SOBRE MÍ
             </span>
@@ -188,64 +266,106 @@ export default function BioContactView() {
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-roboto font-light leading-[0.95] tracking-tighter text-[#1C1C1A] mb-10 md:mb-14 max-w-4xl">
-            Arquitectura pensada desde la precisión constructiva y la atmósfera espacial.
-          </h1>
+          {/* Layout de 2 columnas en desktop: Izquierda Retrato / Derecha Texto CV */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14 items-start">
+            {/* Columna Izquierda: Fotografía de Perfil de Agustín con marco editorial */}
+            <div className="lg:col-span-5 w-full">
+              <div className="border border-[#1C1C1A]/15 bg-[#F8F7F4] p-3">
+                <div className="relative w-full aspect-[4/5] overflow-hidden bg-[#1C1C1A]/[0.04] flex items-center justify-center">
+                  {!profileImgError ? (
+                    <Image
+                      src="/agustin-perfil.webp"
+                      alt="Agustín Fabrizio — Retrato"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 40vw"
+                      className="object-cover"
+                      onError={() => setProfileImgError(true)}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center select-none border border-dashed border-[#1C1C1A]/15">
+                      <span className="font-roboto font-light text-4xl tracking-tight text-[#1C1C1A]/25 mb-3">
+                        AF
+                      </span>
+                      <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45">
+                        Retrato Editorial
+                      </span>
+                      <span className="font-roboto text-[10px] tracking-wider text-[#1C1C1A]/35 mt-1">
+                        /public/agustin-perfil.webp
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-start">
-            <div className="lg:col-span-7 flex flex-col gap-6">
-              <p className="text-lg md:text-2xl font-roboto font-light leading-relaxed text-[#1C1C1A]">
-                Soy <strong className="font-medium">Agustín Fabrizio</strong>, estudiante avanzado de Arquitectura próximo a graduarse en la{" "}
-                <span className="text-acento font-normal">
-                  Facultad de Arquitectura, Diseño y Urbanismo (FADU, UBA)
-                </span>
-                .
-              </p>
-              <p className="text-base md:text-lg font-roboto text-[#1C1C1A]/80 leading-relaxed">
-                Mi enfoque proyectual articula la racionalidad tectónica y estructural con una búsqueda sensible sobre el comportamiento de la luz natural, las proporciones y la honestidad de los materiales. Entiendo cada proyecto como una síntesis entre la respuesta urbana, la claridad programática y el rigor del detalle técnico.
-              </p>
-              <p className="text-base md:text-lg font-roboto text-[#1C1C1A]/80 leading-relaxed">
-                En paralelo a la práctica proyectual, me especializo en visualización arquitectónica hiperrealista y modelado BIM, acompañando a estudios y profesionales a traducir ideas complejas en documentación precisa e imágenes capaces de transmitir la experiencia del espacio antes de ser construido.
-              </p>
+                <div className="mt-3 pt-2.5 border-t border-[#1C1C1A]/10 flex items-center justify-between">
+                  <span className="font-roboto text-xs font-medium text-[#1C1C1A]">
+                    Agustín Fabrizio
+                  </span>
+                  <span className="font-roboto text-[11px] uppercase tracking-wider text-acento">
+                    FADU, UBA
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Ficha Editorial Lateral */}
-            <div className="lg:col-span-5 border border-[#1C1C1A]/15 p-6 md:p-8 bg-[#F8F7F4] flex flex-col gap-6">
-              <span className="font-roboto text-xs uppercase tracking-widest text-acento">
-                FICHA DE PERFIL
-              </span>
+            {/* Columna Derecha: Declaración de CV con conceptos clave resaltados en #099AD7 */}
+            <div className="lg:col-span-7 flex flex-col justify-between gap-8">
+              <div>
+                <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50 block mb-3">
+                  PRESENTACIÓN PROFESIONAL
+                </span>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-roboto font-light leading-[1.05] tracking-tight text-[#1C1C1A] mb-8">
+                  Agustín Fabrizio — Arquitectura & Visualización Contemporánea.
+                </h1>
 
-              <div className="flex flex-col divide-y divide-[#1C1C1A]/10 text-sm">
-                <div className="py-3.5 flex flex-col sm:flex-row sm:justify-between gap-1">
-                  <span className="uppercase tracking-wider text-xs text-[#1C1C1A]/50">
+                <blockquote className="text-lg sm:text-xl md:text-[22px] font-roboto font-light leading-relaxed text-[#1C1C1A] border-l-2 border-acento pl-5 md:pl-7 py-1">
+                  &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
+                  <strong className="font-medium text-[#099AD7]">
+                    construir ideas en conjunto
+                  </strong>
+                  . Me interesa proyectar una arquitectura conectada con{" "}
+                  <strong className="font-medium text-[#099AD7]">
+                    lo cotidiano
+                  </strong>
+                  , enfocada en resolver necesidades reales, sin dejar de aprovechar los espacios lúdicos como instancias para{" "}
+                  <strong className="font-medium text-[#099AD7]">
+                    explorar otras formas
+                  </strong>{" "}
+                  de habitar y pensar el diseño. Me considero metódico y técnico en el uso de{" "}
+                  <strong className="font-medium text-[#099AD7]">
+                    herramientas digitales
+                  </strong>
+                  , lo que me permite integrar con fluidez el diseño, la representación y la producción. Me motiva{" "}
+                  <strong className="font-medium text-[#099AD7]">
+                    aprender
+                  </strong>{" "}
+                  constantemente, tanto desde lo teórico como desde lo práctico, incorporando recursos que optimicen y agilicen mis procesos proyectuales.&rdquo;
+                </blockquote>
+              </div>
+
+              {/* Ficha Editorial Compacta */}
+              <div className="border-t border-[#1C1C1A]/15 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
+                <div>
+                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-1">
                     Formación
                   </span>
-                  <span className="font-medium text-[#1C1C1A] sm:text-right">
-                    Arquitectura — FADU, UBA (Etapa Final)
+                  <span className="font-roboto font-medium text-[#1C1C1A]">
+                    Arquitectura — FADU, UBA
                   </span>
                 </div>
-                <div className="py-3.5 flex flex-col sm:flex-row sm:justify-between gap-1">
-                  <span className="uppercase tracking-wider text-xs text-[#1C1C1A]/50">
-                    Especialidad
+                <div>
+                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-1">
+                    Enfoque
                   </span>
-                  <span className="font-medium text-[#1C1C1A] sm:text-right">
-                    Proyecto, Visualización 3D & BIM
+                  <span className="font-roboto font-medium text-[#1C1C1A]">
+                    Proyecto, BIM & Visualización
                   </span>
                 </div>
-                <div className="py-3.5 flex flex-col sm:flex-row sm:justify-between gap-1">
-                  <span className="uppercase tracking-wider text-xs text-[#1C1C1A]/50">
+                <div>
+                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-1">
                     Ubicación
                   </span>
-                  <span className="font-medium text-[#1C1C1A] sm:text-right">
+                  <span className="font-roboto font-medium text-[#1C1C1A]">
                     Buenos Aires, Argentina
-                  </span>
-                </div>
-                <div className="py-3.5 flex flex-col sm:flex-row sm:justify-between gap-1">
-                  <span className="uppercase tracking-wider text-xs text-[#1C1C1A]/50">
-                    Disponibilidad
-                  </span>
-                  <span className="font-medium text-acento sm:text-right">
-                    Proyectos & Colaboraciones con Estudios
                   </span>
                 </div>
               </div>
@@ -257,10 +377,13 @@ export default function BioContactView() {
       {/* =====================================================================
           BLOQUE 02: EXPERIENCIA LABORAL & PARTICIPACIONES (Con fotografías)
       ===================================================================== */}
-      <section className="max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15">
+      <section
+        id="experiencia"
+        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+      >
         <div className="flex items-center gap-3 mb-4">
           <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
-            02 / TRAYECTORIA
+            02 / EXPERIENCIA
           </span>
           <span className="w-8 h-[1px] bg-acento" />
           <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
@@ -282,13 +405,9 @@ export default function BioContactView() {
         </div>
 
         <div className="flex flex-col divide-y divide-[#1C1C1A]/15 border-t border-[#1C1C1A]/15">
-          {EXPERIENCE_ITEMS.map((item, idx) => (
-            <motion.article
+          {EXPERIENCE_ITEMS.map((item) => (
+            <article
               key={item.id}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: idx * 0.08 }}
               className="py-10 md:py-14 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 items-start"
             >
               {/* Columna de Metadatos y Descripción */}
@@ -329,15 +448,14 @@ export default function BioContactView() {
               {/* Tarjeta Fotográfica Representativa */}
               <div className="lg:col-span-5 w-full">
                 <div className="border border-[#1C1C1A]/15 bg-[#F8F7F4] p-2.5">
-                  <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#1C1C1A]/5">
+                  <div className="relative w-full overflow-hidden bg-[#1C1C1A]/5">
                     <Image
                       src={item.image}
                       alt={item.imageCaption}
-                      fill
+                      width={1200}
+                      height={800}
                       sizes="(max-width: 1024px) 100vw, 40vw"
-                      placeholder="blur"
-                      blurDataURL={blurDataMap[item.image] ?? DEFAULT_BLUR_DATA_URL}
-                      className="object-cover"
+                      className="w-full h-auto object-contain block"
                     />
                   </div>
                   <p className="mt-2.5 font-roboto text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 leading-snug">
@@ -345,7 +463,7 @@ export default function BioContactView() {
                   </p>
                 </div>
               </div>
-            </motion.article>
+            </article>
           ))}
         </div>
       </section>
@@ -353,10 +471,13 @@ export default function BioContactView() {
       {/* =====================================================================
           BLOQUE 03: HABILIDADES & CONOCIMIENTOS (Stack Técnico & Software)
       ===================================================================== */}
-      <section className="max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15">
+      <section
+        id="habilidades"
+        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+      >
         <div className="flex items-center gap-3 mb-4">
           <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
-            03 / CAPACIDADES TÉCNICAS
+            03 / HABILIDADES
           </span>
           <span className="w-8 h-[1px] bg-acento" />
           <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">

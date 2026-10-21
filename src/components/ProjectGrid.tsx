@@ -4,8 +4,7 @@ import { useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { projects, blurDataMap, DEFAULT_BLUR_DATA_URL } from "@/data/projects";
+import { projects } from "@/data/projects";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { NAV_ACTIVE_DOT } from "@/components/Navbar";
 
@@ -148,8 +147,8 @@ export default function ProjectGrid() {
           gsap.to(elements, {
             opacity: 1,
             y: 0,
-            duration: 0.5,
-            stagger: 0.08,
+            duration: 0.45,
+            stagger: 0.06,
             ease: "power2.out",
             overwrite: "auto",
           });
@@ -167,8 +166,8 @@ export default function ProjectGrid() {
           if (firstTimeMasks.length > 0) {
             gsap.to(firstTimeMasks, {
               clipPath: "inset(0% 0% 0% 0%)",
-              duration: 0.7,
-              stagger: 0.08,
+              duration: 0.6,
+              stagger: 0.06,
               ease: "power3.out",
               overwrite: "auto",
             });
@@ -183,7 +182,7 @@ export default function ProjectGrid() {
   }, [filteredProjects]);
 
   return (
-    <div className="w-full px-8 md:px-16 max-w-none pt-4 md:pt-6 pb-24 md:pb-32 min-h-screen">
+    <div className="w-full px-6 md:px-16 max-w-none pt-24 md:pt-28 pb-24 md:pb-32 min-h-screen">
       {/* Selector de 3 filtros centrado horizontalmente, sin contadores numéricos */}
       <div
         ref={filterBarRef}
@@ -224,42 +223,37 @@ export default function ProjectGrid() {
         )}
       </div>
 
-      {/* Retícula de 4 columnas con métricas exactas Adamo-Faiden: gap de 13.5px y mt de 23px */}
+      {/* Retícula de 4 columnas con soporte para aspect ratios variables (16:9, 4:3, 3:4, etc.) */}
       <div
         ref={gridRef}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] mt-[23px]"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] mt-[23px] items-start"
       >
-        <AnimatePresence mode="popLayout">
-          {filteredProjects.map((project) => (
-            <motion.div key={project.id} layout className="w-full">
-              <Link
-                href={`/proyectos/${project.id}`}
-                data-project-id={project.id}
-                className="project-card-reveal group flex flex-col w-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
-              >
-                {/* Portadas a ancho completo de celda, aspect 3:2 y max-h 310px */}
-                <div className="project-image-mask relative w-full aspect-[3/2] max-h-[310px] overflow-hidden bg-[#F8F7F4]">
-                  <Image
-                    src={project.coverImage}
-                    alt={project.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    placeholder="blur"
-                    blurDataURL={
-                      blurDataMap[project.coverImage] ?? DEFAULT_BLUR_DATA_URL
-                    }
-                    className="object-cover block"
-                  />
-                </div>
+        {filteredProjects.map((project) => (
+          <div key={project.id} className="w-full">
+            <Link
+              href={`/proyectos/${project.id}`}
+              data-project-id={project.id}
+              className="project-card-reveal group flex flex-col w-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
+            >
+              {/* Portada con aspect ratio intrínseco flexible (sin aspect-[3/2] rígido) */}
+              <div className="project-image-mask relative w-full overflow-hidden bg-[#F8F7F4]">
+                <Image
+                  src={project.coverImage}
+                  alt={project.title}
+                  width={1600}
+                  height={1067}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="w-full h-auto object-contain block"
+                />
+              </div>
 
-                {/* Título debajo con Roboto Medium (500), color base #1C1C1A, hover #099AD7, mt-2.5 */}
-                <h2 className="mt-2.5 font-roboto font-medium font-[500] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-acento transition-colors duration-200">
-                  {project.title}
-                </h2>
-              </Link>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              {/* Título debajo con Roboto Medium (500), color base #1C1C1A, hover #099AD7, mt-2.5 */}
+              <h2 className="mt-2.5 font-roboto font-medium font-[500] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-acento transition-colors duration-200">
+                {project.title}
+              </h2>
+            </Link>
+          </div>
+        ))}
       </div>
     </div>
   );

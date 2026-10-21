@@ -5,6 +5,12 @@ import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
+declare global {
+  interface Window {
+    __lenis?: Lenis | null;
+  }
+}
+
 export default function SmoothScroll() {
   const pathname = usePathname();
   const isProjectDetail =
@@ -18,14 +24,18 @@ export default function SmoothScroll() {
     ).matches;
 
     if (isProjectDetail || prefersReducedMotion) {
+      window.__lenis = null;
       return;
     }
 
     const lenis = new Lenis({
       autoRaf: false,
-      lerp: 0.1,
+      lerp: 0.12,
       smoothWheel: true,
+      syncTouch: false,
     });
+
+    window.__lenis = lenis;
 
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -34,11 +44,13 @@ export default function SmoothScroll() {
     };
 
     gsap.ticker.add(update);
-    gsap.ticker.lagSmoothing(0);
 
     return () => {
       gsap.ticker.remove(update);
       lenis.destroy();
+      if (window.__lenis === lenis) {
+        window.__lenis = null;
+      }
     };
   }, [isProjectDetail]);
 

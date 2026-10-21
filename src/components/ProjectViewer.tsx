@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { blurDataMap, DEFAULT_BLUR_DATA_URL } from "@/data/projects";
 
 interface ProjectViewerProps {
   title: string;
@@ -49,17 +47,13 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nextSlide, prevSlide, router]);
 
-  // Precarga de diapositiva contigua (siguiente y anterior) para transición instantánea
+  // Precarga de todas las imágenes de la galería para corte seco instantáneo y nítido
   useEffect(() => {
-    if (total > 1) {
-      const nextIdx = (currentIndex + 1) % total;
-      const prevIdx = (currentIndex - 1 + total) % total;
-      const imgNext = new window.Image();
-      imgNext.src = images[nextIdx];
-      const imgPrev = new window.Image();
-      imgPrev.src = images[prevIdx];
-    }
-  }, [currentIndex, images, total]);
+    images.forEach((src) => {
+      const img = new window.Image();
+      img.src = src;
+    });
+  }, [images]);
 
   // Soporte táctil / swipe móvil
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -95,29 +89,20 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
         <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
       </Link>
 
-      {/* Visor central de imagen/plano perfectamente centrado sin Navbar */}
+      {/* Visor central de imagen/plano con corte seco directo, sin blur ni fade */}
       <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="relative w-full h-[80vh] md:h-[82vh] max-h-[82vh] pointer-events-none"
-          >
-            <Image
-              src={currentSrc}
-              alt={`${title} - Imagen ${currentIndex + 1}`}
-              fill
-              sizes="100vw"
-              priority={currentIndex === 0}
-              placeholder="blur"
-              blurDataURL={blurDataMap[currentSrc] ?? DEFAULT_BLUR_DATA_URL}
-              className="object-contain pointer-events-none select-none shadow-none"
-            />
-          </motion.div>
-        </AnimatePresence>
+        <div className="relative w-full h-[80vh] md:h-[82vh] max-h-[82vh] pointer-events-none">
+          <Image
+            key={currentSrc}
+            src={currentSrc}
+            alt={`${title} - Imagen ${currentIndex + 1}`}
+            fill
+            sizes="100vw"
+            priority
+            unoptimized={false}
+            className="object-contain pointer-events-none select-none shadow-none"
+          />
+        </div>
 
         {/* Áreas interactivas con flechas Iconly (izquierda / derecha) */}
         <button
@@ -137,14 +122,12 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
       </div>
 
       {/* Metadatos fijos inferiores */}
-      {/* Esquina inferior izquierda: Título del proyecto en Roboto Medium (500) */}
       <div className="fixed bottom-6 left-8 md:bottom-8 md:left-16 z-30 pointer-events-auto">
         <span className="font-roboto font-medium font-[500] text-xs md:text-sm text-[#1C1C1A] tracking-normal select-none">
           {title}
         </span>
       </div>
 
-      {/* Esquina inferior derecha: Contador numérico editorial en Roboto */}
       <div className="fixed bottom-6 right-8 md:bottom-8 md:right-16 z-30 pointer-events-auto">
         <span className="font-roboto tabular-nums tracking-wider text-[13px] text-[#1C1C1A] select-none font-normal">
           {formattedCurrent} / {formattedTotal}
