@@ -17,15 +17,9 @@ interface ExperienceItem {
   imageCaption: string;
 }
 
-interface SkillCategory {
-  code: string;
-  category: string;
-  summary: string;
-  tools: {
-    name: string;
-    focus: string;
-    level: string;
-  }[];
+interface SkillCard {
+  title: string;
+  items: string[];
 }
 
 const BIO_SECTIONS = [
@@ -84,93 +78,26 @@ const EXPERIENCE_ITEMS: ExperienceItem[] = [
   },
 ];
 
-const SKILL_CATEGORIES: SkillCategory[] = [
+const SKILL_CARDS: SkillCard[] = [
   {
-    code: "01",
-    category: "Modelado BIM & Documentación Ejecutiva",
-    summary:
-      "Construcción de modelos paramétricos centralizados, extracción de planimetría técnica automatizada, cómputo de superficies y coordinación constructiva.",
-    tools: [
-      {
-        name: "Autodesk Revit",
-        focus: "Modelado paramétrico, familias y legajos ejecutivos",
-        level: "Avanzado",
-      },
-      {
-        name: "Graphisoft Archicad",
-        focus: "Documentación BIM, cortes constructivos y esquemas 3D",
-        level: "Avanzado",
-      },
-      {
-        name: "AutoCAD",
-        focus: "Detallado técnico 2D, estandarización de capas y planos municipales",
-        level: "Avanzado",
-      },
-    ],
+    title: "CAD",
+    items: ["SketchUp", "Revit", "AutoCAD"],
   },
   {
-    code: "02",
-    category: "Modelado 3D & Exploración Morfológica",
-    summary:
-      "Desarrollo de geometrías complejas, estudios de asoleamiento, volumetrías conceptuales y preparación de mallas optimizadas para motores de render.",
-    tools: [
-      {
-        name: "Rhinoceros 3D",
-        focus: "Modelado NURBS de precisión, curvaturas y morfología",
-        level: "Avanzado",
-      },
-      {
-        name: "3ds Max",
-        focus: "Modelado poligonal de alta densidad, ensamblaje de escenas y cámaras",
-        level: "Avanzado",
-      },
-    ],
+    title: "RENDERING",
+    items: ["D5 Render", "Lumion", "V-Ray"],
   },
   {
-    code: "03",
-    category: "Motores de Render & Simulación Lumínica",
-    summary:
-      "Creación de atmósferas hiperrealistas mediante motores unbiased/híbridos, sombreadores físicamente correctos (PBR) y visualización en tiempo real.",
-    tools: [
-      {
-        name: "Corona Renderer",
-        focus: "Iluminación fotográfica, LightMix y materialidad hiperrealista",
-        level: "Especialista",
-      },
-      {
-        name: "V-Ray",
-        focus: "Renderizado de producción para exteriores e interiores complejos",
-        level: "Avanzado",
-      },
-      {
-        name: "Enscape / Twinmotion",
-        focus: "Recorridos virtuales en tiempo real e iteración rápida de diseño",
-        level: "Avanzado",
-      },
-    ],
+    title: "ADOBE",
+    items: ["Illustrator", "Photoshop", "InDesign", "Lightroom"],
   },
   {
-    code: "04",
-    category: "Postproducción & Gráfica Editorial",
-    summary:
-      "Dirección de arte digital, corrección de color en 16/32 bits, fotomontaje urbano y maquetación de paneles de concurso y memorias descriptivas.",
-    tools: [
-      {
-        name: "Adobe Photoshop",
-        focus: "Composición por canales (Render Elements), ambientación y color grading",
-        level: "Especialista",
-      },
-      {
-        name: "Adobe Illustrator",
-        focus: "Diagramas conceptuales, axonométricas vectoriales y postproducción de planos",
-        level: "Avanzado",
-      },
-      {
-        name: "Adobe InDesign",
-        focus: "Diseño editorial de portfolios, pliegos técnicos y láminas de entrega",
-        level: "Avanzado",
-      },
-    ],
+    title: "OFFICE",
+    items: ["Excel", "Word", "PowerPoint"],
+  },
+  {
+    title: "IDIOMAS",
+    items: ["Español (Nativo)", "Inglés (B2)"],
   },
 ];
 
@@ -257,13 +184,9 @@ export default function BioContactView() {
           transition={{ duration: 0.5 }}
         >
           <div className="flex items-center gap-3 mb-8 md:mb-12">
-            <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
-              01 / SOBRE MÍ
-            </span>
-            <span className="w-8 h-[1px] bg-acento" />
-            <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
-              PERFIL & ENFOQUE PROYECTUAL
-            </span>
+            <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#1C1C1A] uppercase">
+              <span className="text-[#099AD7]">01 /</span> SOBRE MÍ
+            </h2>
           </div>
 
           {/* Layout de 2 columnas en desktop: Izquierda Retrato / Derecha Texto CV */}
@@ -382,19 +305,15 @@ export default function BioContactView() {
         className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center gap-3 mb-4">
-          <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
-            02 / EXPERIENCIA
-          </span>
-          <span className="w-8 h-[1px] bg-acento" />
-          <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
-            OBRAS, MAQUETAS & COLABORACIONES
-          </span>
+          <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#1C1C1A] uppercase">
+            <span className="text-[#099AD7]">02 /</span> EXPERIENCIA
+          </h2>
         </div>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 md:mb-16">
-          <h2 className="text-3xl sm:text-5xl font-roboto font-light tracking-tight text-[#1C1C1A] leading-tight">
+          <p className="text-2xl sm:text-4xl font-roboto font-light tracking-tight text-[#1C1C1A] leading-tight">
             Experiencia Laboral & Participaciones
-          </h2>
+          </p>
           <Link
             href="/proyectos"
             className="inline-flex items-center gap-2 font-roboto text-xs uppercase tracking-widest text-[#1C1C1A] hover:text-acento transition-colors self-start md:self-auto"
@@ -469,73 +388,39 @@ export default function BioContactView() {
       </section>
 
       {/* =====================================================================
-          BLOQUE 03: HABILIDADES & CONOCIMIENTOS (Stack Técnico & Software)
+          BLOQUE 03: HABILIDADES (CV Oficial de Agustín)
       ===================================================================== */}
       <section
         id="habilidades"
         className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
-            03 / HABILIDADES
-          </span>
-          <span className="w-8 h-[1px] bg-acento" />
-          <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
-            DOMINIO DIGITAL & SOFTWARE
-          </span>
-        </div>
-
-        <div className="mb-12 md:mb-16 max-w-3xl">
-          <h2 className="text-3xl sm:text-5xl font-roboto font-light tracking-tight text-[#1C1C1A] leading-tight mb-4">
-            Habilidades & Conocimientos
+        <div className="flex items-center gap-3 mb-8 md:mb-10">
+          <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#1C1C1A] uppercase">
+            <span className="text-[#099AD7]">03 /</span> HABILIDADES
           </h2>
-          <p className="text-base md:text-lg font-roboto text-[#1C1C1A]/75 leading-relaxed">
-            Dominio integral del ecosistema digital de arquitectura contemporánea, integrando flujos interoperables desde el modelado paramétrico BIM hasta el renderizado fotorrealista y la edición gráfica final.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {SKILL_CATEGORIES.map((group) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {SKILL_CARDS.map((card) => (
             <div
-              key={group.code}
-              className="border border-[#1C1C1A]/15 p-6 sm:p-8 bg-[#F8F7F4] flex flex-col justify-between"
+              key={card.title}
+              className="border border-[#1C1C1A]/15 p-6 sm:p-8 bg-[#F8F7F4] flex flex-col"
             >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
-                    ÁREA {group.code}
-                  </span>
-                </div>
+              <h3 className="text-lg md:text-xl font-roboto font-bold tracking-tight text-[#099AD7] mb-5 pb-3 border-b border-[#1C1C1A]/10">
+                {card.title}
+              </h3>
 
-                <h3 className="text-xl sm:text-2xl font-roboto font-normal text-[#1C1C1A] tracking-tight mb-3">
-                  {group.category}
-                </h3>
-
-                <p className="text-sm font-roboto text-[#1C1C1A]/70 leading-relaxed mb-6">
-                  {group.summary}
-                </p>
-              </div>
-
-              <div className="flex flex-col divide-y divide-[#1C1C1A]/10 border-t border-[#1C1C1A]/10">
-                {group.tools.map((tool) => (
-                  <div
-                    key={tool.name}
-                    className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1"
+              <ul className="flex flex-col gap-3">
+                {card.items.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-center gap-3 font-roboto text-base text-[#1C1C1A]"
                   >
-                    <div>
-                      <span className="font-roboto font-medium text-sm text-[#1C1C1A] block">
-                        {tool.name}
-                      </span>
-                      <span className="font-roboto text-xs text-[#1C1C1A]/65 block">
-                        {tool.focus}
-                      </span>
-                    </div>
-                    <span className="font-roboto text-[11px] uppercase tracking-widest text-acento shrink-0 mt-1 sm:mt-0">
-                      {tool.level}
-                    </span>
-                  </div>
+                    <span className="w-1.5 h-1.5 bg-[#099AD7] shrink-0" />
+                    <span>{item}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           ))}
         </div>
