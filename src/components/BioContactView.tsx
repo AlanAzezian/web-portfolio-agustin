@@ -340,12 +340,12 @@ export default function BioContactView() {
   };
 
   return (
-    <div className="w-full bg-white text-[#1C1C1A] font-roboto pt-20 md:pt-24">
+    <div className="w-full bg-white text-[#1C1C1A] font-roboto pt-16 md:pt-20">
       {/* Cápsula flotante compacta en la esquina superior derecha */}
       <div
         role="navigation"
         aria-label="Secciones de Bio"
-        className="fixed top-20 md:top-24 right-6 md:right-16 z-40 rounded-[9999px] bg-white/90 backdrop-blur-md border border-[#E5E2DC] shadow-sm px-4 py-2 flex items-center gap-4 md:gap-6"
+        className="fixed top-16 md:top-20 right-6 md:right-16 z-40 rounded-[9999px] bg-white/95 backdrop-blur-md border border-[#E5E2DC] shadow-sm px-4 py-2 flex items-center gap-4 md:gap-6"
       >
         {BIO_SECTIONS.map((sec) => {
           const isActive = activeSection === sec.id;
@@ -371,7 +371,7 @@ export default function BioContactView() {
       ===================================================================== */}
       <section
         id="sobre-mi"
-        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 pt-2 pb-10 md:py-8 lg:min-h-[calc(100vh-6rem)] flex flex-col justify-center border-b border-[#1C1C1A]/15"
+        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 pt-2 pb-10 md:pt-3 md:pb-12 border-b border-[#1C1C1A]/15"
       >
         <motion.div
           initial={{ opacity: 0, y: 12 }}
