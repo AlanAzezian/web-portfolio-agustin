@@ -30,25 +30,48 @@ export const blurDataMap: Record<string, string> = {
     "data:image/webp;base64,UklGRjYAAABXRUJQVlA4ICoAAACwAQCdASoQAAoAA4BaJaQAAqH2STQAAP73IA6Gzf0Fk320TnpBhwAAAAA=",
 };
 
+const TRASBORDO_IMAGES = [
+  // 1. RENDERS 3D PRIMERO:
+  "/projects/centro-de-trasbordo/01-render-exterior.webp",
+  "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
+  "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
+  "/projects/centro-de-trasbordo/04-render-cafeteria-exterior.webp",
+  "/projects/centro-de-trasbordo/05-render-nave-darsena.webp",
+
+  // 2. PLANOS TÉCNICOS AL FINAL:
+  "/projects/centro-de-trasbordo/06-plano-planta-baja.webp",
+  "/projects/centro-de-trasbordo/07-plano-planta-alta.webp",
+  "/projects/centro-de-trasbordo/08-plano-vistas.webp",
+  "/projects/centro-de-trasbordo/09-plano-secciones-cortes.webp",
+];
+
 export const projects: Project[] = [
   {
-    id: "centro-de-trasbordo-quilmes",
-    title: "Centro de Trasbordo — Triángulo de Bernal, Quilmes",
+    id: "centro-de-trasbordo-1",
+    title: "Proyecto 1 — Centro de Trasbordo Quilmes",
     coverImage: "/projects/centro-de-trasbordo/01-render-exterior.webp",
     tags: ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"],
-    images: [
-      // 1. RENDERS 3D PRIMERO:
-      "/projects/centro-de-trasbordo/01-render-exterior.webp",
-      "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
-      "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
-      "/projects/centro-de-trasbordo/04-render-cafeteria-exterior.webp",
-      "/projects/centro-de-trasbordo/05-render-nave-darsena.webp",
-
-      // 2. PLANOS TÉCNICOS AL FINAL:
-      "/projects/centro-de-trasbordo/06-plano-planta-baja.webp",
-      "/projects/centro-de-trasbordo/07-plano-planta-alta.webp",
-      "/projects/centro-de-trasbordo/08-plano-vistas.webp",
-      "/projects/centro-de-trasbordo/09-plano-secciones-cortes.webp",
-    ],
+    images: TRASBORDO_IMAGES,
+  },
+  {
+    id: "centro-de-trasbordo-2",
+    title: "Proyecto 2 — Centro de Trasbordo Quilmes",
+    coverImage: "/projects/centro-de-trasbordo/01-render-exterior.webp",
+    tags: ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"],
+    images: TRASBORDO_IMAGES,
+  },
+  {
+    id: "centro-de-trasbordo-3",
+    title: "Proyecto 3 — Centro de Trasbordo Quilmes",
+    coverImage: "/projects/centro-de-trasbordo/01-render-exterior.webp",
+    tags: ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"],
+    images: TRASBORDO_IMAGES,
+  },
+  {
+    id: "centro-de-trasbordo-4",
+    title: "Proyecto 4 — Centro de Trasbordo Quilmes",
+    coverImage: "/projects/centro-de-trasbordo/01-render-exterior.webp",
+    tags: ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"],
+    images: TRASBORDO_IMAGES,
   },
 ];
