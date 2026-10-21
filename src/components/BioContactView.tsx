@@ -30,9 +30,9 @@ interface SkillCard {
 }
 
 const BIO_SECTIONS = [
-  { id: "sobre-mi", label: "[ 01 / SOBRE MÍ ]" },
-  { id: "experiencia", label: "[ 02 / EXPERIENCIA ]" },
-  { id: "habilidades", label: "[ 03 / HABILIDADES ]" },
+  { id: "sobre-mi", label: "SOBRE MÍ" },
+  { id: "experiencia", label: "EXPERIENCIA" },
+  { id: "habilidades", label: "HABILIDADES" },
 ] as const;
 
 type BioSectionId = (typeof BIO_SECTIONS)[number]["id"];
@@ -154,7 +154,7 @@ export default function BioContactView() {
 
     if (typeof window !== "undefined" && window.__lenis) {
       window.__lenis.scrollTo(el, {
-        offset: -128,
+        offset: -112,
         duration: 0.85,
       });
     } else {
@@ -190,27 +190,29 @@ export default function BioContactView() {
 
   return (
     <div className="w-full bg-[#F8F7F4] text-[#1C1C1A] font-roboto pt-20">
-      {/* Barra de sub-filtros Sticky con ScrollSpy */}
-      <div className="sticky top-16 md:top-20 z-30 w-full bg-[#F8F7F4]/90 backdrop-blur-sm py-4 border-b border-[#E5E2DC]/50">
-        <div className="max-w-6xl mx-auto px-6 md:px-16 flex justify-center items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar">
-          {BIO_SECTIONS.map((sec) => {
-            const isActive = activeSection === sec.id;
-            return (
-              <button
-                key={sec.id}
-                type="button"
-                onClick={() => handleScrollToSection(sec.id)}
-                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto px-1 transition-all duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                  isActive
-                    ? "text-[13px] md:text-[14px] font-semibold font-[600] text-[#099AD7] scale-105"
-                    : "text-[11px] md:text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7] scale-100"
-                }`}
-              >
-                <span>{sec.label}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Cápsula flotante compacta en la esquina superior derecha */}
+      <div
+        role="navigation"
+        aria-label="Secciones de Bio"
+        className="fixed top-20 md:top-24 right-6 md:right-16 z-40 rounded-[9999px] bg-[#F8F7F4]/90 backdrop-blur-md border border-[#E5E2DC]/80 shadow-sm px-4 py-2 flex items-center gap-4 md:gap-6"
+      >
+        {BIO_SECTIONS.map((sec) => {
+          const isActive = activeSection === sec.id;
+          return (
+            <button
+              key={sec.id}
+              type="button"
+              onClick={() => handleScrollToSection(sec.id)}
+              className={`uppercase tracking-wider font-roboto text-[11px] md:text-[12px] transition-all duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                isActive
+                  ? "text-[#099AD7] font-medium font-[500] scale-105"
+                  : "text-[#1C1C1A] hover:text-[#099AD7] font-normal scale-100"
+              }`}
+            >
+              {sec.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* =====================================================================
@@ -218,7 +220,7 @@ export default function BioContactView() {
       ===================================================================== */}
       <section
         id="sobre-mi"
-        className="scroll-mt-32 max-w-6xl mx-auto px-6 md:px-16 py-10 md:py-16 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -353,11 +355,11 @@ export default function BioContactView() {
       </section>
 
       {/* =====================================================================
-          BLOQUE 02: EXPERIENCIA (A. Trayectoria Laboral + B. Concursos y Distinciones)
+          BLOQUE 02: EXPERIENCIA (Trayectoria laboral + Concursos, montajes y distinciones)
       ===================================================================== */}
       <section
         id="experiencia"
-        className="scroll-mt-32 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center justify-between flex-wrap gap-4 mb-10 md:mb-14">
           <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
@@ -372,12 +374,12 @@ export default function BioContactView() {
           </Link>
         </div>
 
-        {/* SUBDIVISIÓN A: Trayectoria Laboral (Estudios y Práctica Profesional) */}
+        {/* SUBDIVISIÓN 1: Trayectoria laboral */}
         <div className="mb-16 md:mb-20">
           <div className="flex items-center gap-3 mb-6">
-            <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-semibold">
-              A. TRAYECTORIA LABORAL
-            </span>
+            <h3 className="font-roboto text-sm md:text-base uppercase tracking-widest text-[#099AD7] font-semibold">
+              Trayectoria laboral
+            </h3>
             <span className="w-8 h-[1px] bg-[#1C1C1A]/15" />
             <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
               ESTUDIOS & PRÁCTICA PROFESIONAL
@@ -394,9 +396,9 @@ export default function BioContactView() {
                   <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium block mb-2">
                     {job.period}
                   </span>
-                  <h3 className="text-xl font-roboto font-medium text-[#1C1C1A] tracking-tight leading-snug mb-1">
+                  <h4 className="text-xl font-roboto font-medium text-[#1C1C1A] tracking-tight leading-snug mb-1">
                     {job.role}
-                  </h3>
+                  </h4>
                   <p className="font-roboto text-xs uppercase tracking-wider text-[#1C1C1A]/60 pb-4 mb-4 border-b border-[#1C1C1A]/10">
                     {job.company}
                   </p>
@@ -409,12 +411,12 @@ export default function BioContactView() {
           </div>
         </div>
 
-        {/* SUBDIVISIÓN B: Concursos, Montajes y Distinciones */}
+        {/* SUBDIVISIÓN 2: Concursos, montajes y distinciones */}
         <div>
           <div className="flex items-center gap-3 mb-6">
-            <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-semibold">
-              B. CONCURSOS, MONTAJES & DISTINCIONES
-            </span>
+            <h3 className="font-roboto text-sm md:text-base uppercase tracking-widest text-[#099AD7] font-semibold">
+              Concursos, montajes y distinciones
+            </h3>
             <span className="w-8 h-[1px] bg-[#1C1C1A]/15" />
             <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50">
               PREMIOS & PARTICIPACIONES
@@ -444,9 +446,9 @@ export default function BioContactView() {
                       )}
                     </div>
 
-                    <h3 className="text-2xl sm:text-3xl font-roboto font-light text-[#1C1C1A] tracking-tight mb-3">
+                    <h4 className="text-2xl sm:text-3xl font-roboto font-light text-[#1C1C1A] tracking-tight mb-3">
                       {item.title}
-                    </h3>
+                    </h4>
 
                     <p className="text-base font-roboto text-[#1C1C1A]/80 leading-relaxed">
                       {item.description}
@@ -483,7 +485,7 @@ export default function BioContactView() {
       ===================================================================== */}
       <section
         id="habilidades"
-        className="scroll-mt-32 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center gap-3 mb-8 md:mb-10">
           <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
