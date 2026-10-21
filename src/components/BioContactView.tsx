@@ -6,13 +6,13 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 
-interface ExperienceItem {
+interface ParticipationItem {
   id: string;
-  period: string;
+  year: string;
+  badge?: string;
+  title: string;
   role: string;
-  organization: string;
-  description: string;
-  highlights: string[];
+  detail: string;
   image: string;
   imageCaption: string;
 }
@@ -30,51 +30,62 @@ const BIO_SECTIONS = [
 
 type BioSectionId = (typeof BIO_SECTIONS)[number]["id"];
 
-const EXPERIENCE_ITEMS: ExperienceItem[] = [
+const EDUCATION_ITEMS = [
   {
-    id: "exp-01",
-    period: "2023 — PRESENTE",
-    role: "Visualización Arquitectónica & Consultoría BIM Freelance",
-    organization: "Colaboración con Estudios de Arquitectura",
-    description:
-      "Asistencia técnica y visual para estudios de arquitectura y desarrolladoras en etapas de anteproyecto, licitación y comunicación comercial. Producción de imágenes fotorrealistas y modelado tridimensional coordinado.",
-    highlights: [
-      "Visualización exterior e interior con flujo físico de luz",
-      "Coordinación volumétrica y documentación ejecutiva BIM",
-      "Gráfica arquitectónica para entregas y paneles de concurso",
-    ],
+    id: "edu-fadu",
+    institution: "Facultad de Arquitectura, Diseño y Urbanismo, UBA",
+    detail: "2020 - En curso (86%)",
+    certificateUrl: null,
+  },
+  {
+    id: "edu-bim",
+    institution: "Curso BIM Modeler",
+    detail: "2025 - Miller & Co (online)",
+    certificateUrl: "https://www.homeofbimcampus.com/certificates/eocr0f5enb",
+  },
+];
+
+const PARTICIPATION_ITEMS: ParticipationItem[] = [
+  {
+    id: "part-01",
+    year: "2026",
+    badge: "LA BIENAL XX",
+    title: "Maqueta Casa Chacra — BAAG | La Bienal XX (2026)",
+    role: "Colaborador en producción y montaje de maqueta expositiva.",
+    detail: "XX Bienal Internacional de Arquitectura de Buenos Aires.",
     image: "/projects/centro-de-trasbordo/01-render-exterior.webp",
-    imageCaption: "Visualización urbana e inserción peatonal — Centro de Trasbordo Quilmes",
+    imageCaption: "Maqueta Casa Chacra — BAAG | XX Bienal Internacional de Arquitectura de Buenos Aires",
   },
   {
-    id: "exp-02",
-    period: "2024",
-    role: "Proyecto de Infraestructura & Equipamiento Urbano",
-    organization: "Taller de Arquitectura — FADU, UBA",
-    description:
-      "Desarrollo integral del Centro de Trasbordo en el Triángulo de Bernal, Quilmes. Abordaje de infraestructura pública de gran escala, resolución de cubiertas metálicas de grandes luces y articulación intermodal con el tejido urbano.",
-    highlights: [
-      "Diseño estructural y espacial de nave principal y dársenas",
-      "Resolución de patios vidriados, circulaciones verticales y programa mixto",
-      "Legajo técnico integral: plantas, vistas y cortes constructivos",
-    ],
-    image: "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
-    imageCaption: "Espacialidad interior, estructura metálica y control lumínico cenital",
-  },
-  {
-    id: "exp-03",
-    period: "2022 — 2024",
-    role: "Participaciones en Concursos, Obras & Maquetas",
-    organization: "Equipos de Proyecto & Práctica Académica",
-    description:
-      "Participación activa en equipos de diseño para concursos de espacio público, vivienda colectiva e intervenciones urbanas, integrando exploración en maquetas físicas, axonométricas explotadas y planimetría de alta precisión.",
-    highlights: [
-      "1er Premio — Concurso Nacional de Espacio Público (2024)",
-      "Publicación en Revista Summa+ Edición 190 (2023)",
-      "Mención — Bienal de Arquitectura Joven (2022)",
-    ],
+    id: "part-02",
+    year: "2026",
+    badge: "CLAVE 0178",
+    title: "Concurso Provincial Crematorio Parque CEyS (2026)",
+    role: "Colaborador | Clave 0178 (Nueve de Julio, Buenos Aires).",
+    detail: "Concurso Provincial de Anteproyectos — Nueve de Julio, Provincia de Buenos Aires.",
     image: "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
-    imageCaption: "Relación interior-exterior y estudio de envolventes acristaladas",
+    imageCaption: "Concurso Provincial Crematorio Parque CEyS — Nueve de Julio, Buenos Aires",
+  },
+  {
+    id: "part-03",
+    year: "2023",
+    badge: "2° PREMIO",
+    title: "Nuevo Acceso al Parque Natural Laguna de Gómez (2023 — 2° Puesto)",
+    role: "Distinción: 2° Premio.",
+    detail: "Concurso de ideas municipal (Junín, Buenos Aires).",
+    image: "/projects/acceso-pnlq.png",
+    imageCaption: "2° Premio — Nuevo Acceso al Parque Natural Laguna de Gómez (Junín, Buenos Aires)",
+  },
+  {
+    id: "part-04",
+    year: "2023",
+    badge: "1° PREMIO",
+    title: "Concurso de viviendas colectivas de SteelHouse (2023 — 1° Puesto)",
+    role: "Distinción: 1° Premio.",
+    detail:
+      "Concurso interno en la materia Construcciones II (Cátedra Castellano / Patrocinó Tubos Argentinos).",
+    image: "/projects/50-viviendas.jpg",
+    imageCaption: "1° Premio — Concurso de viviendas colectivas de SteelHouse (FADU, UBA)",
   },
 ];
 
@@ -172,7 +183,7 @@ export default function BioContactView() {
       </div>
 
       {/* =====================================================================
-          BLOQUE 01: SOBRE MÍ (Foto de perfil a la izquierda + Texto CV derecha)
+          BLOQUE 01: SOBRE MÍ (Foto de perfil a la izquierda + Texto CV + Educación)
       ===================================================================== */}
       <section
         id="sobre-mi"
@@ -189,7 +200,7 @@ export default function BioContactView() {
             </h2>
           </div>
 
-          {/* Layout de 2 columnas en desktop: Izquierda Retrato / Derecha Texto CV */}
+          {/* Layout de 2 columnas en desktop: Izquierda Retrato / Derecha Texto CV y Educación */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14 items-start">
             {/* Columna Izquierda: Fotografía de Perfil de Agustín con marco editorial */}
             <div className="lg:col-span-5 w-full">
@@ -230,8 +241,8 @@ export default function BioContactView() {
               </div>
             </div>
 
-            {/* Columna Derecha: Declaración de CV con conceptos clave resaltados en #099AD7 */}
-            <div className="lg:col-span-7 flex flex-col justify-between gap-8">
+            {/* Columna Derecha: Declaración de CV + Bloque de Educación */}
+            <div className="lg:col-span-7 flex flex-col justify-between gap-10">
               <div>
                 <span className="font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/50 block mb-3">
                   PRESENTACIÓN PROFESIONAL
@@ -265,31 +276,44 @@ export default function BioContactView() {
                 </blockquote>
               </div>
 
-              {/* Ficha Editorial Compacta */}
-              <div className="border-t border-[#1C1C1A]/15 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
-                <div>
-                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-1">
-                    Formación
-                  </span>
-                  <span className="font-roboto font-medium text-[#1C1C1A]">
-                    Arquitectura — FADU, UBA
-                  </span>
-                </div>
-                <div>
-                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-1">
-                    Enfoque
-                  </span>
-                  <span className="font-roboto font-medium text-[#1C1C1A]">
-                    Proyecto, BIM & Visualización
-                  </span>
-                </div>
-                <div>
-                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-1">
-                    Ubicación
-                  </span>
-                  <span className="font-roboto font-medium text-[#1C1C1A]">
-                    Buenos Aires, Argentina
-                  </span>
+              {/* Bloque Educación (FADU UBA + Certificado BIM Modeler Miller & Co) */}
+              <div className="border-t border-[#1C1C1A]/15 pt-6">
+                <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium block mb-4">
+                  EDUCACIÓN & CERTIFICACIONES
+                </span>
+
+                <div className="flex flex-col divide-y divide-[#1C1C1A]/10 border-t border-b border-[#1C1C1A]/10">
+                  {EDUCATION_ITEMS.map((edu) => (
+                    <div
+                      key={edu.id}
+                      className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div>
+                        <h3 className="font-roboto font-medium text-base text-[#1C1C1A]">
+                          {edu.institution}
+                        </h3>
+                        <p className="font-roboto text-sm text-[#1C1C1A]/65 mt-0.5">
+                          {edu.detail}
+                        </p>
+                      </div>
+
+                      {edu.certificateUrl && (
+                        <a
+                          href={edu.certificateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-[#1C1C1A]/20 hover:border-[#099AD7] text-xs font-roboto uppercase tracking-widest text-[#1C1C1A] hover:text-[#099AD7] transition-colors self-start sm:self-auto shrink-0 group"
+                        >
+                          <span>Ver Certificado</span>
+                          <ArrowUpRight
+                            size={14}
+                            strokeWidth={1.75}
+                            className="text-[#099AD7] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          />
+                        </a>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -298,7 +322,7 @@ export default function BioContactView() {
       </section>
 
       {/* =====================================================================
-          BLOQUE 02: EXPERIENCIA LABORAL & PARTICIPACIONES (Con fotografías)
+          BLOQUE 02: TRAYECTORIA — PARTICIPACIONES Y CONCURSOS
       ===================================================================== */}
       <section
         id="experiencia"
@@ -306,13 +330,13 @@ export default function BioContactView() {
       >
         <div className="flex items-center gap-3 mb-4">
           <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#1C1C1A] uppercase">
-            <span className="text-[#099AD7]">02 /</span> EXPERIENCIA
+            <span className="text-[#099AD7]">02 /</span> TRAYECTORIA & PARTICIPACIONES
           </h2>
         </div>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 md:mb-16">
           <p className="text-2xl sm:text-4xl font-roboto font-light tracking-tight text-[#1C1C1A] leading-tight">
-            Experiencia Laboral & Participaciones
+            Participaciones, Concursos & Distinciones
           </p>
           <Link
             href="/proyectos"
@@ -324,7 +348,7 @@ export default function BioContactView() {
         </div>
 
         <div className="flex flex-col divide-y divide-[#1C1C1A]/15 border-t border-[#1C1C1A]/15">
-          {EXPERIENCE_ITEMS.map((item) => (
+          {PARTICIPATION_ITEMS.map((item) => (
             <article
               key={item.id}
               className="py-10 md:py-14 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10 items-start"
@@ -333,35 +357,31 @@ export default function BioContactView() {
               <div className="lg:col-span-7 flex flex-col justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-3 mb-3">
-                    <span className="font-roboto text-xs uppercase tracking-widest text-acento font-medium">
-                      {item.period}
+                    <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium">
+                      {item.year}
                     </span>
-                    <span className="text-[#1C1C1A]/30">•</span>
-                    <span className="font-roboto text-xs uppercase tracking-wider text-[#1C1C1A]/60">
-                      {item.organization}
-                    </span>
+                    {item.badge && (
+                      <>
+                        <span className="text-[#1C1C1A]/30">•</span>
+                        <span className="font-roboto text-[11px] uppercase tracking-widest px-2.5 py-0.5 bg-[#099AD7]/10 text-[#099AD7] font-medium">
+                          {item.badge}
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   <h3 className="text-2xl sm:text-3xl font-roboto font-light text-[#1C1C1A] tracking-tight mb-4">
-                    {item.role}
+                    {item.title}
                   </h3>
 
-                  <p className="text-base font-roboto text-[#1C1C1A]/80 leading-relaxed mb-6">
-                    {item.description}
+                  <p className="text-base font-roboto font-medium text-[#1C1C1A] leading-relaxed mb-2">
+                    {item.role}
+                  </p>
+
+                  <p className="text-base font-roboto text-[#1C1C1A]/75 leading-relaxed">
+                    {item.detail}
                   </p>
                 </div>
-
-                <ul className="flex flex-col gap-2 border-t border-[#1C1C1A]/10 pt-4">
-                  {item.highlights.map((highlight, hIdx) => (
-                    <li
-                      key={hIdx}
-                      className="flex items-start gap-3 text-sm font-roboto text-[#1C1C1A]/75"
-                    >
-                      <span className="w-1.5 h-1.5 bg-acento mt-2 shrink-0" />
-                      <span>{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
               </div>
 
               {/* Tarjeta Fotográfica Representativa */}
