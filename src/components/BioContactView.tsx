@@ -1,193 +1,213 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, Plus, Minus } from "lucide-react";
+import {
+  ArrowUpRight,
+  Plus,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+  Images,
+  X,
+} from "lucide-react";
 import { getWhatsAppLink } from "@/lib/whatsapp";
+import {
+  BIO_SECTIONS,
+  type BioSectionId,
+  EDUCATION_ITEMS,
+  WORK_ACCORDION_ITEMS,
+  PARTICIPATION_ITEMS,
+  type ParticipationItem,
+  SKILL_CARDS,
+} from "@/data/bio";
 
-interface WorkAccordionItem {
-  id: string;
-  orderNumber: string;
-  role: string;
-  company: string;
-  period: string;
-  tasks: string[];
+function ExclusiveBioGallery({
+  images,
+  onOpenLightbox,
+}: {
+  images: { src: string; caption: string }[];
+  onOpenLightbox?: (index: number) => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const total = images.length;
+
+  const prev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((curr) => (curr - 1 + total) % total);
+  };
+  const next = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((curr) => (curr + 1) % total);
+  };
+
+  const current = images[idx];
+
+  return (
+    <div className="w-full border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
+      <div
+        role={onOpenLightbox ? "button" : undefined}
+        tabIndex={onOpenLightbox ? 0 : undefined}
+        onClick={() => onOpenLightbox?.(idx)}
+        onKeyDown={(e) => {
+          if (onOpenLightbox && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onOpenLightbox(idx);
+          }
+        }}
+        className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF] group cursor-pointer"
+      >
+        <Image
+          key={current.src}
+          src={current.src}
+          alt={current.caption}
+          fill
+          sizes="(max-width: 1024px) 100vw, 42vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+        />
+
+        {total > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={prev}
+              aria-label="Foto anterior"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#FFFFFF]/90 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center border border-[#1C1C1A]/15 transition-colors cursor-pointer"
+            >
+              <ChevronLeft size={16} strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              onClick={next}
+              aria-label="Foto siguiente"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#FFFFFF]/90 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center border border-[#1C1C1A]/15 transition-colors cursor-pointer"
+            >
+              <ChevronRight size={16} strokeWidth={1.75} />
+            </button>
+
+            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-[#FFFFFF]/90 border border-[#1C1C1A]/15 text-[#1C1C1A] font-roboto text-[10px] tabular-nums tracking-wider">
+              {String(idx + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+            </span>
+          </>
+        )}
+      </div>
+
+      <div className="mt-2.5 flex items-center justify-between gap-3">
+        <p className="font-roboto text-xs text-[#1C1C1A]/75 leading-snug line-clamp-1">
+          {current.caption}
+        </p>
+        {total > 1 && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {images.map((_, dotIdx) => (
+              <button
+                key={dotIdx}
+                type="button"
+                onClick={() => setIdx(dotIdx)}
+                aria-label={`Ir a imagen ${dotIdx + 1}`}
+                className={`w-2 h-2 transition-colors cursor-pointer ${
+                  dotIdx === idx ? "bg-[#099AD7]" : "bg-[#1C1C1A]/20"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
-
-interface CompetitionItem {
-  id: string;
-  year: string;
-  category: string;
-  title: string;
-  description: string;
-}
-
-interface SkillCard {
-  title: string;
-  items: string[];
-}
-
-const EDUCATION_ITEMS = [
-  {
-    id: "edu-fadu",
-    institution: "Facultad de Arquitectura, Diseño y Urbanismo, UBA",
-    detail: "2020 - En curso (86%)",
-    certificateUrl: null,
-  },
-  {
-    id: "edu-bim",
-    institution: "Curso BIM Modeler",
-    detail: "2025 - Miller & Co (online)",
-    certificateUrl: "https://www.homeofbimcampus.com/certificates/eocr0f5enb",
-  },
-];
-
-const WORK_ACCORDION_ITEMS: WorkAccordionItem[] = [
-  {
-    id: "work-01",
-    orderNumber: "01",
-    role: "Asistente de Arquitectura",
-    company: "ENGAPA (Uru.) | KUAARA (Arg.)",
-    period: "2023 - 2025",
-    tasks: [
-      "Desarrollo de documentación técnica BIM para proyectos de hormigón premoldeado.",
-      "Elaboración de planimetrías de taller para fabricación y montaje de piezas de GRC.",
-      "Coordinación técnica intersectorial entre ingeniería, fábrica y arquitectura.",
-      "Relevamiento dimensional y seguimiento técnico en obra.",
-    ],
-  },
-  {
-    id: "work-02",
-    orderNumber: "02",
-    role: "Renderista y Delineante",
-    company: "Práctica Freelance",
-    period: "2021 - Presente",
-    tasks: [
-      "Modelado 3D de alta precisión y desarrollo de volumetrías arquitectónicas.",
-      "Composición de imágenes fotorrealistas exteriores e interiores (D5, Lumion, V-Ray).",
-      "Producción de planimetría comercial y gráfica editorial para estudios.",
-      "Asesoramiento en diseño espacial, materialidad e iluminación.",
-    ],
-  },
-  {
-    id: "work-03",
-    orderNumber: "03",
-    role: "Diseñador Técnico y Presupuestos",
-    company: "Fabrizio Amoblamientos",
-    period: "2021 - Presente",
-    tasks: [
-      "Diseño técnico de equipamiento y mobiliario a medida para obras residenciales y comerciales.",
-      "Cómputo de materiales, optimización de cortes y elaboración de presupuestos.",
-      "Seguimiento de fabricación en taller y coordinación de montaje.",
-      "Relevamiento métrico integral en obra y trato directo con clientes.",
-    ],
-  },
-];
-
-const COMPETITION_ITEMS: CompetitionItem[] = [
-  {
-    id: "comp-01",
-    year: "2026",
-    category: "MONTAJE EXPOSITIVO (LA BIENAL XX)",
-    title: "Maqueta Casa Chacra — BAAG | La Bienal XX",
-    description:
-      "Colaborador en producción y montaje de maqueta expositiva para el estudio BAAG en la XX Bienal Internacional de Arquitectura de Buenos Aires.",
-  },
-  {
-    id: "comp-02",
-    year: "2026",
-    category: "CONCURSO PROVINCIAL (CLAVE 0178)",
-    title: "Concurso Provincial Crematorio Parque CEyS",
-    description:
-      "Colaborador en equipo de proyecto | Clave 0178 — Nueve de Julio, Provincia de Buenos Aires.",
-  },
-  {
-    id: "comp-03",
-    year: "2023",
-    category: "CONCURSO DE IDEAS (2° PREMIO)",
-    title: "Nuevo Acceso al Parque Natural Laguna de Gómez",
-    description:
-      "Distinción: 2° Puesto. Concurso de ideas municipal — Junín, Provincia de Buenos Aires.",
-  },
-  {
-    id: "comp-04",
-    year: "2023",
-    category: "CONCURSO DE VIVIENDA (1° PREMIO)",
-    title: "Concurso de Viviendas Colectivas en SteelHouse",
-    description:
-      "Distinción: 1° Puesto. Concurso interno en Construcciones II (Cátedra Castellano / Patrocinio Tubos Argentinos, FADU-UBA).",
-  },
-];
-
-const SKILL_CARDS: SkillCard[] = [
-  {
-    title: "CAD",
-    items: ["SketchUp", "Revit", "AutoCAD"],
-  },
-  {
-    title: "RENDERING",
-    items: ["D5 Render", "Lumion", "V-Ray"],
-  },
-  {
-    title: "ADOBE",
-    items: ["Illustrator", "Photoshop", "InDesign", "Lightroom"],
-  },
-  {
-    title: "OFFICE",
-    items: ["Excel", "Word", "PowerPoint"],
-  },
-  {
-    title: "IDIOMAS",
-    items: ["Español (Nativo)", "Inglés (B2)"],
-  },
-  {
-    title: "IA",
-    items: ["Google Antigravity"],
-  },
-];
 
 export default function BioContactView() {
+  const [activeSection, setActiveSection] = useState<BioSectionId>("sobre-mi");
   const [profileImgError, setProfileImgError] = useState(false);
   const [openWorkId, setOpenWorkId] = useState<string | null>(null);
+  const [openGalleryItemId, setOpenGalleryItemId] = useState<string | null>(
+    null
+  );
+  const [modalParticipation, setModalParticipation] = useState<{
+    item: ParticipationItem;
+    initialIndex: number;
+  } | null>(null);
+  const [modalSlideIdx, setModalSlideIdx] = useState(0);
+
+  const handleScrollToSection = (sectionId: BioSectionId) => {
+    setActiveSection(sectionId);
+    const el = document.getElementById(sectionId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  useEffect(() => {
+    const elements = BIO_SECTIONS.map((s) =>
+      document.getElementById(s.id)
+    ).filter(Boolean) as HTMLElement[];
+
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id as BioSectionId);
+          }
+        });
+      },
+      {
+        rootMargin: "-20% 0px -60% 0px",
+        threshold: 0,
+      }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   const toggleWorkItem = (id: string) => {
     setOpenWorkId((prev) => (prev === id ? null : id));
   };
 
+  const toggleParticipationGallery = (id: string) => {
+    setOpenGalleryItemId((prev) => (prev === id ? null : id));
+  };
+
+  const openModalGallery = (item: ParticipationItem, index = 0) => {
+    setModalParticipation({ item, initialIndex: index });
+    setModalSlideIdx(index);
+  };
+
   return (
-    <div className="w-full bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
+    <div className="w-full bg-[#FFFFFF] text-[#1C1C1A] font-roboto pb-20">
       {/* =====================================================================
-          BLOQUE 01: SOBRE MÍ (Foto + Links a la izq, CV + Educación a la der)
+          BLOQUE 01: SOBRE MÍ (Layout Full-Width estilo Oficina Correa)
       ===================================================================== */}
       <section
         id="sobre-mi"
-        className="scroll-mt-24 max-w-6xl mx-auto px-6 md:px-16 pt-2 pb-10 md:pt-4 md:pb-12 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-24 w-full px-6 md:px-12 lg:px-16 pt-1 pb-10 md:pt-2 md:pb-14 border-b border-[#1C1C1A]/15"
       >
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
+          transition={{ duration: 0.4 }}
         >
-          <div className="flex items-center gap-3 mb-5 md:mb-7">
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
             <h1 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
               01 / SOBRE MÍ
             </h1>
           </div>
 
-          {/* Layout en 2 columnas: Izquierda Foto + Links de Contacto / Derecha Cita CV + Educación */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
+          {/* Distribución balanceada a ancho completo: Izquierda Retrato + Contacto / Derecha Bio + Educación */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 xl:gap-16 items-start">
             {/* Columna Izquierda: Foto de Agustín + Fila de Links y Contacto debajo */}
-            <div className="lg:col-span-4 w-full flex flex-col gap-3">
+            <div className="lg:col-span-4 xl:col-span-3 w-full flex flex-col gap-3">
               <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
-                <div className="relative w-full aspect-[4/5] max-h-[380px] overflow-hidden bg-[#FFFFFF] flex items-center justify-center">
+                <div className="relative w-full aspect-[4/5] max-h-[420px] overflow-hidden bg-[#FFFFFF] flex items-center justify-center">
                   {!profileImgError ? (
                     <Image
                       src="/agustin-perfil.webp"
                       alt="Agustín Fabrizio — Retrato"
                       fill
-                      sizes="(max-width: 1024px) 100vw, 35vw"
+                      sizes="(max-width: 1024px) 100vw, 28vw"
                       className="object-cover"
                       onError={() => setProfileImgError(true)}
                     />
@@ -248,9 +268,9 @@ export default function BioContactView() {
               </div>
             </div>
 
-            {/* Columna Derecha: Texto de CV directo + Educación y Certificación BIM */}
-            <div className="lg:col-span-8 flex flex-col justify-between gap-7">
-              <blockquote className="text-base sm:text-lg md:text-[19px] font-roboto font-light leading-relaxed text-[#1C1C1A] border-l-2 border-[#099AD7] pl-5 md:pl-6 py-0.5">
+            {/* Columna Derecha: Texto de CV a ancho completo + Educación y Certificación BIM */}
+            <div className="lg:col-span-8 xl:col-span-9 flex flex-col justify-between gap-8 w-full">
+              <blockquote className="w-full text-base sm:text-lg md:text-xl xl:text-[22px] font-roboto font-light leading-relaxed text-[#1C1C1A] border-l-2 border-[#099AD7] pl-5 md:pl-8 py-1">
                 &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
                 <strong className="font-medium text-[#099AD7]">
                   construir ideas en conjunto
@@ -275,7 +295,7 @@ export default function BioContactView() {
               </blockquote>
 
               {/* Bloque Educación (FADU UBA + Certificado BIM Modeler Miller & Co) */}
-              <div className="border-t border-[#1C1C1A]/15 pt-5">
+              <div className="w-full border-t border-[#1C1C1A]/15 pt-6">
                 <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium block mb-3">
                   EDUCACIÓN & CERTIFICACIONES
                 </span>
@@ -284,7 +304,7 @@ export default function BioContactView() {
                   {EDUCATION_ITEMS.map((edu) => (
                     <div
                       key={edu.id}
-                      className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                      className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                     >
                       <div>
                         <h3 className="font-roboto font-medium text-sm md:text-base text-[#1C1C1A]">
@@ -320,11 +340,11 @@ export default function BioContactView() {
       </section>
 
       {/* =====================================================================
-          BLOQUE 02: EXPERIENCIA (Acordeón Laboral + Registro Editorial de Concursos)
+          BLOQUE 02: EXPERIENCIA (Acordeón Laboral + Participaciones con Lógica Dual)
       ===================================================================== */}
       <section
         id="experiencia"
-        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-24 w-full px-6 md:px-12 lg:px-16 py-12 md:py-16 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center justify-between flex-wrap gap-4 mb-8 md:mb-12">
           <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
@@ -340,7 +360,7 @@ export default function BioContactView() {
         </div>
 
         {/* SUBDIVISIÓN 1: Trayectoria laboral en Acordeón Interactivo */}
-        <div className="mb-16 md:mb-20">
+        <div className="mb-14 md:mb-18">
           <div className="flex items-center gap-3 mb-5">
             <h3 className="font-roboto text-sm md:text-base uppercase tracking-widest text-[#099AD7] font-semibold">
               Trayectoria laboral
@@ -397,7 +417,7 @@ export default function BioContactView() {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="overflow-hidden"
                       >
-                        <div className="pb-8 pt-2 sm:pl-10 max-w-3xl">
+                        <div className="pb-8 pt-2 sm:pl-10 max-w-4xl">
                           <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-3">
                             Responsabilidades & Alcance Técnico
                           </span>
@@ -422,7 +442,7 @@ export default function BioContactView() {
           </div>
         </div>
 
-        {/* SUBDIVISIÓN 2: Concursos, montajes y distinciones (Registro Editorial Limpio) */}
+        {/* SUBDIVISIÓN 2: Concursos, montajes y distinciones (Lógica Dual: Proyecto existente vs Galería propia exclusiva) */}
         <div>
           <div className="flex items-center gap-3 mb-5">
             <h3 className="font-roboto text-sm md:text-base uppercase tracking-widest text-[#099AD7] font-semibold">
@@ -435,40 +455,195 @@ export default function BioContactView() {
           </div>
 
           <div className="flex flex-col divide-y divide-[#1C1C1A]/15 border-t border-b border-[#1C1C1A]/15">
-            {COMPETITION_ITEMS.map((item) => (
-              <article
-                key={item.id}
-                className="py-6 md:py-7 flex flex-col md:flex-row md:items-baseline justify-between gap-3 md:gap-8"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 shrink-0">
-                  <span className="font-roboto text-xs text-[#099AD7] font-medium tabular-nums tracking-wider uppercase w-12 shrink-0">
-                    {item.year}
-                  </span>
-                  <span className="font-roboto text-xs tracking-wider uppercase text-[#1C1C1A]/60">
-                    {item.category}
-                  </span>
-                </div>
+            {PARTICIPATION_ITEMS.map((item) => {
+              const projectHref =
+                item.link ??
+                (item.projectId ? `/proyectos/${item.projectId}` : null);
+              const hasExclusiveGallery =
+                !projectHref && item.gallery && item.gallery.length > 0;
+              const isGalleryExpanded = openGalleryItemId === item.id;
 
-                <div className="md:max-w-xl lg:max-w-2xl w-full">
-                  <h4 className="text-base md:text-lg font-roboto font-medium text-[#1C1C1A] tracking-tight mb-1">
-                    {item.title}
-                  </h4>
-                  <p className="text-sm md:text-base font-roboto text-[#1C1C1A]/75 leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </article>
-            ))}
+              return (
+                <article key={item.id} className="py-7 md:py-9">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-center">
+                    {/* Columna de Metadatos, Título interactivo y Acción Dual */}
+                    <div className="lg:col-span-7 xl:col-span-8 flex flex-col justify-center">
+                      <div className="font-roboto text-xs tracking-wider uppercase mb-2 flex items-center gap-2">
+                        <span className="text-[#099AD7] font-medium tabular-nums">
+                          {item.year}
+                        </span>
+                        <span className="text-[#1C1C1A]/35">—</span>
+                        <span className="text-[#1C1C1A]/60">
+                          {item.category}
+                        </span>
+                      </div>
+
+                      {projectHref ? (
+                        <Link
+                          href={projectHref}
+                          className="group inline-flex items-baseline gap-2 text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors w-fit"
+                        >
+                          <span>{item.title}</span>
+                          <ArrowUpRight
+                            size={16}
+                            strokeWidth={1.75}
+                            className="text-[#099AD7] shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          />
+                        </Link>
+                      ) : hasExclusiveGallery ? (
+                        <button
+                          type="button"
+                          onClick={() => toggleParticipationGallery(item.id)}
+                          className="group inline-flex items-baseline gap-2 text-left text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors cursor-pointer w-fit"
+                        >
+                          <span>{item.title}</span>
+                          <Images
+                            size={16}
+                            strokeWidth={1.75}
+                            className="text-[#099AD7] shrink-0"
+                          />
+                        </button>
+                      ) : (
+                        <h4 className="text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] tracking-tight mb-2">
+                          {item.title}
+                        </h4>
+                      )}
+
+                      <p className="text-sm md:text-base font-roboto text-[#1C1C1A]/75 leading-relaxed max-w-3xl mb-4">
+                        {item.description}
+                      </p>
+
+                      {/* Acción explícita según modalidad */}
+                      {projectHref ? (
+                        <Link
+                          href={projectHref}
+                          className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors w-fit group"
+                        >
+                          <span>Ver proyecto completo</span>
+                          <ArrowUpRight
+                            size={14}
+                            strokeWidth={1.75}
+                            className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          />
+                        </Link>
+                      ) : hasExclusiveGallery ? (
+                        <div className="flex flex-wrap items-center gap-4">
+                          <button
+                            type="button"
+                            onClick={() => toggleParticipationGallery(item.id)}
+                            className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors cursor-pointer"
+                          >
+                            <Images size={14} strokeWidth={1.75} />
+                            <span>
+                              {isGalleryExpanded
+                                ? "Ocultar galería exclusiva"
+                                : `Desplegar galería (${item.gallery!.length} fotos)`}
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => openModalGallery(item, 0)}
+                            className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#1C1C1A]/65 hover:text-[#099AD7] transition-colors cursor-pointer"
+                          >
+                            <span>Abrir visor modal</span>
+                            <ArrowUpRight size={13} strokeWidth={1.75} />
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Columna Derecha: Imagen con enlace a proyecto o Galería propia exclusiva */}
+                    <div className="lg:col-span-5 xl:col-span-4 w-full">
+                      {projectHref ? (
+                        <Link
+                          href={projectHref}
+                          className="block border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5 group hover:border-[#099AD7] transition-colors"
+                        >
+                          <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
+                            <Image
+                              src={item.image}
+                              alt={item.imageCaption}
+                              fill
+                              sizes="(max-width: 1024px) 100vw, 35vw"
+                              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            />
+                          </div>
+                          <div className="mt-2 flex items-center justify-between text-xs font-roboto text-[#1C1C1A]/75 group-hover:text-[#099AD7] transition-colors">
+                            <span className="truncate">{item.imageCaption}</span>
+                            <ArrowUpRight size={14} className="shrink-0" />
+                          </div>
+                        </Link>
+                      ) : hasExclusiveGallery ? (
+                        <ExclusiveBioGallery
+                          images={item.gallery!}
+                          onOpenLightbox={(idx) => openModalGallery(item, idx)}
+                        />
+                      ) : (
+                        <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
+                          <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
+                            <Image
+                              src={item.image}
+                              alt={item.imageCaption}
+                              fill
+                              sizes="(max-width: 1024px) 100vw, 35vw"
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tira desplegable de miniaturas si la participación tiene galería propia */}
+                  <AnimatePresence initial={false}>
+                    {hasExclusiveGallery && isGalleryExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-6 mt-6 border-t border-[#1C1C1A]/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {item.gallery!.map((img, gIdx) => (
+                            <button
+                              key={img.src}
+                              type="button"
+                              onClick={() => openModalGallery(item, gIdx)}
+                              className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2 text-left group hover:border-[#099AD7] transition-colors cursor-pointer"
+                            >
+                              <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
+                                <Image
+                                  src={img.src}
+                                  alt={img.caption}
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, 30vw"
+                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                />
+                              </div>
+                              <p className="mt-2 font-roboto text-xs text-[#1C1C1A]/75 group-hover:text-[#099AD7] transition-colors line-clamp-1">
+                                {img.caption}
+                              </p>
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* =====================================================================
-          BLOQUE 03: HABILIDADES (6 tarjetas en grilla 3 columnas)
+          BLOQUE 03: HABILIDADES (6 tarjetas en grilla 3 columnas a ancho completo)
       ===================================================================== */}
       <section
         id="habilidades"
-        className="scroll-mt-28 max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20 border-b border-[#1C1C1A]/15"
+        className="scroll-mt-24 w-full px-6 md:px-12 lg:px-16 py-12 md:py-16 border-b border-[#1C1C1A]/15"
       >
         <div className="flex items-center gap-3 mb-8 md:mb-10">
           <h2 className="font-roboto text-base md:text-xl font-medium tracking-wider text-[#099AD7] uppercase">
@@ -505,7 +680,7 @@ export default function BioContactView() {
       {/* =====================================================================
           PIE DE CONTACTO DIRECTO (Cierre Minimalista sobre Fondo Blanco)
       ===================================================================== */}
-      <section className="max-w-6xl mx-auto px-6 md:px-16 py-12 md:py-20">
+      <section className="w-full px-6 md:px-12 lg:px-16 py-12 md:py-16">
         <div className="flex flex-col items-start">
           <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
             Trabajemos juntos
@@ -527,6 +702,148 @@ export default function BioContactView() {
           </a>
         </div>
       </section>
+
+      {/* =====================================================================
+          BARRA INFERIOR DE ATAJOS RÁPIDOS (Estilo Oficina Correa)
+      ===================================================================== */}
+      <footer
+        role="navigation"
+        aria-label="Secciones de Bio"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] border-t border-[#E5E2DC] px-6 md:px-12 lg:px-16 h-14 flex items-center justify-center"
+      >
+        <div className="flex items-center justify-center gap-6 md:gap-10">
+          {BIO_SECTIONS.map((sec, idx) => {
+            const isActive = activeSection === sec.id;
+            return (
+              <React.Fragment key={sec.id}>
+                <button
+                  type="button"
+                  onClick={() => handleScrollToSection(sec.id)}
+                  className={`relative inline-flex flex-col items-center justify-center uppercase tracking-widest font-roboto text-[12px] md:text-[13px] px-1 transition-colors duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                    isActive
+                      ? "font-bold font-[700] text-[#099AD7]"
+                      : "font-thin font-[100] text-[#1C1C1A] hover:text-[#099AD7]"
+                  }`}
+                >
+                  <span>{sec.label}</span>
+                  <span
+                    aria-hidden="true"
+                    className="invisible font-bold font-[700] h-0 overflow-hidden select-none pointer-events-none"
+                  >
+                    {sec.label}
+                  </span>
+                </button>
+                {idx < BIO_SECTIONS.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className="text-[#E5E2DC] font-roboto font-thin select-none text-xs"
+                  >
+                    |
+                  </span>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </footer>
+
+      {/* =====================================================================
+          MODAL EXCLUSIVO PARA PARTICIPACIONES INDEPENDIENTES DE LA BIO
+      ===================================================================== */}
+      <AnimatePresence>
+        {modalParticipation && modalParticipation.item.gallery && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-[#FFFFFF]/98 flex flex-col justify-between p-6 md:p-12"
+            onClick={() => setModalParticipation(null)}
+          >
+            <div
+              className="w-full flex items-center justify-between"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div>
+                <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] block">
+                  {modalParticipation.item.year} — {modalParticipation.item.category}
+                </span>
+                <h3 className="font-roboto text-base md:text-lg font-medium text-[#1C1C1A]">
+                  {modalParticipation.item.title}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setModalParticipation(null)}
+                aria-label="Cerrar galería"
+                className="p-2 border border-[#1C1C1A]/15 text-[#1C1C1A] hover:text-[#099AD7] hover:border-[#099AD7] transition-colors cursor-pointer"
+              >
+                <X size={20} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            <div
+              className="relative w-full max-w-5xl mx-auto h-[65vh] flex items-center justify-center my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                key={modalParticipation.item.gallery[modalSlideIdx].src}
+                src={modalParticipation.item.gallery[modalSlideIdx].src}
+                alt={modalParticipation.item.gallery[modalSlideIdx].caption}
+                fill
+                sizes="90vw"
+                className="object-contain"
+              />
+
+              {modalParticipation.item.gallery.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalSlideIdx(
+                        (curr) =>
+                          (curr - 1 + modalParticipation.item.gallery!.length) %
+                          modalParticipation.item.gallery!.length
+                      )
+                    }
+                    aria-label="Anterior"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft size={20} strokeWidth={1.75} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalSlideIdx(
+                        (curr) =>
+                          (curr + 1) % modalParticipation.item.gallery!.length
+                      )
+                    }
+                    aria-label="Siguiente"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <ChevronRight size={20} strokeWidth={1.75} />
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div
+              className="w-full flex items-center justify-between text-xs md:text-sm font-roboto text-[#1C1C1A]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span>
+                {modalParticipation.item.gallery[modalSlideIdx].caption}
+              </span>
+              <span className="tabular-nums tracking-wider">
+                {String(modalSlideIdx + 1).padStart(2, "0")} /{" "}
+                {String(modalParticipation.item.gallery.length).padStart(2, "0")}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

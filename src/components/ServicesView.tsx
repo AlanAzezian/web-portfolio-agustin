@@ -25,7 +25,7 @@ export default function ServicesView() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-16 pt-2 pb-16 md:pt-4 md:pb-20 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+    <div className="w-full px-6 md:px-12 lg:px-16 pt-1 pb-16 md:pt-2 md:pb-20 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

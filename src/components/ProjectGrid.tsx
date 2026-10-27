@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { projects } from "@/data/projects";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { NAV_ACTIVE_DOT } from "@/components/Navbar";
 
 const FILTER_TAGS = ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"] as const;
 type FilterTag = (typeof FILTER_TAGS)[number];
@@ -33,9 +32,6 @@ export default function ProjectGrid() {
   const selectedTag: FilterTag | null =
     catParam && QUERY_TO_TAG[catParam] ? QUERY_TO_TAG[catParam] : null;
 
-  const filterBarRef = useRef<HTMLDivElement>(null);
-  const filterBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const filterDotRef = useRef<HTMLSpanElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const revealedImagesRef = useRef<Set<string>>(new Set());
 
@@ -52,54 +48,6 @@ export default function ProjectGrid() {
   const filteredProjects = useMemo(() => {
     if (!selectedTag) return projects;
     return projects.filter((p) => p.tags?.includes(selectedTag));
-  }, [selectedTag]);
-
-  // Animación de estado activo en los filtros con GSAP
-  useEffect(() => {
-    if (!filterBarRef.current) return;
-
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const ctx = gsap.context(() => {
-      FILTER_TAGS.forEach((tag, idx) => {
-        const el = filterBtnRefs.current[idx];
-        if (!el) return;
-        const isSelected = selectedTag === tag;
-
-        if (!NAV_ACTIVE_DOT) {
-          gsap.to(el, {
-            scale: isSelected ? 1.25 : 1,
-            duration: prefersReducedMotion ? 0 : isSelected ? 0.45 : 0.25,
-            ease: isSelected ? "back.out(1.6)" : "power2.out",
-            overwrite: "auto",
-          });
-        } else {
-          gsap.set(el, { scale: 1 });
-          if (isSelected && filterDotRef.current && filterBarRef.current) {
-            const barRect = filterBarRef.current.getBoundingClientRect();
-            const btnRect = el.getBoundingClientRect();
-            const targetX = btnRect.left - barRect.left + btnRect.width / 2 - 3;
-            gsap.to(filterDotRef.current, {
-              x: targetX,
-              opacity: 1,
-              duration: prefersReducedMotion ? 0 : 0.4,
-              ease: "power3.out",
-              overwrite: "auto",
-            });
-          } else if (!selectedTag && filterDotRef.current) {
-            gsap.to(filterDotRef.current, {
-              opacity: 0,
-              duration: 0.2,
-              overwrite: "auto",
-            });
-          }
-        }
-      });
-    }, filterBarRef);
-
-    return () => ctx.revert();
   }, [selectedTag]);
 
   // Reveal de tarjetas con ScrollTrigger.batch y clip-path en primera aparición
@@ -182,51 +130,11 @@ export default function ProjectGrid() {
   }, [filteredProjects]);
 
   return (
-    <div className="w-full px-6 md:px-16 max-w-none pt-2 md:pt-4 pb-24 md:pb-32 min-h-screen bg-[#FFFFFF] text-[#1C1C1A]">
-      {/* Selector de 3 filtros centrado horizontalmente, sin contadores numéricos */}
-      <div
-        ref={filterBarRef}
-        className="relative flex justify-center items-center gap-8 md:gap-12 mx-auto w-full h-6"
-      >
-        {FILTER_TAGS.map((tag, idx) => {
-          const isSelected = selectedTag === tag;
-          return (
-            <button
-              key={tag}
-              ref={(el) => {
-                filterBtnRefs.current[idx] = el;
-              }}
-              type="button"
-              onClick={() => handleSelectTag(tag)}
-              className={`relative inline-flex flex-col items-center justify-center origin-center uppercase tracking-wider font-roboto text-[12px] px-1 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                isSelected
-                  ? "font-semibold font-[600] text-acento"
-                  : "font-medium font-[500] text-[#1C1C1A] hover:text-acento"
-              }`}
-            >
-              <span>{tag}</span>
-              <span
-                aria-hidden="true"
-                className="invisible font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
-              >
-                {tag}
-              </span>
-            </button>
-          );
-        })}
-        {NAV_ACTIVE_DOT && (
-          <span
-            ref={filterDotRef}
-            aria-hidden="true"
-            className="absolute -bottom-2 left-0 w-1.5 h-1.5 rounded-full bg-acento opacity-0 pointer-events-none"
-          />
-        )}
-      </div>
-
-      {/* Retícula de 4 columnas con soporte para aspect ratios variables (16:9, 4:3, 3:4, etc.) */}
+    <div className="w-full px-6 md:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+      {/* Retícula de 4 columnas que arranca inmediatamente debajo del header */}
       <div
         ref={gridRef}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] mt-[23px] items-start"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start"
       >
         {filteredProjects.map((project) => (
           <div key={project.id} className="w-full">
@@ -235,7 +143,7 @@ export default function ProjectGrid() {
               data-project-id={project.id}
               className="project-card-reveal group flex flex-col w-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
             >
-              {/* Portada con aspect ratio intrínseco flexible (sin aspect-[3/2] rígido) */}
+              {/* Portada con aspect ratio intrínseco flexible */}
               <div className="project-image-mask relative w-full overflow-hidden bg-[#FFFFFF]">
                 <Image
                   src={project.coverImage}
@@ -247,7 +155,7 @@ export default function ProjectGrid() {
                 />
               </div>
 
-              {/* Título debajo con Roboto Medium (500), color base #1C1C1A, hover #099AD7, mt-2.5 */}
+              {/* Título debajo con Roboto Medium (500), color base #1C1C1A, hover #099AD7 */}
               <h2 className="mt-2.5 font-roboto font-medium font-[500] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-acento transition-colors duration-200">
                 {project.title}
               </h2>
@@ -255,6 +163,49 @@ export default function ProjectGrid() {
           </div>
         ))}
       </div>
+
+      {/* Barra Inferior de Filtros estilo Oficina Correa */}
+      <footer
+        role="navigation"
+        aria-label="Filtros de proyectos"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] border-t border-[#E5E2DC] px-6 md:px-16 h-14 flex items-center justify-center"
+      >
+        <div className="flex items-center justify-center gap-6 md:gap-10">
+          {FILTER_TAGS.map((tag, idx) => {
+            const isSelected = selectedTag === tag;
+            return (
+              <React.Fragment key={tag}>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTag(tag)}
+                  className={`relative inline-flex flex-col items-center justify-center uppercase tracking-widest font-roboto text-[12px] md:text-[13px] px-1 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                    isSelected
+                      ? "font-bold font-[700] text-[#099AD7]"
+                      : "font-thin font-[100] text-[#1C1C1A] hover:text-[#099AD7]"
+                  }`}
+                >
+                  <span>{tag}</span>
+                  {/* Reserva de ancho en Bold 700 para evitar saltos horizontales */}
+                  <span
+                    aria-hidden="true"
+                    className="invisible font-bold font-[700] h-0 overflow-hidden select-none pointer-events-none"
+                  >
+                    {tag}
+                  </span>
+                </button>
+                {idx < FILTER_TAGS.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className="text-[#E5E2DC] font-roboto font-thin select-none text-xs"
+                  >
+                    |
+                  </span>
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </footer>
     </div>
   );
 }
