@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  ArrowLeft,
   ArrowUpRight,
   Plus,
   Minus,
   ChevronLeft,
   ChevronRight,
   Images,
-  X,
 } from "lucide-react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { getWhatsAppLink } from "@/lib/whatsapp";
@@ -128,6 +128,7 @@ export default function BioContactView() {
     initialIndex: number;
   } | null>(null);
   const [modalSlideIdx, setModalSlideIdx] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const bottomNavRef = useRef<HTMLElement>(null);
   const navBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -203,6 +204,71 @@ export default function BioContactView() {
   const openModalGallery = (item: ParticipationItem, index = 0) => {
     setModalParticipation({ item, initialIndex: index });
     setModalSlideIdx(index);
+  };
+
+  const modalTotal = modalParticipation?.item.gallery?.length ?? 0;
+
+  const nextModalSlide = useCallback(() => {
+    if (modalTotal === 0) return;
+    setModalSlideIdx((prev) => (prev + 1) % modalTotal);
+  }, [modalTotal]);
+
+  const prevModalSlide = useCallback(() => {
+    if (modalTotal === 0) return;
+    setModalSlideIdx((prev) => (prev - 1 + modalTotal) % modalTotal);
+  }, [modalTotal]);
+
+  // Navegación por teclado (← / →, Barra Espaciadora y Escape) + bloqueo de scroll de fondo
+  useEffect(() => {
+    if (!modalParticipation) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.stop();
+    }
+
+    modalParticipation.item.gallery?.forEach((imgObj) => {
+      const img = new window.Image();
+      img.src = imgObj.src;
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setModalParticipation(null);
+      } else if (e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        nextModalSlide();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prevModalSlide();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+      if (typeof window !== "undefined" && window.__lenis) {
+        window.__lenis.start();
+      }
+    };
+  }, [modalParticipation, nextModalSlide, prevModalSlide]);
+
+  const handleModalTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleModalTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (diff > 45) {
+      nextModalSlide();
+    } else if (diff < -45) {
+      prevModalSlide();
+    }
+    setTouchStartX(null);
   };
 
   return (
@@ -688,6 +754,7 @@ export default function BioContactView() {
         ref={bottomNavRef}
         role="navigation"
         aria-label="Secciones de Bio"
+        aria-hidden={!!modalParticipation}
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full flex justify-between items-center px-6 md:px-12 lg:px-16 py-4"
       >
         {BIO_SECTIONS.map((sec, idx) => {
@@ -727,7 +794,7 @@ export default function BioContactView() {
       </footer>
 
       {/* =====================================================================
-          MODAL EXCLUSIVO PARA PARTICIPACIONES INDEPENDIENTES DE LA BIO
+          MODAL EXCLUSIVO PARA PARTICIPACIONES INDEPENDIENTES (LAYOUT PROJECTVIEWER)
       ===================================================================== */}
       <AnimatePresence>
         {modalParticipation && modalParticipation.item.gallery && (
@@ -736,86 +803,74 @@ export default function BioContactView() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-[#FFFFFF]/98 flex flex-col justify-between p-6 md:p-12"
-            onClick={() => setModalParticipation(null)}
+            onTouchStart={handleModalTouchStart}
+            onTouchEnd={handleModalTouchEnd}
+            className="fixed inset-0 z-[60] bg-[#FFFFFF] text-[#1C1C1A] select-none overflow-hidden flex flex-col justify-between"
           >
-            <div
-              className="w-full flex items-center justify-between"
-              onClick={(e) => e.stopPropagation()}
+            {/* Vértice Superior Derecho: Volver a Bio */}
+            <button
+              type="button"
+              onClick={() => setModalParticipation(null)}
+              className="fixed top-6 md:top-8 right-6 md:right-16 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-[#099AD7] transition-colors duration-200 flex items-center gap-1.5 cursor-pointer pointer-events-auto focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
             >
-              <div>
-                <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] block">
-                  {modalParticipation.item.year} — {modalParticipation.item.category}
-                </span>
-                <h3 className="font-roboto text-base md:text-lg font-medium text-[#1C1C1A]">
-                  {modalParticipation.item.title}
-                </h3>
-              </div>
+              <ArrowLeft size={14} strokeWidth={1.5} /> Volver
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setModalParticipation(null)}
-                aria-label="Cerrar galería"
-                className="p-2 border border-[#1C1C1A]/15 text-[#1C1C1A] hover:text-[#099AD7] hover:border-[#099AD7] transition-colors cursor-pointer"
-              >
-                <X size={20} strokeWidth={1.5} />
-              </button>
-            </div>
-
-            <div
-              className="relative w-full max-w-5xl mx-auto h-[65vh] flex items-center justify-center my-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Image
-                key={modalParticipation.item.gallery[modalSlideIdx].src}
-                src={modalParticipation.item.gallery[modalSlideIdx].src}
-                alt={modalParticipation.item.gallery[modalSlideIdx].caption}
-                fill
-                sizes="90vw"
-                className="object-contain"
-              />
+            {/* Visor Central de Imagen con transición fade de 200ms y mitades clicables */}
+            <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14 my-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={modalParticipation.item.gallery[modalSlideIdx].src}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="relative w-full h-[78vh] md:h-[82vh] max-h-[82vh] flex items-center justify-center pointer-events-none"
+                >
+                  <Image
+                    src={modalParticipation.item.gallery[modalSlideIdx].src}
+                    alt={modalParticipation.item.gallery[modalSlideIdx].caption}
+                    fill
+                    sizes="100vw"
+                    priority
+                    className="h-[78vh] md:h-[82vh] w-auto max-w-full object-contain mx-auto pointer-events-none select-none shadow-none"
+                  />
+                </motion.div>
+              </AnimatePresence>
 
               {modalParticipation.item.gallery.length > 1 && (
                 <>
                   <button
                     type="button"
-                    onClick={() =>
-                      setModalSlideIdx(
-                        (curr) =>
-                          (curr - 1 + modalParticipation.item.gallery!.length) %
-                          modalParticipation.item.gallery!.length
-                      )
-                    }
-                    aria-label="Anterior"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center transition-colors cursor-pointer"
-                  >
-                    <ChevronLeft size={20} strokeWidth={1.75} />
-                  </button>
+                    onClick={prevModalSlide}
+                    aria-label="Imagen anterior"
+                    data-cursor="arrow-left"
+                    className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento"
+                  />
                   <button
                     type="button"
-                    onClick={() =>
-                      setModalSlideIdx(
-                        (curr) =>
-                          (curr + 1) % modalParticipation.item.gallery!.length
-                      )
-                    }
-                    aria-label="Siguiente"
-                    className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center transition-colors cursor-pointer"
-                  >
-                    <ChevronRight size={20} strokeWidth={1.75} />
-                  </button>
+                    onClick={nextModalSlide}
+                    aria-label="Imagen siguiente"
+                    data-cursor="arrow-right"
+                    className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento"
+                  />
                 </>
               )}
             </div>
 
-            <div
-              className="w-full flex items-center justify-between text-xs md:text-sm font-roboto text-[#1C1C1A]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span>
+            {/* Vértice Inferior Izquierdo: Título de la participación + Caption técnico */}
+            <div className="fixed bottom-6 md:bottom-8 left-6 md:left-16 z-30 pointer-events-auto flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 pr-24">
+              <span className="font-roboto text-sm md:text-base font-normal text-[#1C1C1A] select-none">
+                {modalParticipation.item.title}
+              </span>
+              <span className="font-roboto text-xs text-[#1C1C1A]/50 select-none">
                 {modalParticipation.item.gallery[modalSlideIdx].caption}
               </span>
-              <span className="tabular-nums tracking-wider">
+            </div>
+
+            {/* Vértice Inferior Derecho: Contador dinámico 01 / 03 */}
+            <div className="fixed bottom-6 md:bottom-8 right-6 md:right-16 z-30 pointer-events-auto">
+              <span className="font-roboto tabular-nums tracking-wider text-[13px] text-[#1C1C1A] select-none font-normal">
                 {String(modalSlideIdx + 1).padStart(2, "0")} /{" "}
                 {String(modalParticipation.item.gallery.length).padStart(2, "0")}
               </span>
