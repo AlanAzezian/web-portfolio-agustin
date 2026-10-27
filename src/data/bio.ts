@@ -12,6 +12,8 @@ export interface WorkAccordionItem {
   company: string;
   period: string;
   tasks: string[];
+  tools?: string[];
+  typology?: string;
   projectId?: string;
   gallery?: {
     src: string;
@@ -78,6 +80,9 @@ export const WORK_ACCORDION_ITEMS: WorkAccordionItem[] = [
       "Coordinación técnica intersectorial entre ingeniería, fábrica y arquitectura.",
       "Relevamiento dimensional y seguimiento técnico en obra.",
     ],
+    tools: ["Revit BIM", "Rhinoceros 7", "AutoCAD", "Detallado GRC"],
+    typology:
+      "Documentación BIM de premoldeados y planimetrías de taller para piezas GRC.",
   },
   {
     id: "work-02",
@@ -91,6 +96,9 @@ export const WORK_ACCORDION_ITEMS: WorkAccordionItem[] = [
       "Producción de planimetría comercial y gráfica editorial para estudios.",
       "Asesoramiento en diseño espacial, materialidad e iluminación.",
     ],
+    tools: ["D5 Render", "Lumion", "V-Ray", "3ds Max", "Photoshop"],
+    typology:
+      "Visualización arquitectónica fotorrealista y modelado 3D de anteproyectos.",
   },
   {
     id: "work-03",
@@ -104,6 +112,9 @@ export const WORK_ACCORDION_ITEMS: WorkAccordionItem[] = [
       "Seguimiento de fabricación en taller y coordinación de montaje.",
       "Relevamiento métrico integral en obra y trato directo con clientes.",
     ],
+    tools: ["AutoCAD", "SketchUp", "Cómputo & Presupuestos"],
+    typology:
+      "Diseño de mobiliario técnico a medida y relevamiento métrico en obra.",
   },
 ];
 
