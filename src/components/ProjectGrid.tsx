@@ -182,7 +182,7 @@ export default function ProjectGrid() {
   }, [filteredProjects]);
 
   return (
-    <div className="w-full px-6 md:px-16 max-w-none pt-24 md:pt-28 pb-24 md:pb-32 min-h-screen">
+    <div className="w-full px-6 md:px-16 max-w-none pt-2 md:pt-4 pb-24 md:pb-32 min-h-screen bg-[#FFFFFF] text-[#1C1C1A]">
       {/* Selector de 3 filtros centrado horizontalmente, sin contadores numéricos */}
       <div
         ref={filterBarRef}
@@ -236,7 +236,7 @@ export default function ProjectGrid() {
               className="project-card-reveal group flex flex-col w-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
             >
               {/* Portada con aspect ratio intrínseco flexible (sin aspect-[3/2] rígido) */}
-              <div className="project-image-mask relative w-full overflow-hidden bg-[#F8F7F4]">
+              <div className="project-image-mask relative w-full overflow-hidden bg-[#FFFFFF]">
                 <Image
                   src={project.coverImage}
                   alt={project.title}

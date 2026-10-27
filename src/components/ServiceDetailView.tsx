@@ -16,7 +16,7 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-16 py-28 md:py-36 min-h-screen bg-[#F8F7F4] text-[#1C1C1A]">
+    <div className="max-w-6xl mx-auto px-6 md:px-16 pt-2 pb-16 md:pt-4 md:pb-24 min-h-screen bg-[#FFFFFF] text-[#1C1C1A]">
       <motion.div
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -126,7 +126,7 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
             {service.deliverables.map((item, idx) => (
               <div
                 key={idx}
-                className="p-6 md:p-8 border border-foreground/15 bg-[#F8F7F4] hover:border-acento transition-colors flex flex-col justify-between gap-4"
+                className="p-6 md:p-8 border border-foreground/15 bg-[#FFFFFF] hover:border-acento transition-colors flex flex-col justify-between gap-4"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-roboto text-xs uppercase tracking-widest text-acento">
@@ -188,7 +188,7 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
             href={getWhatsAppLink(whatsappMessage)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-[#F8F7F4] font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
+            className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-white font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
           >
             <span>Contactar por WhatsApp</span>
             <ArrowUpRight

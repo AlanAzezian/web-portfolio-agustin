@@ -19,42 +19,26 @@ export default function ServicesView() {
       setTimeout(() => {
         const el = itemRefs.current[id];
         if (!el) return;
-
-        if (typeof window !== "undefined" && window.__lenis) {
-          const rect = el.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          const targetOffset =
-            rect.height < viewportHeight * 0.75
-              ? -(viewportHeight - rect.height) / 2
-              : -100;
-          window.__lenis.scrollTo(el, {
-            offset: targetOffset,
-            duration: 0.75,
-          });
-        } else {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 220);
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 300);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 md:px-16 pt-24 pb-16 md:pt-28 md:pb-24 min-h-screen bg-[#F8F7F4] text-[#1C1C1A]">
+    <div className="max-w-6xl mx-auto px-6 md:px-16 pt-2 pb-16 md:pt-4 md:pb-20 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       <motion.div
-        initial={{ opacity: 0, y: 14 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
+        transition={{ duration: 0.4 }}
+        className="w-full"
       >
-        <div className="mb-8 md:mb-10">
-          <span className="font-roboto text-[11px] uppercase tracking-widest text-acento block mb-2">
+        <div className="mb-4 md:mb-6">
+          <span className="font-roboto text-base md:text-xl font-medium uppercase tracking-wider text-acento block">
             Catálogo de Servicios
           </span>
-          <h1 className="text-xl md:text-2xl font-roboto font-normal text-foreground max-w-xl leading-snug tracking-tight">
-            Soluciones arquitectónicas pensadas para construir y perdurar.
-          </h1>
         </div>
 
-        <div className="flex flex-col mb-20 md:mb-24 border-t border-foreground/15">
+        <div className="flex flex-col border-t border-foreground/15">
           {servicesData.map((service) => {
             const isOpen = activeServiceId === service.id;
             return (
@@ -63,13 +47,13 @@ export default function ServicesView() {
                 ref={(el) => {
                   itemRefs.current[service.id] = el;
                 }}
-                className="border-b border-foreground/15 scroll-mt-24"
+                className="border-b border-foreground/15 bg-[#FFFFFF] scroll-mt-24"
               >
                 <button
                   type="button"
                   onClick={() => handleToggle(service.id)}
                   aria-expanded={isOpen}
-                  className="w-full py-6 md:py-8 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer"
+                  className="w-full py-6 md:py-7 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0"
                 >
                   <div className="flex items-baseline gap-4 md:gap-10">
                     <span className="font-roboto font-light text-base md:text-lg text-foreground/40 w-7 md:w-8 shrink-0 tabular-nums">
@@ -94,7 +78,7 @@ export default function ServicesView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      transition={{ duration: 0.28, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
                       <div className="pb-8 md:pb-10 pl-0 sm:pl-11 md:pl-18">
@@ -111,7 +95,7 @@ export default function ServicesView() {
                               {service.subservices.map((sub) => (
                                 <span
                                   key={sub.id}
-                                  className="text-xs tracking-wider uppercase text-foreground/80 bg-foreground/[0.04] px-3 py-1.5 border border-foreground/10 font-roboto"
+                                  className="text-xs tracking-wider uppercase text-foreground/80 bg-[#FFFFFF] px-3 py-1.5 border border-foreground/15 font-roboto"
                                 >
                                   {sub.title}
                                 </span>
@@ -131,7 +115,7 @@ export default function ServicesView() {
                           </div>
                           <Link
                             href={`/servicios/${service.id}`}
-                            className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-acento text-background font-roboto text-xs uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors self-start sm:self-auto group"
+                            className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-acento text-white font-roboto text-xs uppercase tracking-widest hover:bg-foreground hover:text-white transition-colors self-start sm:self-auto group"
                           >
                             <span>Solicitar cotización</span>
                             <ArrowUpRight
@@ -149,29 +133,29 @@ export default function ServicesView() {
             );
           })}
         </div>
-
-        {/* Bloque Minimalista: Trabajemos juntos */}
-        <div className="pt-8 border-t border-[#1C1C1A]/15 flex flex-col items-start">
-          <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
-            Trabajemos juntos
-          </h2>
-          <a
-            href={getWhatsAppLink(
-              "Hola Agustín, me gustaría iniciar un proyecto contigo. ¿Podemos coordinar?"
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-[#F8F7F4] font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
-          >
-            <span>Contactar por WhatsApp</span>
-            <ArrowUpRight
-              size={15}
-              strokeWidth={1.75}
-              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-          </a>
-        </div>
       </motion.div>
+
+      {/* Bloque Minimalista Fijo al Pie: Trabajemos juntos */}
+      <footer className="w-full mt-16 pt-10 border-t border-[#1C1C1A]/15 flex flex-col items-start shrink-0">
+        <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
+          Trabajemos juntos
+        </h2>
+        <a
+          href={getWhatsAppLink(
+            "Hola Agustín, me gustaría iniciar un proyecto contigo. ¿Podemos coordinar?"
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-white font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
+        >
+          <span>Contactar por WhatsApp</span>
+          <ArrowUpRight
+            size={15}
+            strokeWidth={1.75}
+            className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          />
+        </a>
+      </footer>
     </div>
   );
 }

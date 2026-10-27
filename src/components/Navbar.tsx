@@ -247,7 +247,6 @@ export default function Navbar() {
   const pathname = usePathname();
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
-  const isBio = pathname.startsWith("/bio");
 
   const navListRef = useRef<HTMLDivElement>(null);
   const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -301,9 +300,9 @@ export default function Navbar() {
   return (
     <nav
       aria-hidden={isProjectDetail}
-      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
-        isBio ? "bg-white" : "bg-[#F8F7F4]"
-      } ${isProjectDetail ? "hidden" : ""}`}
+      className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-colors duration-300 ${
+        isProjectDetail ? "hidden" : ""
+      }`}
     >
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
         <AnimatedLogo />

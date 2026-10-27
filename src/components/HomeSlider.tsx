@@ -22,7 +22,7 @@ export default function HomeSlider() {
   }, [isPaused]);
 
   return (
-    <div className="w-full flex flex-col bg-[#F8F7F4]">
+    <div className="w-full flex flex-col bg-[#FFFFFF]">
       {/* 1. PRIMER PLIEGUE (Centrado armónico en el 100vh con proximidad al encabezado) */}
       <section className="w-full h-[calc(100vh-5rem)] flex flex-col items-center justify-center -mt-4 md:-mt-8 px-4 md:px-12 select-none relative">
         {/* Cuadro de la imagen: ancho máximo 1120px, relación 3:2, centrado armónico y elevado */}
@@ -57,7 +57,7 @@ export default function HomeSlider() {
       </section>
 
       {/* 2. SEGUNDO BLOQUE: Redes sociales y créditos descubierto al scrollear */}
-      <footer className="w-full py-16 md:py-20 flex flex-col items-center justify-center gap-8 border-t border-[#1C1C1A]/10 bg-[#F8F7F4]">
+      <footer className="w-full py-16 md:py-20 flex flex-col items-center justify-center gap-8 border-t border-[#1C1C1A]/10 bg-[#FFFFFF]">
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 text-[#1C1C1A]">
           <a
             href="https://instagram.com/agustinfabrizio"

@@ -54,7 +54,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={roboto.variable}>
-      <body className="font-roboto antialiased bg-background text-foreground min-h-screen">
+      <body className="font-roboto antialiased bg-[#FFFFFF] text-[#1C1C1A] min-h-screen">
         <SmoothScroll />
         <EditorialOverlay />
         <Navbar />
