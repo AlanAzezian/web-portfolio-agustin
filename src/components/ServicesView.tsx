@@ -19,8 +19,16 @@ export default function ServicesView() {
       setTimeout(() => {
         const el = itemRefs.current[id];
         if (!el) return;
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 300);
+
+        if (typeof window !== "undefined" && window.__lenis) {
+          window.__lenis.scrollTo(el, {
+            offset: -120,
+            duration: 0.9,
+          });
+        } else {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 260);
     }
   };
 
@@ -78,7 +86,7 @@ export default function ServicesView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.28, ease: "easeInOut" }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
                       <div className="pb-8 md:pb-10 pl-0 sm:pl-11 md:pl-18">

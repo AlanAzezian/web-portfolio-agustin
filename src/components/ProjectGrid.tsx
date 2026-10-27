@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
@@ -32,6 +32,8 @@ export default function ProjectGrid() {
   const selectedTag: FilterTag | null =
     catParam && QUERY_TO_TAG[catParam] ? QUERY_TO_TAG[catParam] : null;
 
+  const filterBarRef = useRef<HTMLElement>(null);
+  const filterBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const gridRef = useRef<HTMLDivElement>(null);
   const revealedImagesRef = useRef<Set<string>>(new Set());
 
@@ -42,12 +44,42 @@ export default function ProjectGrid() {
     } else {
       router.push(`${pathname}?cat=${TAG_TO_QUERY[nextTag]}`, { scroll: false });
     }
+
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.scrollTo(0, { duration: 0.9 });
+    }
   };
 
   // Proyectos filtrados según la etiqueta seleccionada
   const filteredProjects = useMemo(() => {
     if (!selectedTag) return projects;
     return projects.filter((p) => p.tags?.includes(selectedTag));
+  }, [selectedTag]);
+
+  // Animación elástica con GSAP en la barra inferior de 3 extremos
+  useEffect(() => {
+    if (!filterBarRef.current) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const ctx = gsap.context(() => {
+      FILTER_TAGS.forEach((tag, idx) => {
+        const el = filterBtnRefs.current[idx];
+        if (!el) return;
+        const isSelected = selectedTag === tag;
+
+        gsap.to(el, {
+          scale: isSelected ? 1.2 : 1,
+          duration: prefersReducedMotion ? 0 : isSelected ? 0.45 : 0.25,
+          ease: isSelected ? "back.out(1.6)" : "power2.out",
+          overwrite: "auto",
+        });
+      });
+    }, filterBarRef);
+
+    return () => ctx.revert();
   }, [selectedTag]);
 
   // Reveal de tarjetas con ScrollTrigger.batch y clip-path en primera aparición
@@ -130,7 +162,7 @@ export default function ProjectGrid() {
   }, [filteredProjects]);
 
   return (
-    <div className="w-full px-6 md:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+    <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       {/* Retícula de 4 columnas que arranca inmediatamente debajo del header */}
       <div
         ref={gridRef}
@@ -164,47 +196,47 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros estilo Oficina Correa */}
+      {/* Barra Inferior de Filtros en 3 extremos (Izquierda, Centro, Derecha) estilo Oficina Correa */}
       <footer
+        ref={filterBarRef}
         role="navigation"
         aria-label="Filtros de proyectos"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] border-t border-[#E5E2DC] px-6 md:px-16 h-14 flex items-center justify-center"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full flex justify-between items-center px-6 md:px-12 lg:px-16 py-4"
       >
-        <div className="flex items-center justify-center gap-6 md:gap-10">
-          {FILTER_TAGS.map((tag, idx) => {
-            const isSelected = selectedTag === tag;
-            return (
-              <React.Fragment key={tag}>
-                <button
-                  type="button"
-                  onClick={() => handleSelectTag(tag)}
-                  className={`relative inline-flex flex-col items-center justify-center uppercase tracking-widest font-roboto text-[12px] md:text-[13px] px-1 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                    isSelected
-                      ? "font-bold font-[700] text-[#099AD7]"
-                      : "font-thin font-[100] text-[#1C1C1A] hover:text-[#099AD7]"
-                  }`}
-                >
-                  <span>{tag}</span>
-                  {/* Reserva de ancho en Bold 700 para evitar saltos horizontales */}
-                  <span
-                    aria-hidden="true"
-                    className="invisible font-bold font-[700] h-0 overflow-hidden select-none pointer-events-none"
-                  >
-                    {tag}
-                  </span>
-                </button>
-                {idx < FILTER_TAGS.length - 1 && (
-                  <span
-                    aria-hidden="true"
-                    className="text-[#E5E2DC] font-roboto font-thin select-none text-xs"
-                  >
-                    |
-                  </span>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
+        {FILTER_TAGS.map((tag, idx) => {
+          const isSelected = selectedTag === tag;
+          const originClass =
+            idx === 0
+              ? "origin-left items-start"
+              : idx === 1
+                ? "origin-center items-center"
+                : "origin-right items-end";
+
+          return (
+            <button
+              key={tag}
+              ref={(el) => {
+                filterBtnRefs.current[idx] = el;
+              }}
+              type="button"
+              onClick={() => handleSelectTag(tag)}
+              className={`relative inline-flex flex-col justify-center ${originClass} uppercase tracking-wider font-roboto px-1 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                isSelected
+                  ? "text-[16px] font-semibold font-[600] text-[#099AD7]"
+                  : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+              }`}
+            >
+              <span>{tag}</span>
+              {/* Reserva de ancho en el tamaño activo (16px semibold) para no mover vecinos */}
+              <span
+                aria-hidden="true"
+                className="invisible text-[16px] font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+              >
+                {tag}
+              </span>
+            </button>
+          );
+        })}
       </footer>
     </div>
   );

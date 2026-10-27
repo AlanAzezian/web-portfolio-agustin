@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,7 @@ import {
   Images,
   X,
 } from "lucide-react";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 import {
   BIO_SECTIONS,
@@ -131,37 +132,72 @@ export default function BioContactView() {
   } | null>(null);
   const [modalSlideIdx, setModalSlideIdx] = useState(0);
 
+  const bottomNavRef = useRef<HTMLElement>(null);
+  const navBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   const handleScrollToSection = (sectionId: BioSectionId) => {
     setActiveSection(sectionId);
     const el = document.getElementById(sectionId);
     if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.scrollTo(`#${sectionId}`, {
+        duration: 1.2,
+        offset: -80,
+      });
+    } else {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
+  // ScrollSpy sincronizado con GSAP ScrollTrigger e IntersectionObserver
   useEffect(() => {
-    const elements = BIO_SECTIONS.map((s) =>
-      document.getElementById(s.id)
-    ).filter(Boolean) as HTMLElement[];
+    const triggers: ScrollTrigger[] = [];
 
-    if (elements.length === 0) return;
+    BIO_SECTIONS.forEach((sec) => {
+      const el = document.getElementById(sec.id);
+      if (!el) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id as BioSectionId);
-          }
-        });
-      },
-      {
-        rootMargin: "-20% 0px -60% 0px",
-        threshold: 0,
-      }
-    );
+      const st = ScrollTrigger.create({
+        trigger: el,
+        start: "top 40%",
+        end: "bottom 40%",
+        onEnter: () => setActiveSection(sec.id),
+        onEnterBack: () => setActiveSection(sec.id),
+      });
+      triggers.push(st);
+    });
 
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    return () => {
+      triggers.forEach((t) => t.kill());
+    };
   }, []);
+
+  // Animación elástica GSAP en los 3 atajos inferiores (Izquierda, Centro, Derecha)
+  useEffect(() => {
+    if (!bottomNavRef.current) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const ctx = gsap.context(() => {
+      BIO_SECTIONS.forEach((sec, idx) => {
+        const el = navBtnRefs.current[idx];
+        if (!el) return;
+        const isActive = activeSection === sec.id;
+
+        gsap.to(el, {
+          scale: isActive ? 1.2 : 1,
+          duration: prefersReducedMotion ? 0 : isActive ? 0.45 : 0.25,
+          ease: isActive ? "back.out(1.6)" : "power2.out",
+          overwrite: "auto",
+        });
+      });
+    }, bottomNavRef);
+
+    return () => ctx.revert();
+  }, [activeSection]);
 
   const toggleWorkItem = (id: string) => {
     setOpenWorkId((prev) => (prev === id ? null : id));
@@ -268,7 +304,7 @@ export default function BioContactView() {
               </div>
             </div>
 
-            {/* Columna Derecha: Texto de CV a ancho completo + Educación y Certificación BIM */}
+            {/* Columna Derecha: Manifiesto textual a ancho completo + Educación y Certificación BIM */}
             <div className="lg:col-span-8 xl:col-span-9 flex flex-col justify-between gap-8 w-full">
               <blockquote className="w-full text-base sm:text-lg md:text-xl xl:text-[22px] font-roboto font-light leading-relaxed text-[#1C1C1A] border-l-2 border-[#099AD7] pl-5 md:pl-8 py-1">
                 &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
@@ -704,47 +740,48 @@ export default function BioContactView() {
       </section>
 
       {/* =====================================================================
-          BARRA INFERIOR DE ATAJOS RÁPIDOS (Estilo Oficina Correa)
+          BARRA INFERIOR DE ATAJOS RÁPIDOS EN 3 EXTREMOS (Estilo Oficina Correa)
       ===================================================================== */}
       <footer
+        ref={bottomNavRef}
         role="navigation"
         aria-label="Secciones de Bio"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] border-t border-[#E5E2DC] px-6 md:px-12 lg:px-16 h-14 flex items-center justify-center"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full flex justify-between items-center px-6 md:px-12 lg:px-16 py-4"
       >
-        <div className="flex items-center justify-center gap-6 md:gap-10">
-          {BIO_SECTIONS.map((sec, idx) => {
-            const isActive = activeSection === sec.id;
-            return (
-              <React.Fragment key={sec.id}>
-                <button
-                  type="button"
-                  onClick={() => handleScrollToSection(sec.id)}
-                  className={`relative inline-flex flex-col items-center justify-center uppercase tracking-widest font-roboto text-[12px] md:text-[13px] px-1 transition-colors duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                    isActive
-                      ? "font-bold font-[700] text-[#099AD7]"
-                      : "font-thin font-[100] text-[#1C1C1A] hover:text-[#099AD7]"
-                  }`}
-                >
-                  <span>{sec.label}</span>
-                  <span
-                    aria-hidden="true"
-                    className="invisible font-bold font-[700] h-0 overflow-hidden select-none pointer-events-none"
-                  >
-                    {sec.label}
-                  </span>
-                </button>
-                {idx < BIO_SECTIONS.length - 1 && (
-                  <span
-                    aria-hidden="true"
-                    className="text-[#E5E2DC] font-roboto font-thin select-none text-xs"
-                  >
-                    |
-                  </span>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
+        {BIO_SECTIONS.map((sec, idx) => {
+          const isActive = activeSection === sec.id;
+          const originClass =
+            idx === 0
+              ? "origin-left items-start"
+              : idx === 1
+                ? "origin-center items-center"
+                : "origin-right items-end";
+
+          return (
+            <button
+              key={sec.id}
+              ref={(el) => {
+                navBtnRefs.current[idx] = el;
+              }}
+              type="button"
+              onClick={() => handleScrollToSection(sec.id)}
+              className={`relative inline-flex flex-col justify-center ${originClass} uppercase tracking-wider font-roboto px-1 transition-colors duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                isActive
+                  ? "text-[16px] font-semibold font-[600] text-[#099AD7]"
+                  : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+              }`}
+            >
+              <span>{sec.label}</span>
+              {/* Reserva de ancho en tamaño activo (16px semibold) para evitar desplazamientos */}
+              <span
+                aria-hidden="true"
+                className="invisible text-[16px] font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+              >
+                {sec.label}
+              </span>
+            </button>
+          );
+        })}
       </footer>
 
       {/* =====================================================================
