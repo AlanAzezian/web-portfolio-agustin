@@ -47,7 +47,7 @@ function ExclusiveBioGallery({
   const current = images[idx];
 
   return (
-    <div className="w-full">
+    <div className="w-full border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
       <div
         role={onOpenLightbox ? "button" : undefined}
         tabIndex={onOpenLightbox ? 0 : undefined}
@@ -58,7 +58,7 @@ function ExclusiveBioGallery({
             onOpenLightbox(idx);
           }
         }}
-        className="relative w-full aspect-[16/10] overflow-hidden border border-[#1C1C1A]/15 bg-[#FFFFFF] group cursor-zoom-in"
+        className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF] group cursor-zoom-in"
       >
         <Image
           key={current.src}
@@ -75,7 +75,7 @@ function ExclusiveBioGallery({
               type="button"
               onClick={prev}
               aria-label="Foto anterior"
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 border border-[#1C1C1A]/20 bg-[#FFFFFF]/95 p-1 text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#FFFFFF]/90 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center border border-[#1C1C1A]/15 transition-colors cursor-pointer"
             >
               <ChevronLeft size={16} strokeWidth={1.75} />
             </button>
@@ -83,21 +83,38 @@ function ExclusiveBioGallery({
               type="button"
               onClick={next}
               aria-label="Foto siguiente"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 border border-[#1C1C1A]/20 bg-[#FFFFFF]/95 p-1 text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#FFFFFF]/90 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center border border-[#1C1C1A]/15 transition-colors cursor-pointer"
             >
               <ChevronRight size={16} strokeWidth={1.75} />
             </button>
 
-            <span className="absolute top-0 right-0 border-b border-l border-[#1C1C1A]/15 bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-mono tabular-nums text-[#1C1C1A]/80 tracking-wider">
+            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-[#FFFFFF]/90 border border-[#1C1C1A]/15 text-[#1C1C1A] font-roboto text-[10px] tabular-nums tracking-wider">
               {String(idx + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
             </span>
           </>
         )}
       </div>
 
-      <p className="text-[11px] font-mono text-[#1C1C1A]/50 mt-1.5 truncate">
-        {current.caption}
-      </p>
+      <div className="mt-2.5 flex items-center justify-between gap-3">
+        <p className="font-roboto text-xs text-[#1C1C1A]/75 leading-snug line-clamp-1">
+          {current.caption}
+        </p>
+        {total > 1 && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {images.map((_, dotIdx) => (
+              <button
+                key={dotIdx}
+                type="button"
+                onClick={() => setIdx(dotIdx)}
+                aria-label={`Ir a imagen ${dotIdx + 1}`}
+                className={`w-2 h-2 transition-colors cursor-pointer ${
+                  dotIdx === idx ? "bg-[#099AD7]" : "bg-[#1C1C1A]/20"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -395,31 +412,27 @@ export default function BioContactView() {
                     type="button"
                     onClick={() => toggleWorkItem(item.id)}
                     aria-expanded={isOpen}
-                    className="w-full py-4 md:py-5 grid grid-cols-12 items-baseline gap-2 md:gap-4 text-left focus:outline-none group cursor-pointer"
+                    className="w-full py-5 md:py-6 flex items-center justify-between gap-4 text-left focus:outline-none group cursor-pointer"
                   >
-                    <span className="col-span-2 md:col-span-1 text-xs md:text-sm font-mono tabular-nums text-[#1C1C1A]/40">
-                      {item.orderNumber}
-                    </span>
-
-                    <div className="col-span-9 md:col-span-10 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                        <span className="text-sm md:text-base font-medium text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
-                          {item.role}
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6">
+                      <span className="font-roboto text-xs text-[#1C1C1A]/40 tabular-nums shrink-0">
+                        {item.orderNumber}
+                      </span>
+                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <span className="text-lg md:text-2xl font-roboto font-light text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
+                          {item.role} — {item.company}
                         </span>
-                        <span className="text-xs md:text-sm text-[#1C1C1A]/50">
-                          — {item.company}
+                        <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] tabular-nums">
+                          [{item.period}]
                         </span>
                       </div>
-                      <span className="text-xs font-mono tabular-nums text-[#099AD7] uppercase tracking-wider">
-                        [{item.period}]
-                      </span>
                     </div>
 
-                    <div className="col-span-1 text-[#099AD7] flex items-center justify-end self-center">
+                    <div className="text-[#099AD7] flex items-center justify-center shrink-0">
                       {isOpen ? (
-                        <Minus size={16} strokeWidth={1.75} />
+                        <Minus size={20} strokeWidth={1.5} />
                       ) : (
-                        <Plus size={16} strokeWidth={1.75} />
+                        <Plus size={20} strokeWidth={1.5} />
                       )}
                     </div>
                   </button>
@@ -433,56 +446,21 @@ export default function BioContactView() {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="overflow-hidden"
                       >
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pt-6 pb-6 pl-0 md:pl-[calc(8.333%)] border-t border-[#1C1C1A]/10">
-                          {/* Columna Izquierda (Cols 1 a 7 - Núcleo Operativo) */}
-                          <div className="md:col-span-7">
-                            <span className="block text-[11px] font-mono tracking-widest text-[#1C1C1A]/40 uppercase mb-3">
-                              RESPONSABILIDADES & ALCANCE TÉCNICO
-                            </span>
-                            <ul className="flex flex-col gap-2.5">
-                              {item.tasks.map((task, idx) => (
-                                <li
-                                  key={idx}
-                                  className="flex items-start gap-3 text-xs md:text-sm text-[#1C1C1A]/80 font-light leading-relaxed"
-                                >
-                                  <span className="w-1.5 h-1.5 bg-[#099AD7] shrink-0 mt-1.5" />
-                                  <span>{task}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          {/* Columna Derecha (Cols 8 a 12 - Ficha de Entorno) */}
-                          <div className="md:col-span-5 border-t md:border-t-0 md:border-l border-[#1C1C1A]/10 pt-4 md:pt-0 md:pl-6 space-y-4">
-                            {item.tools && item.tools.length > 0 && (
-                              <div>
-                                <span className="block text-[11px] font-mono tracking-widest text-[#1C1C1A]/40 uppercase mb-2">
-                                  ENTORNO OPERATIVO & SOFTWARE
-                                </span>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {item.tools.map((tool) => (
-                                    <span
-                                      key={tool}
-                                      className="border border-[#1C1C1A]/15 px-2 py-0.5 text-[11px] font-mono text-[#1C1C1A]/70 uppercase tracking-wider"
-                                    >
-                                      {tool}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {item.typology && (
-                              <div>
-                                <span className="block text-[11px] font-mono tracking-widest text-[#1C1C1A]/40 uppercase mb-1">
-                                  TIPOLOGÍA DE INTERVENCIÓN
-                                </span>
-                                <p className="text-xs text-[#1C1C1A]/70 font-light leading-relaxed">
-                                  {item.typology}
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                        <div className="pb-8 pt-2 sm:pl-10 max-w-3xl">
+                          <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-3">
+                            Responsabilidades & Alcance Técnico
+                          </span>
+                          <ul className="flex flex-col gap-3">
+                            {item.tasks.map((task, idx) => (
+                              <li
+                                key={idx}
+                                className="flex items-start gap-3 font-roboto font-light text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed"
+                              >
+                                <span className="w-1.5 h-1.5 bg-[#099AD7] mt-2 shrink-0" />
+                                <span>{task}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       </motion.div>
                     )}
@@ -516,9 +494,9 @@ export default function BioContactView() {
               return (
                 <article key={item.id} className="py-7 md:py-9">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-12 items-center">
-                    {/* Columna de Texto (Cols 1 a 7) */}
-                    <div className="lg:col-span-7 flex flex-col justify-center">
-                      <div className="font-mono text-xs tracking-wider uppercase mb-2 flex items-center gap-2">
+                    {/* Columna de Metadatos, Título interactivo y Acción Directa */}
+                    <div className="lg:col-span-7 xl:col-span-8 flex flex-col justify-center">
+                      <div className="font-roboto text-xs tracking-wider uppercase mb-2 flex items-center gap-2">
                         <span className="text-[#099AD7] font-medium tabular-nums">
                           {item.year}
                         </span>
@@ -563,47 +541,53 @@ export default function BioContactView() {
                         {item.description}
                       </p>
 
-                      {/* Acción Única y Directa */}
+                      {/* Acción única y directa en Roboto */}
                       {projectHref ? (
                         <Link
                           href={projectHref}
-                          className="inline-flex items-center gap-1.5 text-[#099AD7] text-xs font-mono uppercase tracking-wider hover:underline w-fit"
+                          className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors w-fit group"
                         >
-                          <span>
-                            VER PROYECTO COMPLETO [MEMORIA + PLANIMETRÍA] ↗
-                          </span>
+                          <span>Ver proyecto completo</span>
+                          <ArrowUpRight
+                            size={14}
+                            strokeWidth={1.75}
+                            className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          />
                         </Link>
                       ) : hasExclusiveGallery ? (
                         <button
                           type="button"
                           onClick={() => openModalGallery(item, 0)}
-                          className="inline-flex items-center gap-1.5 text-[#099AD7] text-xs font-mono uppercase tracking-wider hover:underline cursor-pointer w-fit"
+                          className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors cursor-pointer w-fit"
                         >
-                          <Images size={13} strokeWidth={1.75} />
+                          <Images size={14} strokeWidth={1.75} />
                           <span>
-                            VER REGISTRO FOTOGRÁFICO COMPLETO (
-                            {item.gallery!.length} TOMAS) ⤢
+                            Ver galería ({item.gallery!.length} fotos)
                           </span>
                         </button>
                       ) : null}
                     </div>
 
-                    {/* Columna Derecha: Carrusel / Imagen (Cols 8 a 12) */}
-                    <div className="lg:col-span-5 w-full">
+                    {/* Columna Derecha: Tarjeta aspect-[3/2] con acceso directo a Proyecto o Lightbox */}
+                    <div className="lg:col-span-5 xl:col-span-4 w-full">
                       {projectHref ? (
-                        <Link href={projectHref} className="block group">
-                          <div className="relative w-full aspect-[16/10] overflow-hidden border border-[#1C1C1A]/15 bg-[#FFFFFF] group-hover:border-[#099AD7] transition-colors">
+                        <Link
+                          href={projectHref}
+                          className="block border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5 group hover:border-[#099AD7] transition-colors"
+                        >
+                          <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
                             <Image
                               src={item.image}
                               alt={item.imageCaption}
                               fill
-                              sizes="(max-width: 1024px) 100vw, 42vw"
+                              sizes="(max-width: 1024px) 100vw, 35vw"
                               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                             />
                           </div>
-                          <p className="text-[11px] font-mono text-[#1C1C1A]/50 group-hover:text-[#099AD7] transition-colors mt-1.5 truncate">
-                            {item.imageCaption}
-                          </p>
+                          <div className="mt-2 flex items-center justify-between text-xs font-roboto text-[#1C1C1A]/75 group-hover:text-[#099AD7] transition-colors">
+                            <span className="truncate">{item.imageCaption}</span>
+                            <ArrowUpRight size={14} className="shrink-0" />
+                          </div>
                         </Link>
                       ) : hasExclusiveGallery ? (
                         <ExclusiveBioGallery
@@ -611,19 +595,16 @@ export default function BioContactView() {
                           onOpenLightbox={(idx) => openModalGallery(item, idx)}
                         />
                       ) : (
-                        <div>
-                          <div className="relative w-full aspect-[16/10] overflow-hidden border border-[#1C1C1A]/15 bg-[#FFFFFF]">
+                        <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
+                          <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
                             <Image
                               src={item.image}
                               alt={item.imageCaption}
                               fill
-                              sizes="(max-width: 1024px) 100vw, 42vw"
+                              sizes="(max-width: 1024px) 100vw, 35vw"
                               className="object-cover"
                             />
                           </div>
-                          <p className="text-[11px] font-mono text-[#1C1C1A]/50 mt-1.5 truncate">
-                            {item.imageCaption}
-                          </p>
                         </div>
                       )}
                     </div>
