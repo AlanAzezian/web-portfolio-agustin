@@ -133,24 +133,19 @@ export default function ServicesView() {
                   {isOpen && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{
-                        height: "auto",
-                        opacity: 1,
-                        transition: {
-                          height: { duration: 0.48, ease: [0.16, 1, 0.3, 1] },
-                          opacity: {
-                            duration: 0.38,
-                            ease: [0.25, 1, 0.5, 1],
-                            delay: 0.05,
-                          },
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{
+                        // Apertura pausada y suave de 1 segundo con curva desacelerada
+                        height: {
+                          duration: 1.0,
+                          ease: [0.16, 1, 0.3, 1],
                         },
-                      }}
-                      exit={{
-                        height: 0,
-                        opacity: 0,
-                        transition: {
-                          height: { duration: 0.35, ease: [0.25, 1, 0.5, 1] },
-                          opacity: { duration: 0.25, ease: [0.25, 1, 0.5, 1] },
+                        // Aparición gradual del texto e imagen sin prisa
+                        opacity: {
+                          duration: 0.75,
+                          ease: [0.25, 1, 0.5, 1],
+                          delay: 0.1,
                         },
                       }}
                       onAnimationComplete={handleAnimationComplete}
