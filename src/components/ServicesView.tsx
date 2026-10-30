@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
 import { Plus, Minus, ArrowUpRight } from "lucide-react";
+import { ScrollTrigger } from "@/lib/gsap";
 import { servicesData } from "@/data/services";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 
@@ -14,12 +15,18 @@ export default function ServicesView() {
     setActiveServiceId((prev) => (prev === id ? null : id));
   };
 
+  const handleAnimationComplete = () => {
+    if (typeof window === "undefined") return;
+    window.__lenis?.resize();
+    ScrollTrigger.refresh();
+  };
+
   return (
     <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
         className="w-full"
       >
         <div className="flex flex-col border-t border-[#1C1C1A]/15">
@@ -59,8 +66,9 @@ export default function ServicesView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                      className="overflow-hidden"
+                      transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+                      onAnimationComplete={handleAnimationComplete}
+                      className="overflow-hidden will-change-[height,opacity]"
                     >
                       <div className="pb-7 md:pb-8 pl-0 sm:pl-10 md:pl-15">
                         <p className="font-roboto font-normal text-[#1C1C1A]/85 leading-relaxed text-sm md:text-base max-w-3xl mb-5">

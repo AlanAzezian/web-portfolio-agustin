@@ -168,13 +168,13 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros centrada con espaciado compacto */}
+      {/* Barra Inferior de Filtros centrada con separación generosa */}
       <footer
         role="navigation"
         aria-label="Filtros de proyectos"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full px-6 py-3.5"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full px-6"
       >
-        <div className="mx-auto flex justify-center items-center gap-4 md:gap-5">
+        <div className="w-full flex justify-center items-center gap-8 sm:gap-12 md:gap-16 mx-auto py-4">
           {FILTER_TAGS.map((tag) => {
             const isSelected = selectedTag === tag;
 
@@ -183,7 +183,7 @@ export default function ProjectGrid() {
                 key={tag}
                 type="button"
                 onClick={() => handleSelectTag(tag)}
-                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto px-3 py-0.5 cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isSelected
                     ? "text-[15px] md:text-[16px] font-semibold font-[600] text-[#099AD7]"
                     : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"

@@ -268,7 +268,7 @@ export default function BioContactView() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
         className="w-full"
       >
         <div className="flex flex-col border-t border-[#1C1C1A]/15">
@@ -313,11 +313,11 @@ export default function BioContactView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
                       onAnimationComplete={() =>
                         handleSectionAnimationComplete(section.id)
                       }
-                      className="overflow-hidden"
+                      className="overflow-hidden will-change-[height,opacity]"
                     >
                       <div className="pb-8 pt-2 pl-0 sm:pl-10 md:pl-15 max-w-4xl mx-auto w-full">
                         {/* =====================================================
@@ -528,8 +528,8 @@ export default function BioContactView() {
                                             animate={{ height: "auto", opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{
-                                              duration: 0.35,
-                                              ease: [0.16, 1, 0.3, 1],
+                                              duration: 0.3,
+                                              ease: [0.25, 1, 0.5, 1],
                                             }}
                                             onAnimationComplete={() => {
                                               if (typeof window !== "undefined") {
@@ -537,7 +537,7 @@ export default function BioContactView() {
                                                 ScrollTrigger.refresh();
                                               }
                                             }}
-                                            className="overflow-hidden"
+                                            className="overflow-hidden will-change-[height,opacity]"
                                           >
                                             <div className="pb-6 pt-1 sm:pl-9 max-w-3xl">
                                               <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55 block mb-2.5">
