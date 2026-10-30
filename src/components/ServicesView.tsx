@@ -15,6 +15,24 @@ export default function ServicesView() {
     src: string;
     title: string;
   } | null>(null);
+  const [scale, setScale] = useState(1);
+
+  const openModal = (src: string, title: string) => {
+    setScale(1);
+    setExpandedImage({ src, title });
+  };
+
+  const closeModal = () => {
+    setExpandedImage(null);
+    setScale(1);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    setScale((prev) => {
+      const delta = e.deltaY * -0.0015;
+      return Math.min(Math.max(1, prev + delta), 2.5);
+    });
+  };
 
   const handleToggle = (id: string) => {
     setActiveServiceId((prev) => (prev === id ? null : id));
@@ -40,6 +58,7 @@ export default function ServicesView() {
       if (e.key === "Escape") {
         e.preventDefault();
         setExpandedImage(null);
+        setScale(1);
       }
     };
 
@@ -139,14 +158,9 @@ export default function ServicesView() {
                           <div className="md:col-span-5 flex justify-end">
                             <button
                               type="button"
-                              onClick={() =>
-                                setExpandedImage({
-                                  src: imageSrc,
-                                  title: service.title,
-                                })
-                              }
+                              onClick={() => openModal(imageSrc, service.title)}
                               aria-label={`Expandir imagen de ${service.title}`}
-                              className="w-full max-w-[420px] aspect-[3/2] border border-[#1C1C1A]/15 bg-white p-1.5 shadow-xs relative overflow-hidden select-none cursor-pointer text-left focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7]"
+                              className="w-full max-w-[420px] aspect-[3/2] border border-[#1C1C1A]/15 hover:border-[#099AD7] hover:shadow-sm bg-white p-1.5 shadow-xs transition-all duration-300 relative overflow-hidden select-none cursor-pointer text-left focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7]"
                             >
                               <div className="relative w-full h-full overflow-hidden bg-white">
                                 <Image
@@ -188,7 +202,7 @@ export default function ServicesView() {
         </a>
       </div>
 
-      {/* Lightbox Modal a Pantalla Completa para Inspección de Imagen */}
+      {/* Lightbox Modal a Pantalla Completa: Imagen Pura con Zoom por Rueda */}
       <AnimatePresence>
         {expandedImage && (
           <motion.div
@@ -196,56 +210,44 @@ export default function ServicesView() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            onClick={() => setExpandedImage(null)}
+            onClick={closeModal}
+            onWheel={handleWheel}
             role="dialog"
             aria-modal="true"
             aria-label={expandedImage.title}
-            className="bg-[#FFFFFF]/98 fixed inset-0 z-50 flex flex-col justify-between p-6 md:p-12 select-none"
+            className="fixed inset-0 z-50 bg-[#FFFFFF]/98 flex items-center justify-center p-4 md:p-8 select-none overflow-hidden"
           >
-            {/* Barra Superior: Vértice Superior Derecho con botón de cierre */}
-            <div className="w-full flex items-center justify-end shrink-0">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setExpandedImage(null);
-                }}
-                className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
-              >
-                <X size={16} strokeWidth={1.5} />
-                <span>Cerrar</span>
-              </button>
-            </div>
+            {/* Botón de cierre minimalista ✕ en esquina superior derecha */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeModal();
+              }}
+              aria-label="Cerrar imagen"
+              className="fixed top-6 right-6 md:top-8 md:right-10 z-50 text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
+            >
+              <X size={20} strokeWidth={1.5} />
+            </button>
 
-            {/* Contenedor Central: Imagen en alta resolución centrada */}
-            <div className="relative flex-1 w-full flex items-center justify-center my-4 overflow-hidden">
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="relative flex items-center justify-center max-h-[80vh] max-w-full"
-              >
-                <Image
-                  src={expandedImage.src}
-                  alt={expandedImage.title}
-                  width={1600}
-                  height={1067}
-                  priority
-                  sizes="100vw"
-                  className="max-h-[80vh] w-auto max-w-full object-contain mx-auto"
-                />
-              </div>
-            </div>
-
-            {/* Barra Inferior: Vértice Inferior Izquierdo con título y rótulo técnico */}
+            {/* Contenedor Central: Imagen pura con zoom interactivo por rueda */}
             <div
               onClick={(e) => e.stopPropagation()}
-              className="w-full flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 shrink-0"
+              style={{
+                transform: `scale(${scale}) translate3d(0, 0, 0)`,
+                transition: "transform 0.1s ease-out",
+              }}
+              className="relative flex items-center justify-center max-h-[85vh] max-w-full will-change-transform"
             >
-              <span className="font-roboto text-sm md:text-base font-medium text-[#1C1C1A]">
-                {expandedImage.title}
-              </span>
-              <span className="font-roboto text-sm md:text-base font-normal text-[#1C1C1A]/65">
-                — Vista previa de referencia técnica
-              </span>
+              <Image
+                src={expandedImage.src}
+                alt={expandedImage.title}
+                width={1600}
+                height={1067}
+                priority
+                sizes="100vw"
+                className="max-h-[85vh] w-auto max-w-full object-contain mx-auto pointer-events-none select-none"
+              />
             </div>
           </motion.div>
         )}
