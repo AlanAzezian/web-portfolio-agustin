@@ -32,8 +32,6 @@ export default function ProjectGrid() {
   const selectedTag: FilterTag | null =
     catParam && QUERY_TO_TAG[catParam] ? QUERY_TO_TAG[catParam] : null;
 
-  const filterBarRef = useRef<HTMLElement>(null);
-  const filterBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const gridRef = useRef<HTMLDivElement>(null);
   const revealedImagesRef = useRef<Set<string>>(new Set());
 
@@ -54,32 +52,6 @@ export default function ProjectGrid() {
   const filteredProjects = useMemo(() => {
     if (!selectedTag) return projects;
     return projects.filter((p) => p.tags?.includes(selectedTag));
-  }, [selectedTag]);
-
-  // Animación elástica con GSAP en la barra inferior de 3 extremos
-  useEffect(() => {
-    if (!filterBarRef.current) return;
-
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const ctx = gsap.context(() => {
-      FILTER_TAGS.forEach((tag, idx) => {
-        const el = filterBtnRefs.current[idx];
-        if (!el) return;
-        const isSelected = selectedTag === tag;
-
-        gsap.to(el, {
-          scale: isSelected ? 1.2 : 1,
-          duration: prefersReducedMotion ? 0 : isSelected ? 0.45 : 0.25,
-          ease: isSelected ? "back.out(1.6)" : "power2.out",
-          overwrite: "auto",
-        });
-      });
-    }, filterBarRef);
-
-    return () => ctx.revert();
   }, [selectedTag]);
 
   // Reveal de tarjetas con ScrollTrigger.batch y clip-path en primera aparición
@@ -196,47 +168,39 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros en 3 extremos (Izquierda, Centro, Derecha) estilo Oficina Correa */}
+      {/* Barra Inferior de Filtros centrada y agrupada */}
       <footer
-        ref={filterBarRef}
         role="navigation"
         aria-label="Filtros de proyectos"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full flex justify-between items-center px-6 md:px-12 lg:px-16 py-4"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full px-6 py-3.5"
       >
-        {FILTER_TAGS.map((tag, idx) => {
-          const isSelected = selectedTag === tag;
-          const originClass =
-            idx === 0
-              ? "origin-left items-start"
-              : idx === 1
-                ? "origin-center items-center"
-                : "origin-right items-end";
+        <div className="mx-auto flex justify-center items-center gap-3 md:gap-5">
+          {FILTER_TAGS.map((tag) => {
+            const isSelected = selectedTag === tag;
 
-          return (
-            <button
-              key={tag}
-              ref={(el) => {
-                filterBtnRefs.current[idx] = el;
-              }}
-              type="button"
-              onClick={() => handleSelectTag(tag)}
-              className={`relative inline-flex flex-col justify-center ${originClass} uppercase tracking-wider font-roboto px-1 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                isSelected
-                  ? "text-[16px] font-semibold font-[600] text-[#099AD7]"
-                  : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
-              }`}
-            >
-              <span>{tag}</span>
-              {/* Reserva de ancho en el tamaño activo (16px semibold) para no mover vecinos */}
-              <span
-                aria-hidden="true"
-                className="invisible text-[16px] font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => handleSelectTag(tag)}
+                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto text-[12px] px-1.5 py-0.5 cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                  isSelected
+                    ? "font-semibold font-[600] text-[#099AD7]"
+                    : "font-medium font-[500] text-[#8E8C87] hover:text-[#099AD7]"
+                }`}
               >
-                {tag}
-              </span>
-            </button>
-          );
-        })}
+                <span>{tag}</span>
+                {/* Reserva de ancho en peso 600 para evitar micro-desplazamiento */}
+                <span
+                  aria-hidden="true"
+                  className="invisible font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+                >
+                  {tag}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </footer>
     </div>
   );

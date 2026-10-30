@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { Plus, X, ArrowUpRight } from "lucide-react";
+import { Plus, Minus, ArrowUpRight } from "lucide-react";
 import { servicesData } from "@/data/services";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 
@@ -21,31 +21,33 @@ export default function ServicesView() {
         if (!el) return;
 
         if (typeof window !== "undefined" && window.__lenis) {
+          const rect = el.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const navOffset = 80;
+          const idealOffset =
+            rect.height < viewportHeight - navOffset
+              ? -Math.max(navOffset + 16, (viewportHeight - rect.height) / 2)
+              : -(navOffset + 16);
+
           window.__lenis.scrollTo(el, {
-            offset: -120,
+            offset: idealOffset,
             duration: 0.9,
           });
         } else {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
         }
-      }, 260);
+      }, 310);
     }
   };
 
   return (
-    <div className="w-full px-6 md:px-12 lg:px-16 pt-1 pb-16 md:pt-2 md:pb-20 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+    <div className="w-full px-6 md:px-12 lg:px-16 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="w-full"
       >
-        <div className="mb-4 md:mb-6">
-          <span className="font-roboto text-base md:text-xl font-medium uppercase tracking-wider text-acento block">
-            Catálogo de Servicios
-          </span>
-        </div>
-
         <div className="flex flex-col border-t border-foreground/15">
           {servicesData.map((service) => {
             const isOpen = activeServiceId === service.id;
@@ -73,7 +75,7 @@ export default function ServicesView() {
                   </div>
                   <div className="text-acento transition-transform duration-300 flex items-center justify-center shrink-0">
                     {isOpen ? (
-                      <X size={22} strokeWidth={1.5} />
+                      <Minus size={22} strokeWidth={1.5} />
                     ) : (
                       <Plus size={22} strokeWidth={1.5} />
                     )}
@@ -143,8 +145,8 @@ export default function ServicesView() {
         </div>
       </motion.div>
 
-      {/* Bloque Minimalista Fijo al Pie: Trabajemos juntos */}
-      <footer className="w-full mt-16 pt-10 border-t border-[#1C1C1A]/15 flex flex-col items-start shrink-0">
+      {/* Bloque Minimalista Fijo al Pie Abajo a la Izquierda: Trabajemos juntos */}
+      <footer className="w-full mt-16 pt-10 border-t border-[#1C1C1A]/15 flex flex-col items-start text-left shrink-0">
         <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
           Trabajemos juntos
         </h2>

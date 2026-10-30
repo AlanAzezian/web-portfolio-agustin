@@ -271,7 +271,7 @@ export default function Navbar() {
 
         if (!NAV_ACTIVE_DOT) {
           gsap.to(el, {
-            scale: isActive ? 1.23 : 1,
+            scale: isActive ? 1.15 : 1,
             duration: prefersReducedMotion ? 0 : isActive ? 0.45 : 0.25,
             ease: isActive ? "back.out(1.6)" : "power2.out",
             overwrite: "auto",
@@ -322,10 +322,10 @@ export default function Navbar() {
                 ref={(el) => {
                   linkRefs.current[idx] = el;
                 }}
-                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto text-[13px] px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto text-base px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isActive
-                    ? "font-semibold font-[600] text-acento"
-                    : "font-medium font-[500] text-[#1C1C1A] hover:text-acento"
+                    ? "font-semibold font-[600] text-[#099AD7]"
+                    : "font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
                 }`}
               >
                 <span>{link.name}</span>
