@@ -97,7 +97,7 @@ function ExclusiveBioGallery({
               <ChevronRight size={16} strokeWidth={1.75} />
             </button>
 
-            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-[#FFFFFF]/90 border border-[#1C1C1A]/15 text-[#1C1C1A] font-roboto text-[10px] tabular-nums tracking-wider">
+            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-[#FFFFFF]/90 border border-[#1C1C1A]/15 text-[#1C1C1A] font-roboto font-medium text-[10px] tabular-nums tracking-wider">
               {String(idx + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
             </span>
           </>
@@ -105,7 +105,7 @@ function ExclusiveBioGallery({
       </div>
 
       <div className="mt-2.5 flex items-center justify-between gap-3">
-        <p className="font-roboto text-xs text-[#1C1C1A]/75 leading-snug line-clamp-1">
+        <p className="font-roboto font-normal text-xs text-[#1C1C1A]/85 leading-snug line-clamp-1">
           {current.caption}
         </p>
         {total > 1 && (
@@ -129,9 +129,13 @@ function ExclusiveBioGallery({
 }
 
 export default function BioContactView() {
-  const [activeAccordionId, setActiveAccordionId] = useState<BioSectionId | null>(
-    null
-  );
+  // "Sobre Mí" inicia abierto por defecto; cada sección se controla independientemente
+  // para evitar que el cierre de un bloque superior provoque saltos de scroll al abrir otro inferior.
+  const [openSections, setOpenSections] = useState<Record<BioSectionId, boolean>>({
+    "sobre-mi": true,
+    experiencia: false,
+    habilidades: false,
+  });
   const [profileImgError, setProfileImgError] = useState(false);
   const [openWorkId, setOpenWorkId] = useState<string | null>(null);
   const [modalParticipation, setModalParticipation] = useState<{
@@ -143,52 +147,54 @@ export default function BioContactView() {
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const workItemRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  const scrollElementIntoCenter = (el: HTMLElement | null) => {
-    if (!el) return;
-    if (typeof window !== "undefined" && window.__lenis) {
-      const rect = el.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const navOffset = 80;
-      const idealOffset =
-        rect.height < viewportHeight - navOffset
-          ? -Math.max(navOffset + 16, (viewportHeight - rect.height) / 2)
-          : -(navOffset + 16);
-
-      window.__lenis.scrollTo(el, {
-        offset: idealOffset,
-        duration: 0.9,
-      });
-    } else {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  };
+  const lastClickedSectionRef = useRef<BioSectionId | null>(null);
+  const lastClickedWorkRef = useRef<string | null>(null);
 
   const handleToggleSection = (sectionId: BioSectionId) => {
-    const isOpening = activeAccordionId !== sectionId;
-    setActiveAccordionId(isOpening ? sectionId : null);
+    const isOpening = !openSections[sectionId];
+    lastClickedSectionRef.current = isOpening ? sectionId : null;
+    setOpenSections((prev) => ({
+      ...prev,
+      [sectionId]: isOpening,
+    }));
+  };
 
-    if (isOpening) {
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-        scrollElementIntoCenter(sectionRefs.current[sectionId]);
-      }, 320);
-    } else {
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-      }, 320);
+  const handleSectionAnimationComplete = (sectionId: BioSectionId) => {
+    if (typeof window === "undefined") return;
+
+    window.__lenis?.resize();
+    ScrollTrigger.refresh();
+
+    if (
+      lastClickedSectionRef.current === sectionId &&
+      openSections[sectionId]
+    ) {
+      const targetElement = sectionRefs.current[sectionId];
+      if (window.__lenis && targetElement) {
+        window.__lenis.scrollTo(targetElement, { offset: -90, duration: 0.7 });
+      }
+      lastClickedSectionRef.current = null;
     }
   };
 
   const toggleWorkItem = (id: string) => {
     const isOpening = openWorkId !== id;
+    lastClickedWorkRef.current = isOpening ? id : null;
     setOpenWorkId(isOpening ? id : null);
+  };
 
-    if (isOpening) {
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-        scrollElementIntoCenter(workItemRefs.current[id]);
-      }, 310);
+  const handleWorkAnimationComplete = (id: string) => {
+    if (typeof window === "undefined") return;
+
+    window.__lenis?.resize();
+    ScrollTrigger.refresh();
+
+    if (lastClickedWorkRef.current === id && openWorkId === id) {
+      const targetElement = workItemRefs.current[id];
+      if (window.__lenis && targetElement) {
+        window.__lenis.scrollTo(targetElement, { offset: -90, duration: 0.7 });
+      }
+      lastClickedWorkRef.current = null;
     }
   };
 
@@ -267,12 +273,12 @@ export default function BioContactView() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className="w-full"
       >
         <div className="flex flex-col border-t border-[#1C1C1A]/15">
           {BIO_ACCORDION_SECTIONS.map((section) => {
-            const isOpen = activeAccordionId === section.id;
+            const isOpen = openSections[section.id];
 
             return (
               <div
@@ -290,18 +296,18 @@ export default function BioContactView() {
                   className="w-full py-4 md:py-5 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0"
                 >
                   <div className="flex items-baseline gap-4 md:gap-8">
-                    <span className="font-roboto font-light text-sm md:text-base text-[#1C1C1A]/40 w-6 md:w-7 shrink-0 tabular-nums">
+                    <span className="font-roboto font-medium text-xs md:text-sm text-[#1C1C1A]/50 w-6 md:w-7 shrink-0 tabular-nums tracking-wider">
                       {section.orderNumber}
                     </span>
-                    <h2 className="text-lg md:text-xl lg:text-[22px] font-sans font-light text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
+                    <h2 className="font-roboto font-medium text-lg md:text-xl text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
                       {section.title}
                     </h2>
                   </div>
                   <div className="text-[#099AD7] transition-transform duration-300 flex items-center justify-center shrink-0">
                     {isOpen ? (
-                      <Minus size={18} strokeWidth={1.5} />
+                      <Minus size={18} strokeWidth={1.75} />
                     ) : (
-                      <Plus size={18} strokeWidth={1.5} />
+                      <Plus size={18} strokeWidth={1.75} />
                     )}
                   </div>
                 </button>
@@ -312,7 +318,10 @@ export default function BioContactView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      onAnimationComplete={() =>
+                        handleSectionAnimationComplete(section.id)
+                      }
                       className="overflow-hidden"
                     >
                       <div className="pb-8 pt-2 pl-0 sm:pl-10 md:pl-15 max-w-4xl mx-auto w-full">
@@ -336,13 +345,13 @@ export default function BioContactView() {
                                     />
                                   ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none border border-dashed border-[#1C1C1A]/15 bg-[#FFFFFF]">
-                                      <span className="font-roboto font-light text-3xl tracking-tight text-[#1C1C1A]/25 mb-2">
+                                      <span className="font-roboto font-medium text-2xl tracking-tight text-[#1C1C1A]/35 mb-2">
                                         AF
                                       </span>
-                                      <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45">
+                                      <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55">
                                         Retrato Editorial
                                       </span>
-                                      <span className="font-roboto text-[10px] tracking-wider text-[#1C1C1A]/35 mt-1">
+                                      <span className="font-roboto font-normal text-[10px] tracking-wider text-[#1C1C1A]/45 mt-1">
                                         /public/agustin-perfil.webp
                                       </span>
                                     </div>
@@ -355,7 +364,7 @@ export default function BioContactView() {
                                     href="https://www.behance.net/agustinfabrizio"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
+                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
                                   >
                                     <span>Behance</span>
                                     <ArrowUpRight size={12} strokeWidth={1.75} />
@@ -364,7 +373,7 @@ export default function BioContactView() {
                                     href="https://www.linkedin.com/"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
+                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
                                   >
                                     <span>LinkedIn</span>
                                     <ArrowUpRight size={12} strokeWidth={1.75} />
@@ -375,14 +384,14 @@ export default function BioContactView() {
                                     )}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
+                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
                                   >
                                     <span>WhatsApp</span>
                                     <ArrowUpRight size={12} strokeWidth={1.75} />
                                   </a>
                                   <a
                                     href="mailto:hola@agustinfabrizio.com"
-                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
+                                    className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
                                   >
                                     <span>Email</span>
                                     <ArrowUpRight size={12} strokeWidth={1.75} />
@@ -393,7 +402,7 @@ export default function BioContactView() {
 
                             {/* Columna Derecha: Manifiesto textual + Educación y Certificación BIM */}
                             <div className="md:col-span-7 lg:col-span-8 flex flex-col justify-between gap-7 w-full">
-                              <blockquote className="w-full text-base sm:text-lg font-roboto font-light leading-relaxed text-[#1C1C1A] border-l-2 border-[#099AD7] pl-5 md:pl-6 py-1">
+                              <blockquote className="w-full text-sm md:text-base font-roboto font-normal leading-relaxed text-[#1C1C1A]/85 border-l-2 border-[#099AD7] pl-5 md:pl-6 py-1">
                                 &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
                                 <strong className="font-medium text-[#099AD7]">
                                   construir ideas en conjunto
@@ -419,7 +428,7 @@ export default function BioContactView() {
 
                               {/* Bloque Educación */}
                               <div className="w-full border-t border-[#1C1C1A]/15 pt-5">
-                                <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] font-medium block mb-3">
+                                <span className="font-roboto font-medium text-xs uppercase tracking-wider text-[#099AD7] block mb-3">
                                   EDUCACIÓN & CERTIFICACIONES
                                 </span>
 
@@ -433,7 +442,7 @@ export default function BioContactView() {
                                         <h3 className="font-roboto font-medium text-sm md:text-base text-[#1C1C1A]">
                                           {edu.institution}
                                         </h3>
-                                        <p className="font-roboto text-xs md:text-sm text-[#1C1C1A]/65">
+                                        <p className="font-roboto font-normal text-xs md:text-sm text-[#1C1C1A]/80 leading-relaxed">
                                           {edu.detail}
                                         </p>
                                       </div>
@@ -443,7 +452,7 @@ export default function BioContactView() {
                                           href={edu.certificateUrl}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#1C1C1A]/20 hover:border-[#099AD7] text-xs font-roboto uppercase tracking-widest text-[#1C1C1A] hover:text-[#099AD7] transition-colors self-start sm:self-auto shrink-0 group"
+                                          className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#1C1C1A]/20 hover:border-[#099AD7] text-xs font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors self-start sm:self-auto shrink-0 group"
                                         >
                                           <span>Ver Certificado</span>
                                           <ArrowUpRight
@@ -465,16 +474,16 @@ export default function BioContactView() {
                             02 / EXPERIENCIA (Trayectoria Laboral + Concursos)
                         ===================================================== */}
                         {section.id === "experiencia" && (
-                          <div className="flex flex-col gap-12">
+                          <div className="flex flex-col gap-10">
                             {/* SUBDIVISIÓN 1: Trayectoria laboral */}
                             <div>
                               <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                                 <div className="flex items-center gap-3">
-                                  <h3 className="font-roboto text-xs md:text-sm uppercase tracking-widest text-[#099AD7] font-semibold">
+                                  <h3 className="font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#099AD7]">
                                     Trayectoria laboral
                                   </h3>
                                   <span className="w-6 h-[1px] bg-[#1C1C1A]/15" />
-                                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/50">
+                                  <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55">
                                     ESTUDIOS & PRÁCTICA PROFESIONAL
                                   </span>
                                 </div>
@@ -498,14 +507,14 @@ export default function BioContactView() {
                                         className="w-full py-3.5 md:py-4 flex items-center justify-between gap-4 text-left focus:outline-none group cursor-pointer"
                                       >
                                         <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-5">
-                                          <span className="font-roboto text-xs text-[#1C1C1A]/40 tabular-nums shrink-0">
+                                          <span className="font-roboto font-medium text-xs text-[#1C1C1A]/50 tabular-nums tracking-wider shrink-0">
                                             {item.orderNumber}
                                           </span>
                                           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                            <span className="text-base md:text-lg font-roboto font-light text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
+                                            <span className="font-roboto font-medium text-base md:text-lg text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
                                               {item.role} — {item.company}
                                             </span>
-                                            <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] tabular-nums">
+                                            <span className="font-roboto font-medium text-xs uppercase tracking-wider text-[#099AD7] tabular-nums">
                                               [{item.period}]
                                             </span>
                                           </div>
@@ -513,9 +522,9 @@ export default function BioContactView() {
 
                                         <div className="text-[#099AD7] flex items-center justify-center shrink-0">
                                           {isWorkOpen ? (
-                                            <Minus size={16} strokeWidth={1.5} />
+                                            <Minus size={16} strokeWidth={1.75} />
                                           ) : (
-                                            <Plus size={16} strokeWidth={1.5} />
+                                            <Plus size={16} strokeWidth={1.75} />
                                           )}
                                         </div>
                                       </button>
@@ -526,18 +535,24 @@ export default function BioContactView() {
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: "auto", opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                                            transition={{
+                                              duration: 0.35,
+                                              ease: [0.16, 1, 0.3, 1],
+                                            }}
+                                            onAnimationComplete={() =>
+                                              handleWorkAnimationComplete(item.id)
+                                            }
                                             className="overflow-hidden"
                                           >
                                             <div className="pb-6 pt-1 sm:pl-9 max-w-3xl">
-                                              <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/45 block mb-2.5">
+                                              <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55 block mb-2.5">
                                                 Responsabilidades & Alcance Técnico
                                               </span>
                                               <ul className="flex flex-col gap-2.5">
                                                 {item.tasks.map((task, idx) => (
                                                   <li
                                                     key={idx}
-                                                    className="flex items-start gap-3 font-roboto font-light text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed"
+                                                    className="flex items-start gap-3 font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed"
                                                   >
                                                     <span className="w-1.5 h-1.5 bg-[#099AD7] mt-2 shrink-0" />
                                                     <span>{task}</span>
@@ -558,18 +573,18 @@ export default function BioContactView() {
                             <div>
                               <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                                 <div className="flex items-center gap-3">
-                                  <h3 className="font-roboto text-xs md:text-sm uppercase tracking-widest text-[#099AD7] font-semibold">
+                                  <h3 className="font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#099AD7]">
                                     Concursos, montajes y distinciones
                                   </h3>
                                   <span className="w-6 h-[1px] bg-[#1C1C1A]/15" />
-                                  <span className="font-roboto text-[11px] uppercase tracking-widest text-[#1C1C1A]/50">
+                                  <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55">
                                     PREMIOS & PARTICIPACIONES
                                   </span>
                                 </div>
 
                                 <Link
                                   href="/proyectos"
-                                  className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#1C1C1A] hover:text-[#099AD7] transition-colors"
+                                  className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors"
                                 >
                                   <span>Ver archivo de obras</span>
                                   <ArrowUpRight
@@ -593,12 +608,12 @@ export default function BioContactView() {
                                       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center">
                                         {/* Columna de Metadatos y Acción */}
                                         <div className="md:col-span-7 flex flex-col justify-center">
-                                          <div className="font-roboto text-xs tracking-wider uppercase mb-1.5 flex items-center gap-2">
-                                            <span className="text-[#099AD7] font-medium tabular-nums">
+                                          <div className="font-roboto font-medium text-xs tracking-wider uppercase mb-1.5 flex items-center gap-2">
+                                            <span className="text-[#099AD7] tabular-nums">
                                               {item.year}
                                             </span>
                                             <span className="text-[#1C1C1A]/35">—</span>
-                                            <span className="text-[#1C1C1A]/60">
+                                            <span className="text-[#1C1C1A]/65">
                                               {item.category}
                                             </span>
                                           </div>
@@ -606,7 +621,7 @@ export default function BioContactView() {
                                           {projectHref ? (
                                             <Link
                                               href={projectHref}
-                                              className="group inline-flex items-baseline gap-2 text-base md:text-lg font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors w-fit"
+                                              className="group inline-flex items-baseline gap-2 text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors w-fit"
                                             >
                                               <span>{item.title}</span>
                                               <ArrowUpRight
@@ -619,7 +634,7 @@ export default function BioContactView() {
                                             <button
                                               type="button"
                                               onClick={() => openModalGallery(item, 0)}
-                                              className="group inline-flex items-baseline gap-2 text-left text-base md:text-lg font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors cursor-pointer w-fit"
+                                              className="group inline-flex items-baseline gap-2 text-left text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors cursor-pointer w-fit"
                                             >
                                               <span>{item.title}</span>
                                               <Images
@@ -629,19 +644,19 @@ export default function BioContactView() {
                                               />
                                             </button>
                                           ) : (
-                                            <h4 className="text-base md:text-lg font-roboto font-medium text-[#1C1C1A] tracking-tight mb-2">
+                                            <h4 className="text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] tracking-tight mb-2">
                                               {item.title}
                                             </h4>
                                           )}
 
-                                          <p className="text-sm font-roboto text-[#1C1C1A]/75 leading-relaxed mb-3.5">
+                                          <p className="text-sm md:text-base font-roboto font-normal text-[#1C1C1A]/85 leading-relaxed mb-3.5">
                                             {item.description}
                                           </p>
 
                                           {projectHref ? (
                                             <Link
                                               href={projectHref}
-                                              className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors w-fit group"
+                                              className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-wider text-[#099AD7] hover:text-[#1C1C1A] transition-colors w-fit group"
                                             >
                                               <span>Ver proyecto completo</span>
                                               <ArrowUpRight
@@ -654,7 +669,7 @@ export default function BioContactView() {
                                             <button
                                               type="button"
                                               onClick={() => openModalGallery(item, 0)}
-                                              className="inline-flex items-center gap-1.5 font-roboto text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors cursor-pointer w-fit"
+                                              className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-wider text-[#099AD7] hover:text-[#1C1C1A] transition-colors cursor-pointer w-fit"
                                             >
                                               <Images size={14} strokeWidth={1.75} />
                                               <span>
@@ -680,7 +695,7 @@ export default function BioContactView() {
                                                   className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                                                 />
                                               </div>
-                                              <div className="mt-2 flex items-center justify-between text-xs font-roboto text-[#1C1C1A]/75 group-hover:text-[#099AD7] transition-colors">
+                                              <div className="mt-2 flex items-center justify-between text-xs font-roboto font-normal text-[#1C1C1A]/85 group-hover:text-[#099AD7] transition-colors">
                                                 <span className="truncate">
                                                   {item.imageCaption}
                                                 </span>
@@ -727,7 +742,7 @@ export default function BioContactView() {
                                 key={card.title}
                                 className="border border-[#1C1C1A]/15 p-6 bg-[#FFFFFF] flex flex-col"
                               >
-                                <h3 className="text-base md:text-lg font-roboto font-bold tracking-tight text-[#099AD7] mb-4 pb-2.5 border-b border-[#1C1C1A]/10">
+                                <h3 className="text-base md:text-lg font-roboto font-medium tracking-wider text-[#099AD7] mb-4 pb-2.5 border-b border-[#1C1C1A]/10">
                                   {card.title}
                                 </h3>
 
@@ -735,7 +750,7 @@ export default function BioContactView() {
                                   {card.items.map((item) => (
                                     <li
                                       key={item}
-                                      className="flex items-center gap-3 font-roboto text-sm md:text-base text-[#1C1C1A]"
+                                      className="flex items-center gap-3 font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed"
                                     >
                                       <span className="w-1.5 h-1.5 bg-[#099AD7] shrink-0" />
                                       <span>{item}</span>
@@ -759,8 +774,8 @@ export default function BioContactView() {
       {/* =====================================================================
           PIE DE CONTACTO DIRECTO ABAJO A LA IZQUIERDA: Trabajemos juntos
       ===================================================================== */}
-      <footer className="w-full mt-16 pt-10 border-t border-[#1C1C1A]/15 flex flex-col items-start text-left shrink-0">
-        <h2 className="text-2xl md:text-3xl font-medium text-[#1C1C1A] tracking-tight mb-4">
+      <footer className="w-full mt-12 pt-8 border-t border-[#1C1C1A]/15 flex flex-col items-start text-left shrink-0">
+        <h2 className="font-roboto text-lg md:text-xl font-medium text-[#1C1C1A] tracking-tight">
           Trabajemos juntos
         </h2>
         <a
@@ -769,7 +784,7 @@ export default function BioContactView() {
           )}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-6 py-3.5 border border-[#099AD7] bg-[#099AD7] text-white font-roboto text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 border border-[#099AD7] bg-[#099AD7] text-white font-roboto font-medium text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
         >
           <span>Contactar por WhatsApp</span>
           <ArrowUpRight
@@ -847,17 +862,17 @@ export default function BioContactView() {
 
             {/* Vértice Inferior Izquierdo: Título de la participación + Caption técnico */}
             <div className="fixed bottom-6 md:bottom-8 left-6 md:left-16 z-30 pointer-events-auto flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 pr-24">
-              <span className="font-roboto text-sm md:text-base font-normal text-[#1C1C1A] select-none">
+              <span className="font-roboto text-sm md:text-base font-medium text-[#1C1C1A] select-none">
                 {modalParticipation.item.title}
               </span>
-              <span className="font-roboto text-xs text-[#1C1C1A]/50 select-none">
+              <span className="font-roboto text-xs font-normal text-[#1C1C1A]/65 select-none">
                 {modalParticipation.item.gallery[modalSlideIdx].caption}
               </span>
             </div>
 
             {/* Vértice Inferior Derecho: Contador dinámico 01 / 03 */}
             <div className="fixed bottom-6 md:bottom-8 right-6 md:right-16 z-30 pointer-events-auto">
-              <span className="font-roboto tabular-nums tracking-wider text-[13px] text-[#1C1C1A] select-none font-normal">
+              <span className="font-roboto font-medium tabular-nums tracking-wider text-[13px] text-[#1C1C1A] select-none">
                 {String(modalSlideIdx + 1).padStart(2, "0")} /{" "}
                 {String(modalParticipation.item.gallery.length).padStart(2, "0")}
               </span>
