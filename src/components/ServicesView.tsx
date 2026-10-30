@@ -81,7 +81,14 @@ export default function ServicesView() {
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-4xl mx-auto"
       >
-        <div className="flex flex-col border-t border-[#1C1C1A]/15">
+        <div
+          onMouseLeave={() => {
+            if (!expandedImage) {
+              setActiveServiceId(null);
+            }
+          }}
+          className="flex flex-col border-t border-[#1C1C1A]/15"
+        >
           {servicesData.map((service) => {
             const isOpen = activeServiceId === service.id;
             const imageSrc =
@@ -126,9 +133,26 @@ export default function ServicesView() {
                   {isOpen && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      animate={{
+                        height: "auto",
+                        opacity: 1,
+                        transition: {
+                          height: { duration: 0.48, ease: [0.16, 1, 0.3, 1] },
+                          opacity: {
+                            duration: 0.38,
+                            ease: [0.25, 1, 0.5, 1],
+                            delay: 0.05,
+                          },
+                        },
+                      }}
+                      exit={{
+                        height: 0,
+                        opacity: 0,
+                        transition: {
+                          height: { duration: 0.35, ease: [0.25, 1, 0.5, 1] },
+                          opacity: { duration: 0.25, ease: [0.25, 1, 0.5, 1] },
+                        },
+                      }}
                       onAnimationComplete={handleAnimationComplete}
                       className="overflow-hidden will-change-[height,opacity]"
                     >
