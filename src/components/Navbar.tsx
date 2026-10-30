@@ -6,10 +6,10 @@ import React, { useEffect, useRef, useSyncExternalStore } from "react";
 import { gsap } from "@/lib/gsap";
 
 const links = [
-  { name: "Inicio", path: "/" },
-  { name: "Proyectos", path: "/proyectos" },
-  { name: "Servicios", path: "/servicios" },
-  { name: "Bio & Contacto", path: "/bio" },
+  { name: "INICIO", path: "/" },
+  { name: "PROYECTOS", path: "/proyectos" },
+  { name: "SERVICIOS", path: "/servicios" },
+  { name: "BIO & CONTACTO", path: "/bio" },
 ];
 
 function subscribeReducedMotion(callback: () => void) {
@@ -322,7 +322,7 @@ export default function Navbar() {
                 ref={(el) => {
                   linkRefs.current[idx] = el;
                 }}
-                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto text-base px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto uppercase tracking-wider text-base px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isActive
                     ? "font-semibold font-[600] text-[#099AD7]"
                     : "font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
@@ -332,7 +332,7 @@ export default function Navbar() {
                 {/* Reserva de ancho en peso 600 para evitar desplazamiento de vecinos */}
                 <span
                   aria-hidden="true"
-                  className="invisible font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+                  className="invisible uppercase tracking-wider font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
                 >
                   {link.name}
                 </span>
