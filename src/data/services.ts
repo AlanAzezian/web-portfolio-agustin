@@ -8,6 +8,7 @@ export interface ServiceItem {
   orderNumber: string; // "01", "02", etc.
   title: string;
   description: string;
+  coverImage: string;
   subservices: Subservice[];
   technicalSpecs: string[];
 }
@@ -19,6 +20,7 @@ export const servicesData: ServiceItem[] = [
     title: "Visualización Arquitectónica & Renders",
     description:
       "Creación de imágenes fotorrealistas de alta calidad que comunican la esencia, materialidad y atmósfera de cada proyecto arquitectónico.",
+    coverImage: "/projects/centro-de-trasbordo/01-render-exterior.webp",
     subservices: [
       { id: "renders-exteriores", title: "Renders Exteriores e Inserción Urbana" },
       { id: "renders-interiores", title: "Renders Interiores y Atmósferas de Iluminación" },
@@ -38,6 +40,7 @@ export const servicesData: ServiceItem[] = [
     title: "Modelado 3D BIM",
     description:
       "Estudio detallado de volumetrías, análisis de asoleamiento y documentación técnica integral utilizando metodologías BIM.",
+    coverImage: "/projects/centro-de-trasbordo/05-render-nave-darsena.webp",
     subservices: [
       { id: "modelado-revit-archicad", title: "Modelado Paramétrico en Revit y Archicad" },
       { id: "documentacion-ejecutiva", title: "Extracción de Planimetría y Documentación" },
@@ -56,6 +59,7 @@ export const servicesData: ServiceItem[] = [
     title: "Desarrollo de Anteproyecto",
     description:
       "Diseño conceptual desde cero, exploración de alternativas de distribución espacial y planimetría inicial.",
+    coverImage: "/projects/centro-de-trasbordo/06-plano-planta-baja.webp",
     subservices: [
       { id: "croquis-distribucion", title: "Plantas de Distribución y Zonificación" },
       { id: "estudio-normativo", title: "Estudio de Códigos Urbanísticos y Morfología" },
@@ -74,6 +78,7 @@ export const servicesData: ServiceItem[] = [
     title: "Diseño de Interiores",
     description:
       "Definición minuciosa de materialidad, esquemas de iluminación y selección de mobiliario para espacios funcionales y estéticos.",
+    coverImage: "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
     subservices: [
       { id: "paleta-materiales", title: "Moodboards y Selección de Materiales" },
       { id: "diseno-mobiliario", title: "Detalle de Muebles a Medida y Carpinterías" },
@@ -92,6 +97,7 @@ export const servicesData: ServiceItem[] = [
     title: "Asistencia Freelance a Estudios",
     description:
       "Apoyo técnico externo a estudios de arquitectura en fases de diseño, documentación visual y representación 3D.",
+    coverImage: "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
     subservices: [
       { id: "soporte-entrega", title: "Refuerzo para Concursos y Entregas Urgentes" },
       { id: "postproduccion-planos", title: "Planimetría Comercial y Gráfica Editorial" },

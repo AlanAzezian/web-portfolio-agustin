@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Plus, Minus, ArrowUpRight } from "lucide-react";
 import { ScrollTrigger } from "@/lib/gsap";
 import { servicesData } from "@/data/services";
@@ -27,7 +28,7 @@ export default function ServicesView() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-4xl mx-auto"
       >
         <div className="flex flex-col border-t border-[#1C1C1A]/15">
@@ -54,9 +55,9 @@ export default function ServicesView() {
                   </div>
                   <div className="text-[#099AD7] transition-transform duration-300 flex items-center justify-center shrink-0">
                     {isOpen ? (
-                      <Minus size={18} strokeWidth={1.75} />
+                      <Minus size={18} strokeWidth={1.5} />
                     ) : (
-                      <Plus size={18} strokeWidth={1.75} />
+                      <Plus size={18} strokeWidth={1.5} />
                     )}
                   </div>
                 </button>
@@ -67,45 +68,45 @@ export default function ServicesView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                       onAnimationComplete={handleAnimationComplete}
                       className="overflow-hidden will-change-[height,opacity]"
                     >
-                      <div className="pb-7 md:pb-8 pl-0 sm:pl-10 md:pl-15">
-                        <p className="font-roboto font-normal text-[#1C1C1A]/85 leading-relaxed text-sm md:text-base max-w-3xl mb-5">
-                          {service.description}
-                        </p>
+                      <div className="pt-3 pb-8 pl-0 sm:pl-10 md:pl-15 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center">
+                        {/* Columna Izquierda (Texto + Botón) */}
+                        <div className="md:col-span-7 flex flex-col justify-between space-y-5">
+                          <p className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed max-w-xl">
+                            {service.description}
+                          </p>
 
-                        {service.subservices && service.subservices.length > 0 && (
-                          <div className="mb-6">
-                            <span className="font-roboto font-medium text-xs uppercase tracking-wider text-[#1C1C1A]/55 block mb-3">
-                              Especialidades & Alcance
-                            </span>
-                            <div className="flex flex-wrap gap-2">
-                              {service.subservices.map((sub) => (
-                                <span
-                                  key={sub.id}
-                                  className="font-roboto font-medium text-xs tracking-wider uppercase text-[#1C1C1A]/85 bg-[#FFFFFF] px-3 py-1.5 border border-[#1C1C1A]/15"
-                                >
-                                  {sub.title}
-                                </span>
-                              ))}
+                          <div>
+                            <Link
+                              href={`/servicios/${service.id}`}
+                              className="inline-flex items-center gap-2 font-roboto font-medium text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors group"
+                            >
+                              <span>MÁS INFORMACIÓN</span>
+                              <ArrowUpRight
+                                size={15}
+                                strokeWidth={1.5}
+                                className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+                              />
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Columna Derecha (Imagen Ilustrativa No Clicable) */}
+                        <div className="md:col-span-5">
+                          <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2 relative overflow-hidden pointer-events-none select-none">
+                            <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
+                              <Image
+                                src={service.coverImage || `/services/${service.id}.webp`}
+                                alt={service.title}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 400px"
+                                className="object-cover"
+                              />
                             </div>
                           </div>
-                        )}
-
-                        <div className="mt-5 pt-4 border-t border-[#1C1C1A]/10 flex items-center justify-start">
-                          <Link
-                            href={`/servicios/${service.id}`}
-                            className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors group"
-                          >
-                            <span>MÁS INFORMACIÓN</span>
-                            <ArrowUpRight
-                              size={15}
-                              strokeWidth={1.75}
-                              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                            />
-                          </Link>
                         </div>
                       </div>
                     </motion.div>
@@ -131,7 +132,7 @@ export default function ServicesView() {
           className="inline-flex items-center gap-2 bg-[#099AD7] hover:bg-[#0887bd] text-white px-5 py-2.5 text-xs font-roboto uppercase tracking-widest transition-colors duration-200"
         >
           <span>CONTACTAR POR WHATSAPP</span>
-          <ArrowUpRight size={14} />
+          <ArrowUpRight size={14} strokeWidth={1.5} />
         </a>
       </div>
     </div>
