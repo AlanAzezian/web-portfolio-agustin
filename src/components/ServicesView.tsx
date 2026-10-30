@@ -1,16 +1,20 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Minus, ArrowUpRight } from "lucide-react";
+import { Plus, Minus, ArrowUpRight, Maximize2, X } from "lucide-react";
 import { ScrollTrigger } from "@/lib/gsap";
 import { servicesData } from "@/data/services";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 
 export default function ServicesView() {
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
+  const [expandedImage, setExpandedImage] = useState<{
+    src: string;
+    title: string;
+  } | null>(null);
 
   const handleToggle = (id: string) => {
     setActiveServiceId((prev) => (prev === id ? null : id));
@@ -21,6 +25,33 @@ export default function ServicesView() {
     window.__lenis?.resize();
     ScrollTrigger.refresh();
   };
+
+  // Bloqueo de scroll con Lenis (stop/start) y cierre con tecla Escape
+  useEffect(() => {
+    if (!expandedImage) return;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.stop();
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setExpandedImage(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+      if (typeof window !== "undefined" && window.__lenis) {
+        window.__lenis.start();
+      }
+    };
+  }, [expandedImage]);
 
   return (
     <div className="relative w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF] text-[#1C1C1A] font-roboto px-6 md:px-8 pt-1 pb-32 md:pt-2">
@@ -34,6 +65,10 @@ export default function ServicesView() {
         <div className="flex flex-col border-t border-[#1C1C1A]/15">
           {servicesData.map((service) => {
             const isOpen = activeServiceId === service.id;
+            const imageSrc =
+              service.coverImage ||
+              "/projects/centro-de-trasbordo/01-render-exterior.webp";
+
             return (
               <div
                 key={service.id}
@@ -75,8 +110,8 @@ export default function ServicesView() {
                       {/* Panel Desplegado del Servicio */}
                       <div className="pt-2 pb-6 md:pb-8">
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center">
-                          {/* Columna Izquierda: Centrada verticalmente con la imagen */}
-                          <div className="md:col-span-7 flex flex-col justify-center gap-5">
+                          {/* Columna Izquierda: Centrada verticalmente con la imagen y línea divisoria sutil en desktop */}
+                          <div className="md:col-span-7 flex flex-col justify-center gap-5 md:border-r md:border-[#1C1C1A]/10 md:pr-8">
                             <p className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/80 leading-relaxed max-w-lg">
                               {service.description}
                             </p>
@@ -87,27 +122,40 @@ export default function ServicesView() {
                                 className="inline-flex items-center gap-2 font-roboto font-medium text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors"
                               >
                                 <span>MÁS INFORMACIÓN</span>
-                                <ArrowUpRight size={14} />
+                                <ArrowUpRight size={14} strokeWidth={1.5} />
                               </Link>
                             </div>
                           </div>
 
-                          {/* Columna Derecha: Imagen con marco editorial técnico */}
+                          {/* Columna Derecha: Imagen con marco editorial técnico y clic para expandir */}
                           <div className="md:col-span-5 flex justify-end">
-                            <div className="w-full max-w-[420px] aspect-[3/2] border border-[#1C1C1A]/15 bg-white p-1.5 shadow-xs relative overflow-hidden select-none pointer-events-none">
-                              <div className="relative w-full h-full overflow-hidden">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedImage({
+                                  src: imageSrc,
+                                  title: service.title,
+                                })
+                              }
+                              aria-label={`Expandir imagen de ${service.title}`}
+                              className="group w-full max-w-[420px] aspect-[3/2] border border-[#1C1C1A]/15 bg-white p-1.5 shadow-xs relative overflow-hidden select-none cursor-pointer text-left focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7]"
+                            >
+                              <div className="relative w-full h-full overflow-hidden bg-white">
                                 <Image
-                                  src={
-                                    service.coverImage ||
-                                    "/projects/centro-de-trasbordo/01-render-exterior.webp"
-                                  }
+                                  src={imageSrc}
                                   alt={service.title}
                                   fill
                                   sizes="(max-width: 768px) 100vw, 420px"
                                   className="object-cover"
                                 />
+
+                                {/* Indicador sutil en hover con ícono Maximize2 */}
+                                <div className="absolute top-2.5 right-2.5 z-10 inline-flex items-center gap-1.5 bg-[#FFFFFF]/95 border border-[#1C1C1A]/15 px-2.5 py-1 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] group-hover:text-[#099AD7] group-hover:border-[#099AD7]/40 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                                  <span>Expandir</span>
+                                  <Maximize2 size={12} strokeWidth={1.5} />
+                                </div>
                               </div>
-                            </div>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -137,6 +185,69 @@ export default function ServicesView() {
           <ArrowUpRight size={14} strokeWidth={1.5} />
         </a>
       </div>
+
+      {/* Lightbox Modal a Pantalla Completa para Inspección de Imagen */}
+      <AnimatePresence>
+        {expandedImage && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            onClick={() => setExpandedImage(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={expandedImage.title}
+            className="bg-[#FFFFFF]/98 fixed inset-0 z-50 flex flex-col justify-between p-6 md:p-12 select-none"
+          >
+            {/* Barra Superior: Vértice Superior Derecho con botón de cierre */}
+            <div className="w-full flex items-center justify-end shrink-0">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedImage(null);
+                }}
+                className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
+              >
+                <X size={16} strokeWidth={1.5} />
+                <span>Cerrar</span>
+              </button>
+            </div>
+
+            {/* Contenedor Central: Imagen en alta resolución centrada */}
+            <div className="relative flex-1 w-full flex items-center justify-center my-4 overflow-hidden">
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="relative flex items-center justify-center max-h-[80vh] max-w-full"
+              >
+                <Image
+                  src={expandedImage.src}
+                  alt={expandedImage.title}
+                  width={1600}
+                  height={1067}
+                  priority
+                  sizes="100vw"
+                  className="max-h-[80vh] w-auto max-w-full object-contain mx-auto"
+                />
+              </div>
+            </div>
+
+            {/* Barra Inferior: Vértice Inferior Izquierdo con título y rótulo técnico */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 shrink-0"
+            >
+              <span className="font-roboto text-sm md:text-base font-medium text-[#1C1C1A]">
+                {expandedImage.title}
+              </span>
+              <span className="font-roboto text-sm md:text-base font-normal text-[#1C1C1A]/65">
+                — Vista previa de referencia técnica
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
