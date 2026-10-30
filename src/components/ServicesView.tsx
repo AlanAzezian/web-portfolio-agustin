@@ -91,11 +91,13 @@ export default function ServicesView() {
             return (
               <div
                 key={service.id}
+                onMouseEnter={() => setActiveServiceId(service.id)}
                 className="border-b border-[#1C1C1A]/15 bg-[#FFFFFF]"
               >
                 <button
                   type="button"
                   onClick={() => handleToggle(service.id)}
+                  onMouseEnter={() => setActiveServiceId(service.id)}
                   aria-expanded={isOpen}
                   className="w-full py-4 md:py-5 px-2 -mx-2 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0 hover:bg-[#1C1C1A]/[0.02] transition-colors duration-300"
                 >
@@ -126,15 +128,15 @@ export default function ServicesView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
                       onAnimationComplete={handleAnimationComplete}
                       className="overflow-hidden will-change-[height,opacity]"
                     >
                       {/* Panel Desplegado del Servicio */}
                       <div className="pt-2 pb-6 md:pb-8">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center">
-                          {/* Columna Izquierda: Centrada verticalmente con la imagen y línea divisoria sutil en desktop */}
-                          <div className="md:col-span-7 flex flex-col justify-center md:border-r md:border-[#1C1C1A]/10 md:pr-8">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-start">
+                          {/* Columna Izquierda: Alineada al borde superior de la imagen y línea divisoria sutil en desktop */}
+                          <div className="md:col-span-7 flex flex-col justify-start md:border-r md:border-[#1C1C1A]/10 md:pr-8">
                             <p className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/80 leading-relaxed max-w-lg">
                               {service.description}
                             </p>

@@ -192,17 +192,17 @@ export default function ProjectGrid() {
                 <button
                   type="button"
                   onClick={() => handleSelectTag(tag)}
-                  className={`lg:-ml-[6.75px] lg:-translate-x-1/2 relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-all duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                  className={`lg:-ml-[6.75px] lg:-translate-x-1/2 relative inline-flex flex-col items-center justify-center text-[13px] uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                     isSelected
-                      ? "text-[15px] md:text-[16px] font-semibold font-[600] text-[#099AD7]"
-                      : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                      ? "font-semibold font-[600] text-[#099AD7]"
+                      : "font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
                   }`}
                 >
                   <span>{tag}</span>
-                  {/* Reserva de ancho en escala activa para mantener el eje de centrado fijo */}
+                  {/* Reserva de ancho en peso 600 para mantener el eje de centrado fijo */}
                   <span
                     aria-hidden="true"
-                    className="invisible text-[15px] md:text-[16px] font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+                    className="invisible text-[13px] font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
                   >
                     {tag}
                   </span>

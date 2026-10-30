@@ -168,7 +168,7 @@ export default function BioContactView() {
   };
 
   return (
-    <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
+    <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-start bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -232,7 +232,7 @@ export default function BioContactView() {
                             {/* Columna Izquierda: Retrato + Contacto */}
                             <div className="md:col-span-5 lg:col-span-4 w-full flex flex-col gap-3">
                               <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
-                                <div className="relative w-full aspect-[4/5] max-h-[380px] overflow-hidden bg-[#FFFFFF] flex items-center justify-center">
+                                <div className="relative w-full aspect-square overflow-hidden bg-[#FFFFFF] flex items-center justify-center">
                                   {!profileImgError ? (
                                     <Image
                                       src="/agustin-perfil.webp"
@@ -645,30 +645,6 @@ export default function BioContactView() {
           })}
         </div>
       </motion.div>
-
-      {/* =====================================================================
-          PIE DE CONTACTO DIRECTO ABAJO A LA IZQUIERDA: Trabajemos juntos
-      ===================================================================== */}
-      <footer className="w-full mt-12 pt-8 border-t border-[#1C1C1A]/15 flex flex-col items-start text-left shrink-0">
-        <h2 className="font-roboto text-lg md:text-xl font-medium text-[#1C1C1A] tracking-tight">
-          Trabajemos juntos
-        </h2>
-        <a
-          href={getWhatsAppLink(
-            "Hola Agustín, vi tu portfolio y me gustaría ponerme en contacto contigo para una propuesta de trabajo/proyecto."
-          )}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 border border-[#099AD7] bg-[#099AD7] text-white font-roboto font-medium text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
-        >
-          <span>Contactar por WhatsApp</span>
-          <ArrowUpRight
-            size={15}
-            strokeWidth={1.75}
-            className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-          />
-        </a>
-      </footer>
 
       {/* =====================================================================
           MODAL EXCLUSIVO PARA PARTICIPACIONES INDEPENDIENTES (LAYOUT PROJECTVIEWER)
