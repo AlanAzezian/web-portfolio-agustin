@@ -69,19 +69,6 @@ export const WORK_ACCORDION_ITEMS: WorkAccordionItem[] = [
   {
     id: "work-01",
     orderNumber: "01",
-    role: "Asistente de Arquitectura",
-    company: "ENGAPA (Uru.) | KUAARA (Arg.)",
-    period: "2023 - 2025",
-    tasks: [
-      "Desarrollo de documentación técnica BIM para proyectos de hormigón premoldeado.",
-      "Elaboración de planimetrías de taller para fabricación y montaje de piezas de GRC.",
-      "Coordinación técnica intersectorial entre ingeniería, fábrica y arquitectura.",
-      "Relevamiento dimensional y seguimiento técnico en obra.",
-    ],
-  },
-  {
-    id: "work-02",
-    orderNumber: "02",
     role: "Renderista y Delineante",
     company: "Práctica Freelance",
     period: "2021 - Presente",
@@ -93,8 +80,8 @@ export const WORK_ACCORDION_ITEMS: WorkAccordionItem[] = [
     ],
   },
   {
-    id: "work-03",
-    orderNumber: "03",
+    id: "work-02",
+    orderNumber: "02",
     role: "Diseñador Técnico y Presupuestos",
     company: "Fabrizio Amoblamientos",
     period: "2021 - Presente",
@@ -103,6 +90,19 @@ export const WORK_ACCORDION_ITEMS: WorkAccordionItem[] = [
       "Cómputo de materiales, optimización de cortes y elaboración de presupuestos.",
       "Seguimiento de fabricación en taller y coordinación de montaje.",
       "Relevamiento métrico integral en obra y trato directo con clientes.",
+    ],
+  },
+  {
+    id: "work-03",
+    orderNumber: "03",
+    role: "Asistente de Arquitectura",
+    company: "ENGAPA (Uru.) | KUAARA (Arg.)",
+    period: "2023 - 2025",
+    tasks: [
+      "Desarrollo de documentación técnica BIM para proyectos de hormigón premoldeado.",
+      "Elaboración de planimetrías de taller para fabricación y montaje de piezas de GRC.",
+      "Coordinación técnica intersectorial entre ingeniería, fábrica y arquitectura.",
+      "Relevamiento dimensional y seguimiento técnico en obra.",
     ],
   },
 ];

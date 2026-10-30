@@ -466,22 +466,16 @@ export default function BioContactView() {
                         )}
 
                         {/* =====================================================
-                            02 / EXPERIENCIA (Trayectoria Laboral + Concursos)
+                            02 / EXPERIENCIA (Experiencia Laboral + Participaciones)
                         ===================================================== */}
                         {section.id === "experiencia" && (
                           <div className="flex flex-col gap-10">
-                            {/* SUBDIVISIÓN 1: Trayectoria laboral */}
+                            {/* SUBDIVISIÓN 1: EXPERIENCIA LABORAL */}
                             <div>
                               <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-                                <div className="flex items-center gap-3">
-                                  <h3 className="font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#099AD7]">
-                                    Trayectoria laboral
-                                  </h3>
-                                  <span className="w-6 h-[1px] bg-[#1C1C1A]/15" />
-                                  <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55">
-                                    ESTUDIOS & PRÁCTICA PROFESIONAL
-                                  </span>
-                                </div>
+                                <h3 className="font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#099AD7]">
+                                  EXPERIENCIA LABORAL
+                                </h3>
                               </div>
 
                               <div className="flex flex-col border-t border-[#1C1C1A]/15">
@@ -564,18 +558,12 @@ export default function BioContactView() {
                               </div>
                             </div>
 
-                            {/* SUBDIVISIÓN 2: Concursos, montajes y distinciones */}
+                            {/* SUBDIVISIÓN 2: PARTICIPACIONES */}
                             <div>
                               <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-                                <div className="flex items-center gap-3">
-                                  <h3 className="font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#099AD7]">
-                                    Concursos, montajes y distinciones
-                                  </h3>
-                                  <span className="w-6 h-[1px] bg-[#1C1C1A]/15" />
-                                  <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55">
-                                    PREMIOS & PARTICIPACIONES
-                                  </span>
-                                </div>
+                                <h3 className="font-roboto font-medium text-xs md:text-sm uppercase tracking-wider text-[#099AD7]">
+                                  PARTICIPACIONES
+                                </h3>
 
                                 <Link
                                   href="/proyectos"
