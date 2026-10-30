@@ -322,17 +322,17 @@ export default function Navbar() {
                 ref={(el) => {
                   linkRefs.current[idx] = el;
                 }}
-                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto uppercase tracking-wider text-base px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto uppercase tracking-wider px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isActive
-                    ? "font-semibold font-[600] text-[#099AD7]"
-                    : "font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                    ? "text-sm font-semibold font-[600] text-[#099AD7]"
+                    : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
                 }`}
               >
                 <span>{link.name}</span>
-                {/* Reserva de ancho en peso 600 para evitar desplazamiento de vecinos */}
+                {/* Reserva de ancho en peso 600 y text-sm para evitar desplazamiento de vecinos */}
                 <span
                   aria-hidden="true"
-                  className="invisible uppercase tracking-wider font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+                  className="invisible text-sm uppercase tracking-wider font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
                 >
                   {link.name}
                 </span>

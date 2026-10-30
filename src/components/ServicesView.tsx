@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Minus, ArrowUpRight, Maximize2, X } from "lucide-react";
+import { Plus, Minus, ArrowUpRight, X } from "lucide-react";
 import { ScrollTrigger } from "@/lib/gsap";
 import { servicesData } from "@/data/services";
 import { getWhatsAppLink } from "@/lib/whatsapp";
@@ -78,21 +78,25 @@ export default function ServicesView() {
                   type="button"
                   onClick={() => handleToggle(service.id)}
                   aria-expanded={isOpen}
-                  className="w-full py-4 md:py-5 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0"
+                  className="w-full py-4 md:py-5 px-2 -mx-2 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0 hover:bg-[#1C1C1A]/[0.02] transition-colors duration-300"
                 >
                   <div className="flex items-baseline gap-4 md:gap-8">
                     <span className="font-roboto font-medium text-xs md:text-sm text-[#1C1C1A]/50 w-6 md:w-7 shrink-0 tabular-nums tracking-wider">
                       {service.orderNumber}
                     </span>
-                    <h2 className="font-roboto font-medium text-lg md:text-xl text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
+                    <h2 className="font-roboto font-medium text-lg md:text-xl text-[#1C1C1A] group-hover:text-[#099AD7] group-hover:translate-x-1.5 transition-all duration-300">
                       {service.title}
                     </h2>
                   </div>
-                  <div className="text-[#099AD7] transition-transform duration-300 flex items-center justify-center shrink-0">
+                  <div className="text-[#099AD7] flex items-center justify-center shrink-0">
                     {isOpen ? (
-                      <Minus size={18} strokeWidth={1.5} />
+                      <Minus size={18} strokeWidth={1.5} className="transition-transform duration-300" />
                     ) : (
-                      <Plus size={18} strokeWidth={1.5} />
+                      <Plus
+                        size={18}
+                        strokeWidth={1.5}
+                        className="group-hover:rotate-90 transition-transform duration-300"
+                      />
                     )}
                   </div>
                 </button>
@@ -111,23 +115,27 @@ export default function ServicesView() {
                       <div className="pt-2 pb-6 md:pb-8">
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center">
                           {/* Columna Izquierda: Centrada verticalmente con la imagen y línea divisoria sutil en desktop */}
-                          <div className="md:col-span-7 flex flex-col justify-center gap-5 md:border-r md:border-[#1C1C1A]/10 md:pr-8">
+                          <div className="md:col-span-7 flex flex-col justify-center md:border-r md:border-[#1C1C1A]/10 md:pr-8">
                             <p className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/80 leading-relaxed max-w-lg">
                               {service.description}
                             </p>
 
-                            <div>
+                            <div className="mt-6 md:mt-8">
                               <Link
                                 href={`/servicios/${service.id}`}
-                                className="inline-flex items-center gap-2 font-roboto font-medium text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors"
+                                className="inline-flex items-center gap-2 text-[13px] md:text-sm tracking-widest uppercase font-roboto font-medium text-[#099AD7] hover:text-[#1C1C1A] transition-colors group"
                               >
                                 <span>MÁS INFORMACIÓN</span>
-                                <ArrowUpRight size={14} strokeWidth={1.5} />
+                                <ArrowUpRight
+                                  size={15}
+                                  strokeWidth={1.75}
+                                  className="group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110 transition-transform duration-200"
+                                />
                               </Link>
                             </div>
                           </div>
 
-                          {/* Columna Derecha: Imagen con marco editorial técnico y clic para expandir */}
+                          {/* Columna Derecha: Imagen con marco editorial técnico y clic directo para expandir */}
                           <div className="md:col-span-5 flex justify-end">
                             <button
                               type="button"
@@ -138,7 +146,7 @@ export default function ServicesView() {
                                 })
                               }
                               aria-label={`Expandir imagen de ${service.title}`}
-                              className="group w-full max-w-[420px] aspect-[3/2] border border-[#1C1C1A]/15 bg-white p-1.5 shadow-xs relative overflow-hidden select-none cursor-pointer text-left focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7]"
+                              className="w-full max-w-[420px] aspect-[3/2] border border-[#1C1C1A]/15 bg-white p-1.5 shadow-xs relative overflow-hidden select-none cursor-pointer text-left focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7]"
                             >
                               <div className="relative w-full h-full overflow-hidden bg-white">
                                 <Image
@@ -148,12 +156,6 @@ export default function ServicesView() {
                                   sizes="(max-width: 768px) 100vw, 420px"
                                   className="object-cover"
                                 />
-
-                                {/* Indicador sutil en hover con ícono Maximize2 */}
-                                <div className="absolute top-2.5 right-2.5 z-10 inline-flex items-center gap-1.5 bg-[#FFFFFF]/95 border border-[#1C1C1A]/15 px-2.5 py-1 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] group-hover:text-[#099AD7] group-hover:border-[#099AD7]/40 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                                  <span>Expandir</span>
-                                  <Maximize2 size={12} strokeWidth={1.5} />
-                                </div>
                               </div>
                             </button>
                           </div>
