@@ -72,21 +72,26 @@ export default function ServicesView() {
                       onAnimationComplete={handleAnimationComplete}
                       className="overflow-hidden will-change-[height,opacity]"
                     >
-                      <div className="pt-3 pb-8 pl-0 sm:pl-10 md:pl-15 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center">
-                        {/* Columna Izquierda (Texto + Botón) */}
-                        <div className="md:col-span-7 flex flex-col justify-between space-y-5">
-                          <p className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed max-w-xl">
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        className="pt-4 pb-8 pl-0 sm:pl-10 md:pl-15 grid grid-cols-1 md:grid-cols-12 gap-8 items-center"
+                      >
+                        {/* Columna Izquierda (Texto + Enlace) */}
+                        <div className="md:col-span-7 flex flex-col justify-center space-y-4">
+                          <p className="font-roboto font-normal text-sm md:text-[15px] text-[#1C1C1A]/80 leading-relaxed max-w-lg">
                             {service.description}
                           </p>
 
                           <div>
                             <Link
                               href={`/servicios/${service.id}`}
-                              className="inline-flex items-center gap-2 font-roboto font-medium text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors group"
+                              className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors group"
                             >
                               <span>MÁS INFORMACIÓN</span>
                               <ArrowUpRight
-                                size={15}
+                                size={14}
                                 strokeWidth={1.5}
                                 className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
                               />
@@ -96,8 +101,8 @@ export default function ServicesView() {
 
                         {/* Columna Derecha (Imagen Ilustrativa No Clicable) */}
                         <div className="md:col-span-5">
-                          <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2 relative overflow-hidden pointer-events-none select-none">
-                            <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
+                          <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-1.5 aspect-[3/2] relative overflow-hidden select-none pointer-events-none">
+                            <div className="relative w-full h-full overflow-hidden bg-[#FFFFFF]">
                               <Image
                                 src={service.coverImage || `/services/${service.id}.webp`}
                                 alt={service.title}
@@ -108,7 +113,7 @@ export default function ServicesView() {
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     </motion.div>
                   )}
                 </AnimatePresence>
