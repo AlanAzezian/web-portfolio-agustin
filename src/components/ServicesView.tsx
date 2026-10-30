@@ -94,24 +94,16 @@ export default function ServicesView() {
                           </div>
                         )}
 
-                        <div className="mt-5 pt-5 border-t border-[#1C1C1A]/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                          <div>
-                            <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#099AD7] block mb-1">
-                              DETALLE TÉCNICO & METODOLOGÍA
-                            </span>
-                            <p className="font-roboto font-normal text-xs md:text-sm text-[#1C1C1A]/70 leading-relaxed">
-                              Consultá entregables, flujo de trabajo paso a paso y cotización directa.
-                            </p>
-                          </div>
+                        <div className="mt-5 pt-4 border-t border-[#1C1C1A]/10 flex items-center justify-start">
                           <Link
                             href={`/servicios/${service.id}`}
-                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 md:px-5 md:py-3 bg-[#099AD7] text-white font-roboto font-medium text-xs uppercase tracking-widest hover:bg-[#1C1C1A] hover:text-white transition-colors self-start sm:self-auto group"
+                            className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-widest text-[#099AD7] hover:text-[#1C1C1A] transition-colors group"
                           >
-                            <span>Solicitar cotización</span>
+                            <span>MÁS INFORMACIÓN</span>
                             <ArrowUpRight
                               size={15}
                               strokeWidth={1.75}
-                              className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                             />
                           </Link>
                         </div>
