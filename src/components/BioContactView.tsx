@@ -9,8 +9,6 @@ import {
   ArrowUpRight,
   Plus,
   Minus,
-  ChevronLeft,
-  ChevronRight,
   Images,
 } from "lucide-react";
 import { ScrollTrigger } from "@/lib/gsap";
@@ -33,100 +31,6 @@ const BIO_ACCORDION_SECTIONS: {
   { id: "experiencia", orderNumber: "02", title: "Experiencia" },
   { id: "habilidades", orderNumber: "03", title: "Habilidades" },
 ];
-
-function ExclusiveBioGallery({
-  images,
-  onOpenLightbox,
-}: {
-  images: { src: string; caption: string }[];
-  onOpenLightbox?: (index: number) => void;
-}) {
-  const [idx, setIdx] = useState(0);
-  const total = images.length;
-
-  const prev = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIdx((curr) => (curr - 1 + total) % total);
-  };
-  const next = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIdx((curr) => (curr + 1) % total);
-  };
-
-  const current = images[idx];
-
-  return (
-    <div className="w-full border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
-      <div
-        role={onOpenLightbox ? "button" : undefined}
-        tabIndex={onOpenLightbox ? 0 : undefined}
-        onClick={() => onOpenLightbox?.(idx)}
-        onKeyDown={(e) => {
-          if (onOpenLightbox && (e.key === "Enter" || e.key === " ")) {
-            e.preventDefault();
-            onOpenLightbox(idx);
-          }
-        }}
-        className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF] group cursor-zoom-in"
-      >
-        <Image
-          key={current.src}
-          src={current.src}
-          alt={current.caption}
-          fill
-          sizes="(max-width: 1024px) 100vw, 42vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-        />
-
-        {total > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={prev}
-              aria-label="Foto anterior"
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#FFFFFF]/90 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center border border-[#1C1C1A]/15 transition-colors cursor-pointer"
-            >
-              <ChevronLeft size={16} strokeWidth={1.75} />
-            </button>
-            <button
-              type="button"
-              onClick={next}
-              aria-label="Foto siguiente"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#FFFFFF]/90 text-[#1C1C1A] hover:text-[#099AD7] flex items-center justify-center border border-[#1C1C1A]/15 transition-colors cursor-pointer"
-            >
-              <ChevronRight size={16} strokeWidth={1.75} />
-            </button>
-
-            <span className="absolute top-2.5 right-2.5 px-2.5 py-0.5 bg-[#FFFFFF]/90 border border-[#1C1C1A]/15 text-[#1C1C1A] font-roboto font-medium text-[10px] tabular-nums tracking-wider">
-              {String(idx + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-            </span>
-          </>
-        )}
-      </div>
-
-      <div className="mt-2.5 flex items-center justify-between gap-3">
-        <p className="font-roboto font-normal text-xs text-[#1C1C1A]/85 leading-snug line-clamp-1">
-          {current.caption}
-        </p>
-        {total > 1 && (
-          <div className="flex items-center gap-1.5 shrink-0">
-            {images.map((_, dotIdx) => (
-              <button
-                key={dotIdx}
-                type="button"
-                onClick={() => setIdx(dotIdx)}
-                aria-label={`Ir a imagen ${dotIdx + 1}`}
-                className={`w-2 h-2 transition-colors cursor-pointer ${
-                  dotIdx === idx ? "bg-[#099AD7]" : "bg-[#1C1C1A]/20"
-                }`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function BioContactView() {
   // Acordeón con exclusión mutua: "sobre-mi" inicia abierto por defecto
@@ -604,27 +508,17 @@ export default function BioContactView() {
                                           {projectHref ? (
                                             <Link
                                               href={projectHref}
-                                              className="group inline-flex items-baseline gap-2 text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors w-fit"
+                                              className="inline-block text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors w-fit"
                                             >
-                                              <span>{item.title}</span>
-                                              <ArrowUpRight
-                                                size={15}
-                                                strokeWidth={1.75}
-                                                className="text-[#099AD7] shrink-0 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                                              />
+                                              {item.title}
                                             </Link>
                                           ) : hasExclusiveGallery ? (
                                             <button
                                               type="button"
                                               onClick={() => openModalGallery(item, 0)}
-                                              className="group inline-flex items-baseline gap-2 text-left text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors cursor-pointer w-fit"
+                                              className="text-left text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] hover:text-[#099AD7] tracking-tight mb-2 transition-colors cursor-pointer w-fit"
                                             >
-                                              <span>{item.title}</span>
-                                              <Images
-                                                size={15}
-                                                strokeWidth={1.75}
-                                                className="text-[#099AD7] shrink-0"
-                                              />
+                                              {item.title}
                                             </button>
                                           ) : (
                                             <h4 className="text-lg md:text-xl font-roboto font-medium text-[#1C1C1A] tracking-tight mb-2">
@@ -641,12 +535,8 @@ export default function BioContactView() {
                                               href={projectHref}
                                               className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-wider text-[#099AD7] hover:text-[#1C1C1A] transition-colors w-fit group"
                                             >
-                                              <span>Ver proyecto completo</span>
-                                              <ArrowUpRight
-                                                size={14}
-                                                strokeWidth={1.75}
-                                                className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                                              />
+                                              <Images size={14} strokeWidth={1.75} />
+                                              <span>VER GALERÍA</span>
                                             </Link>
                                           ) : hasExclusiveGallery ? (
                                             <button
@@ -655,19 +545,17 @@ export default function BioContactView() {
                                               className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs uppercase tracking-wider text-[#099AD7] hover:text-[#1C1C1A] transition-colors cursor-pointer w-fit"
                                             >
                                               <Images size={14} strokeWidth={1.75} />
-                                              <span>
-                                                Ver galería ({item.gallery!.length} fotos)
-                                              </span>
+                                              <span>VER GALERÍA</span>
                                             </button>
                                           ) : null}
                                         </div>
 
-                                        {/* Columna Derecha: Imagen / Galería */}
+                                        {/* Columna Derecha: Imagen Estática Representativa */}
                                         <div className="md:col-span-5 w-full">
                                           {projectHref ? (
                                             <Link
                                               href={projectHref}
-                                              className="block border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5 group hover:border-[#099AD7] transition-colors"
+                                              className="block w-full border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5 group hover:border-[#099AD7] transition-colors"
                                             >
                                               <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
                                                 <Image
@@ -675,25 +563,29 @@ export default function BioContactView() {
                                                   alt={item.imageCaption}
                                                   fill
                                                   sizes="(max-width: 768px) 100vw, 320px"
-                                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                                                 />
-                                              </div>
-                                              <div className="mt-2 flex items-center justify-between text-xs font-roboto font-normal text-[#1C1C1A]/85 group-hover:text-[#099AD7] transition-colors">
-                                                <span className="truncate">
-                                                  {item.imageCaption}
-                                                </span>
-                                                <ArrowUpRight size={14} className="shrink-0" />
                                               </div>
                                             </Link>
                                           ) : hasExclusiveGallery ? (
-                                            <ExclusiveBioGallery
-                                              images={item.gallery!}
-                                              onOpenLightbox={(idx) =>
-                                                openModalGallery(item, idx)
-                                              }
-                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => openModalGallery(item, 0)}
+                                              aria-label={`Ver galería de ${item.title}`}
+                                              className="block w-full border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5 group hover:border-[#099AD7] transition-colors cursor-zoom-in text-left"
+                                            >
+                                              <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
+                                                <Image
+                                                  src={item.image}
+                                                  alt={item.imageCaption}
+                                                  fill
+                                                  sizes="(max-width: 768px) 100vw, 320px"
+                                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                                />
+                                              </div>
+                                            </button>
                                           ) : (
-                                            <div className="border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
+                                            <div className="w-full border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2.5">
                                               <div className="relative w-full aspect-[3/2] overflow-hidden bg-[#FFFFFF]">
                                                 <Image
                                                   src={item.image}
