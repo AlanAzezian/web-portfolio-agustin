@@ -129,13 +129,8 @@ function ExclusiveBioGallery({
 }
 
 export default function BioContactView() {
-  // "Sobre Mí" inicia abierto por defecto; cada sección se controla independientemente
-  // para evitar que el cierre de un bloque superior provoque saltos de scroll al abrir otro inferior.
-  const [openSections, setOpenSections] = useState<Record<BioSectionId, boolean>>({
-    "sobre-mi": true,
-    experiencia: false,
-    habilidades: false,
-  });
+  // Acordeón con exclusión mutua: "sobre-mi" inicia abierto por defecto
+  const [activeSection, setActiveSection] = useState<string | null>("sobre-mi");
   const [profileImgError, setProfileImgError] = useState(false);
   const [openWorkId, setOpenWorkId] = useState<string | null>(null);
   const [modalParticipation, setModalParticipation] = useState<{
@@ -146,17 +141,12 @@ export default function BioContactView() {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const workItemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastClickedSectionRef = useRef<BioSectionId | null>(null);
-  const lastClickedWorkRef = useRef<string | null>(null);
 
   const handleToggleSection = (sectionId: BioSectionId) => {
-    const isOpening = !openSections[sectionId];
+    const isOpening = activeSection !== sectionId;
     lastClickedSectionRef.current = isOpening ? sectionId : null;
-    setOpenSections((prev) => ({
-      ...prev,
-      [sectionId]: isOpening,
-    }));
+    setActiveSection(isOpening ? sectionId : null);
   };
 
   const handleSectionAnimationComplete = (sectionId: BioSectionId) => {
@@ -167,35 +157,40 @@ export default function BioContactView() {
 
     if (
       lastClickedSectionRef.current === sectionId &&
-      openSections[sectionId]
+      activeSection === sectionId
     ) {
-      const targetElement = sectionRefs.current[sectionId];
-      if (window.__lenis && targetElement) {
-        window.__lenis.scrollTo(targetElement, { offset: -90, duration: 0.7 });
+      if (window.__lenis) {
+        if (sectionId === "experiencia") {
+          window.__lenis.scrollTo("#experiencia", {
+            offset: -90,
+            duration: 0.6,
+          });
+        } else if (sectionId === "habilidades") {
+          // Al cerrarse Sobre Mí y Experiencia, alineamos al tope del contenedor
+          // para que se vean los rótulos colapsados 01 y 02 junto con 03 / Habilidades completo
+          window.__lenis.scrollTo("#sobre-mi", {
+            offset: -80,
+            duration: 0.6,
+          });
+        } else if (sectionId === "sobre-mi") {
+          window.__lenis.scrollTo("#sobre-mi", {
+            offset: -80,
+            duration: 0.6,
+          });
+        }
+      } else {
+        const targetEl =
+          sectionId === "experiencia"
+            ? sectionRefs.current["experiencia"]
+            : sectionRefs.current["sobre-mi"];
+        targetEl?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
       lastClickedSectionRef.current = null;
     }
   };
 
   const toggleWorkItem = (id: string) => {
-    const isOpening = openWorkId !== id;
-    lastClickedWorkRef.current = isOpening ? id : null;
-    setOpenWorkId(isOpening ? id : null);
-  };
-
-  const handleWorkAnimationComplete = (id: string) => {
-    if (typeof window === "undefined") return;
-
-    window.__lenis?.resize();
-    ScrollTrigger.refresh();
-
-    if (lastClickedWorkRef.current === id && openWorkId === id) {
-      const targetElement = workItemRefs.current[id];
-      if (window.__lenis && targetElement) {
-        window.__lenis.scrollTo(targetElement, { offset: -90, duration: 0.7 });
-      }
-      lastClickedWorkRef.current = null;
-    }
+    setOpenWorkId((prev) => (prev === id ? null : id));
   };
 
   const openModalGallery = (item: ParticipationItem, index = 0) => {
@@ -278,7 +273,7 @@ export default function BioContactView() {
       >
         <div className="flex flex-col border-t border-[#1C1C1A]/15">
           {BIO_ACCORDION_SECTIONS.map((section) => {
-            const isOpen = openSections[section.id];
+            const isOpen = activeSection === section.id;
 
             return (
               <div
@@ -495,9 +490,6 @@ export default function BioContactView() {
                                   return (
                                     <div
                                       key={item.id}
-                                      ref={(el) => {
-                                        workItemRefs.current[item.id] = el;
-                                      }}
                                       className="border-b border-[#1C1C1A]/15 bg-[#FFFFFF]"
                                     >
                                       <button
@@ -539,9 +531,12 @@ export default function BioContactView() {
                                               duration: 0.35,
                                               ease: [0.16, 1, 0.3, 1],
                                             }}
-                                            onAnimationComplete={() =>
-                                              handleWorkAnimationComplete(item.id)
-                                            }
+                                            onAnimationComplete={() => {
+                                              if (typeof window !== "undefined") {
+                                                window.__lenis?.resize();
+                                                ScrollTrigger.refresh();
+                                              }
+                                            }}
                                             className="overflow-hidden"
                                           >
                                             <div className="pb-6 pt-1 sm:pl-9 max-w-3xl">

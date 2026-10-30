@@ -1,37 +1,17 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Plus, Minus, ArrowUpRight } from "lucide-react";
-import { ScrollTrigger } from "@/lib/gsap";
 import { servicesData } from "@/data/services";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 
 export default function ServicesView() {
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
-  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const lastClickedServiceRef = useRef<string | null>(null);
 
   const handleToggle = (id: string) => {
-    const isOpening = activeServiceId !== id;
-    lastClickedServiceRef.current = isOpening ? id : null;
-    setActiveServiceId(isOpening ? id : null);
-  };
-
-  const handleAccordionAnimationComplete = (id: string) => {
-    if (typeof window === "undefined") return;
-
-    window.__lenis?.resize();
-    ScrollTrigger.refresh();
-
-    if (lastClickedServiceRef.current === id && activeServiceId === id) {
-      const targetElement = itemRefs.current[id];
-      if (window.__lenis && targetElement) {
-        window.__lenis.scrollTo(targetElement, { offset: -90, duration: 0.7 });
-      }
-      lastClickedServiceRef.current = null;
-    }
+    setActiveServiceId((prev) => (prev === id ? null : id));
   };
 
   return (
@@ -48,10 +28,7 @@ export default function ServicesView() {
             return (
               <div
                 key={service.id}
-                ref={(el) => {
-                  itemRefs.current[service.id] = el;
-                }}
-                className="border-b border-[#1C1C1A]/15 bg-[#FFFFFF] scroll-mt-24"
+                className="border-b border-[#1C1C1A]/15 bg-[#FFFFFF]"
               >
                 <button
                   type="button"
@@ -83,9 +60,6 @@ export default function ServicesView() {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                      onAnimationComplete={() =>
-                        handleAccordionAnimationComplete(service.id)
-                      }
                       className="overflow-hidden"
                     >
                       <div className="pb-7 md:pb-8 pl-0 sm:pl-10 md:pl-15">
