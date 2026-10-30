@@ -41,7 +41,7 @@ export default function ServicesView() {
   };
 
   return (
-    <div className="w-full px-6 md:px-12 lg:px-16 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+    <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -63,21 +63,21 @@ export default function ServicesView() {
                   type="button"
                   onClick={() => handleToggle(service.id)}
                   aria-expanded={isOpen}
-                  className="w-full py-6 md:py-7 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0"
+                  className="w-full py-4 md:py-5 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0"
                 >
-                  <div className="flex items-baseline gap-4 md:gap-10">
-                    <span className="font-roboto font-light text-base md:text-lg text-foreground/40 w-7 md:w-8 shrink-0 tabular-nums">
+                  <div className="flex items-baseline gap-4 md:gap-8">
+                    <span className="font-roboto font-light text-sm md:text-base text-foreground/40 w-6 md:w-7 shrink-0 tabular-nums">
                       {service.orderNumber}
                     </span>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-sans font-light text-foreground group-hover:text-acento transition-colors">
+                    <h2 className="text-lg md:text-xl lg:text-[22px] font-sans font-light text-foreground group-hover:text-acento transition-colors">
                       {service.title}
                     </h2>
                   </div>
                   <div className="text-acento transition-transform duration-300 flex items-center justify-center shrink-0">
                     {isOpen ? (
-                      <Minus size={22} strokeWidth={1.5} />
+                      <Minus size={18} strokeWidth={1.5} />
                     ) : (
-                      <Plus size={22} strokeWidth={1.5} />
+                      <Plus size={18} strokeWidth={1.5} />
                     )}
                   </div>
                 </button>
@@ -91,8 +91,8 @@ export default function ServicesView() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
-                      <div className="pb-8 md:pb-10 pl-0 sm:pl-11 md:pl-18">
-                        <p className="text-foreground/80 font-sans leading-relaxed text-base md:text-lg max-w-3xl mb-6">
+                      <div className="pb-7 md:pb-8 pl-0 sm:pl-10 md:pl-15">
+                        <p className="text-foreground/80 font-sans leading-relaxed text-sm md:text-base max-w-3xl mb-5">
                           {service.description}
                         </p>
 

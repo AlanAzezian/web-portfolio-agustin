@@ -263,7 +263,7 @@ export default function BioContactView() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-6 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
+    <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -287,21 +287,21 @@ export default function BioContactView() {
                   type="button"
                   onClick={() => handleToggleSection(section.id)}
                   aria-expanded={isOpen}
-                  className="w-full py-6 md:py-7 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0"
+                  className="w-full py-4 md:py-5 flex items-center justify-between gap-4 focus:outline-none group text-left cursor-pointer shrink-0"
                 >
-                  <div className="flex items-baseline gap-4 md:gap-10">
-                    <span className="font-roboto font-light text-base md:text-lg text-[#1C1C1A]/40 w-7 md:w-8 shrink-0 tabular-nums">
+                  <div className="flex items-baseline gap-4 md:gap-8">
+                    <span className="font-roboto font-light text-sm md:text-base text-[#1C1C1A]/40 w-6 md:w-7 shrink-0 tabular-nums">
                       {section.orderNumber}
                     </span>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-sans font-light text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
+                    <h2 className="text-lg md:text-xl lg:text-[22px] font-sans font-light text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
                       {section.title}
                     </h2>
                   </div>
                   <div className="text-[#099AD7] transition-transform duration-300 flex items-center justify-center shrink-0">
                     {isOpen ? (
-                      <Minus size={22} strokeWidth={1.5} />
+                      <Minus size={18} strokeWidth={1.5} />
                     ) : (
-                      <Plus size={22} strokeWidth={1.5} />
+                      <Plus size={18} strokeWidth={1.5} />
                     )}
                   </div>
                 </button>
@@ -315,7 +315,7 @@ export default function BioContactView() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
-                      <div className="pb-10 pt-2 max-w-4xl mx-auto w-full">
+                      <div className="pb-8 pt-2 pl-0 sm:pl-10 md:pl-15 max-w-4xl mx-auto w-full">
                         {/* =====================================================
                             01 / SOBRE MÍ
                         ===================================================== */}
@@ -495,14 +495,14 @@ export default function BioContactView() {
                                         type="button"
                                         onClick={() => toggleWorkItem(item.id)}
                                         aria-expanded={isWorkOpen}
-                                        className="w-full py-4 md:py-5 flex items-center justify-between gap-4 text-left focus:outline-none group cursor-pointer"
+                                        className="w-full py-3.5 md:py-4 flex items-center justify-between gap-4 text-left focus:outline-none group cursor-pointer"
                                       >
                                         <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-5">
                                           <span className="font-roboto text-xs text-[#1C1C1A]/40 tabular-nums shrink-0">
                                             {item.orderNumber}
                                           </span>
                                           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                            <span className="text-base md:text-xl font-roboto font-light text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
+                                            <span className="text-base md:text-lg font-roboto font-light text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors">
                                               {item.role} — {item.company}
                                             </span>
                                             <span className="font-roboto text-xs uppercase tracking-widest text-[#099AD7] tabular-nums">
@@ -513,9 +513,9 @@ export default function BioContactView() {
 
                                         <div className="text-[#099AD7] flex items-center justify-center shrink-0">
                                           {isWorkOpen ? (
-                                            <Minus size={18} strokeWidth={1.5} />
+                                            <Minus size={16} strokeWidth={1.5} />
                                           ) : (
-                                            <Plus size={18} strokeWidth={1.5} />
+                                            <Plus size={16} strokeWidth={1.5} />
                                           )}
                                         </div>
                                       </button>
