@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { projects } from "@/data/projects";
-import { servicesData } from "@/data/services";
+import AdminProjects from "@/components/admin/AdminProjects";
+
+type AdminTab = "projects" | "services" | "bio";
 
 export default function AdminPage() {
   const [checkingSession, setCheckingSession] = useState(true);
@@ -12,6 +13,7 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [activeTab, setActiveTab] = useState<AdminTab>("projects");
 
   useEffect(() => {
     let active = true;
@@ -187,27 +189,27 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen w-full bg-[#FFFFFF] text-[#1C1C1A] font-roboto flex flex-col">
-      {/* Cabecera del panel administrativo */}
+      {/* Cabecera técnica */}
       <header className="w-full border-b border-neutral-200 bg-[#FFFFFF] px-6 md:px-16 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <Link
             href="/"
             aria-label="Agustín Fabrizio"
-            className="text-2xl font-medium tracking-tight text-[#1C1C1A] flex items-baseline focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#099AD7]"
+            className="text-xl font-medium tracking-tight text-[#1C1C1A] flex items-baseline focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#099AD7]"
           >
             <span>AF</span>
-            <span className="w-[8px] h-[2px] bg-[#099AD7] inline-block self-end mb-[3px] ml-[2px]" />
+            <span className="w-[7px] h-[2px] bg-[#099AD7] inline-block self-end mb-[3px] ml-[2px]" />
           </Link>
           <span className="h-4 w-[1px] bg-neutral-300" aria-hidden="true" />
-          <span className="uppercase tracking-wider text-xs text-[#686661] font-medium">
-            PANEL DE ADMINISTRACIÓN
+          <span className="text-sm font-medium tracking-wider uppercase text-[#1C1C1A]">
+            Agustín Fabrizio — PANEL DE CONTROL
           </span>
         </div>
 
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="text-xs text-[#686661] hover:text-[#1C1C1A] transition-colors duration-200 tracking-wide"
+            className="hidden sm:inline-block text-xs text-[#686661] hover:text-[#1C1C1A] transition-colors duration-200 tracking-wide"
           >
             ← Volver al sitio
           </Link>
@@ -222,78 +224,75 @@ export default function AdminPage() {
         </div>
       </header>
 
+      {/* Selector de Pestañas (Tabs de navegación tipo cota técnica) */}
+      <nav
+        aria-label="Secciones del panel de control"
+        className="w-full border-b border-neutral-200 bg-[#FFFFFF] px-6 md:px-16"
+      >
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 md:gap-10 py-4">
+          <button
+            type="button"
+            onClick={() => setActiveTab("projects")}
+            className={`text-xs uppercase tracking-wider no-underline transition-colors duration-200 focus:outline-none ${
+              activeTab === "projects"
+                ? "text-[#099AD7] font-semibold"
+                : "text-[#1C1C1A] font-medium hover:text-[#099AD7]"
+            }`}
+          >
+            [ 01 / PROYECTOS ]
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("services")}
+            className={`text-xs uppercase tracking-wider no-underline transition-colors duration-200 focus:outline-none ${
+              activeTab === "services"
+                ? "text-[#099AD7] font-semibold"
+                : "text-[#1C1C1A] font-medium hover:text-[#099AD7]"
+            }`}
+          >
+            [ 02 / SERVICIOS ]
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("bio")}
+            className={`text-xs uppercase tracking-wider no-underline transition-colors duration-200 focus:outline-none ${
+              activeTab === "bio"
+                ? "text-[#099AD7] font-semibold"
+                : "text-[#1C1C1A] font-medium hover:text-[#099AD7]"
+            }`}
+          >
+            [ 03 / BIO & CONTACTO ]
+          </button>
+        </div>
+      </nav>
+
       {/* Contenido principal del Dashboard */}
-      <section className="w-full max-w-5xl mx-auto px-6 md:px-16 py-12 flex-1">
-        <div className="mb-10">
-          <p className="text-xs uppercase tracking-wider text-[#686661] mb-2">
-            GESTIÓN DE CONTENIDO
-          </p>
-          <h1 className="text-2xl font-medium tracking-tight text-[#1C1C1A]">
-            Agustín Fabrizio — Portfolio
-          </h1>
-        </div>
+      <section className="w-full max-w-6xl mx-auto px-6 md:px-16 py-10 flex-1">
+        {activeTab === "projects" && <AdminProjects />}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="border border-neutral-200 p-6 bg-[#FFFFFF] flex flex-col justify-between">
-            <div>
-              <span className="text-[11px] uppercase tracking-wider text-[#686661]">
-                MÓDULO 01
-              </span>
-              <h2 className="text-base font-medium text-[#1C1C1A] mt-1">
-                Proyectos
-              </h2>
-              <p className="text-xs text-[#686661] mt-2 leading-relaxed">
-                Obras, láminas técnicas y visualizaciones publicadas en el catálogo.
-              </p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-neutral-100 flex items-baseline justify-between">
-              <span className="text-xs text-[#686661]">Registrados</span>
-              <span className="text-lg font-medium text-[#099AD7]">
-                {projects.length}
-              </span>
-            </div>
+        {activeTab === "services" && (
+          <div className="py-20 border border-neutral-200 bg-[#FFFFFF] flex flex-col items-center justify-center gap-2">
+            <span className="text-[11px] uppercase tracking-wider text-[#099AD7] font-semibold">
+              [ 02 / SERVICIOS ]
+            </span>
+            <p className="text-sm uppercase tracking-wider text-[#1C1C1A] font-medium">
+              Próximamente
+            </p>
           </div>
+        )}
 
-          <div className="border border-neutral-200 p-6 bg-[#FFFFFF] flex flex-col justify-between">
-            <div>
-              <span className="text-[11px] uppercase tracking-wider text-[#686661]">
-                MÓDULO 02
-              </span>
-              <h2 className="text-base font-medium text-[#1C1C1A] mt-1">
-                Servicios
-              </h2>
-              <p className="text-xs text-[#686661] mt-2 leading-relaxed">
-                Líneas de servicio, entregables y especificaciones técnicas.
-              </p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-neutral-100 flex items-baseline justify-between">
-              <span className="text-xs text-[#686661]">Activos</span>
-              <span className="text-lg font-medium text-[#099AD7]">
-                {servicesData.length}
-              </span>
-            </div>
+        {activeTab === "bio" && (
+          <div className="py-20 border border-neutral-200 bg-[#FFFFFF] flex flex-col items-center justify-center gap-2">
+            <span className="text-[11px] uppercase tracking-wider text-[#099AD7] font-semibold">
+              [ 03 / BIO & CONTACTO ]
+            </span>
+            <p className="text-sm uppercase tracking-wider text-[#1C1C1A] font-medium">
+              Próximamente
+            </p>
           </div>
-
-          <div className="border border-neutral-200 p-6 bg-[#FFFFFF] flex flex-col justify-between">
-            <div>
-              <span className="text-[11px] uppercase tracking-wider text-[#686661]">
-                MÓDULO 03
-              </span>
-              <h2 className="text-base font-medium text-[#1C1C1A] mt-1">
-                Bio & Contacto
-              </h2>
-              <p className="text-xs text-[#686661] mt-2 leading-relaxed">
-                Perfil profesional, experiencia académica y canales de contacto.
-              </p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-neutral-100 flex items-baseline justify-between">
-              <span className="text-xs text-[#686661]">Estado</span>
-              <span className="text-xs uppercase tracking-wider font-medium text-[#099AD7]">
-                Sincronizado
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
       </section>
     </main>
   );
