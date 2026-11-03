@@ -16,11 +16,13 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
 
   return (
-    <div className="max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-2 pb-16 md:pt-4 md:pb-20 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
+    <div className="relative w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-2 pb-16 md:pt-4 md:pb-36">
+      {/* Contenedor Central Controlado: Cabecera y Ficha Técnica */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+        className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8"
       >
         {/* Navegación de regreso */}
         <div className="mb-8 md:mb-10">
@@ -45,7 +47,7 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
         </header>
 
         {/* Dos Bloques Claros: 01 / Alcance del Servicio y 02 / Especificaciones y Herramientas */}
-        <section className="py-10 md:py-12 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12">
+        <section className="py-10 md:py-12 border-b border-[#1C1C1A]/15 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-start">
           {/* Bloque 01 */}
           <div className="lg:col-span-5">
             <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
@@ -73,11 +75,11 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
             <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
               02 / ESPECIFICACIONES Y HERRAMIENTAS
             </h2>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
               {service.technicalSpecs.map((spec, idx) => (
                 <li
                   key={idx}
-                  className="p-4 bg-[#1C1C1A]/[0.02] border border-[#1C1C1A]/10 flex items-start gap-3"
+                  className="p-4 bg-[#1C1C1A]/[0.02] border border-[#1C1C1A]/10 flex items-start gap-3 h-full"
                 >
                   <Check
                     size={16}
@@ -94,21 +96,21 @@ export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
         </section>
       </motion.div>
 
-      {/* Bloque Minimalista al Pie: Trabajemos juntos */}
-      <footer className="pt-8 border-t border-[#1C1C1A]/15 flex flex-col items-start text-left shrink-0">
-        <h2 className="font-roboto text-lg md:text-xl font-medium text-[#1C1C1A] tracking-tight">
+      {/* Bloque de Contacto Independiente y Estático abajo a la izquierda */}
+      <footer className="max-w-4xl lg:max-w-5xl mx-auto px-6 mt-10 md:max-w-none md:mx-0 md:px-0 md:mt-0 md:fixed md:bottom-12 md:left-8 lg:left-16 z-30 flex flex-col items-start text-left pointer-events-auto">
+        <h2 className="font-roboto font-medium text-[#1C1C1A] text-lg md:text-xl tracking-tight mb-3">
           Trabajemos juntos
         </h2>
         <a
           href={getWhatsAppLink(whatsappMessage)}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 md:px-5 md:py-3 border border-[#099AD7] bg-[#099AD7] text-white font-roboto font-medium text-xs uppercase tracking-widest hover:bg-transparent hover:text-[#099AD7] transition-colors group"
+          className="inline-flex items-center gap-2 bg-[#099AD7] hover:bg-[#0887bd] text-white px-5 py-2.5 text-xs font-roboto font-medium uppercase tracking-widest transition-colors duration-200 group"
         >
-          <span>Contactar por WhatsApp</span>
+          <span>CONTACTAR POR WHATSAPP</span>
           <ArrowUpRight
-            size={15}
-            strokeWidth={1.75}
+            size={14}
+            strokeWidth={1.5}
             className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
           />
         </a>
