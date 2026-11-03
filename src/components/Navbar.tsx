@@ -247,6 +247,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isHidden = isProjectDetail || isAdminRoute;
 
   const navListRef = useRef<HTMLDivElement>(null);
   const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -299,9 +301,9 @@ export default function Navbar() {
 
   return (
     <nav
-      aria-hidden={isProjectDetail}
+      aria-hidden={isHidden}
       className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-colors duration-300 ${
-        isProjectDetail ? "hidden" : ""
+        isHidden ? "hidden" : ""
       }`}
     >
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
