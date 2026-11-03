@@ -6,16 +6,102 @@ import Link from "next/link";
 import Image from "next/image";
 import { Plus, Minus, ArrowUpRight, X } from "lucide-react";
 import { ScrollTrigger } from "@/lib/gsap";
-import { servicesData } from "@/data/services";
+import {
+  servicesData as fallbackServices,
+  type ServiceItem,
+  type Subservice,
+} from "@/data/services";
+import { supabase } from "@/lib/supabase";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 
+function normalizeSubservices(raw: unknown): Subservice[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item, idx) => {
+    if (typeof item === "string") {
+      return { id: `sub-${idx + 1}`, title: item };
+    }
+    if (item && typeof item === "object") {
+      const obj = item as Record<string, unknown>;
+      return {
+        id: typeof obj.id === "string" && obj.id ? obj.id : `sub-${idx + 1}`,
+        title: typeof obj.title === "string" ? obj.title : "",
+      };
+    }
+    return { id: `sub-${idx + 1}`, title: "" };
+  });
+}
+
 export default function ServicesView() {
+  const [servicesList, setServicesList] =
+    useState<ServiceItem[]>(fallbackServices);
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
   const [expandedImage, setExpandedImage] = useState<{
     src: string;
     title: string;
   } | null>(null);
   const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadServices() {
+      try {
+        const { data, error } = await supabase
+          .from("services")
+          .select("*")
+          .order("order_number", { ascending: true });
+
+        if (!active || error || !data || data.length === 0) return;
+
+        const mapped: ServiceItem[] = data.map(
+          (row: Record<string, unknown>, idx: number) => {
+            const id = String(row.id || `service-${idx + 1}`);
+            const localMatch = fallbackServices.find((s) => s.id === id);
+
+            const dbSubservices = normalizeSubservices(row.subservices);
+            const dbSpecs = Array.isArray(row.methodology_steps)
+              ? (row.methodology_steps as string[]).filter(Boolean)
+              : [];
+
+            return {
+              id,
+              orderNumber: String(
+                row.order_number ||
+                  localMatch?.orderNumber ||
+                  String(idx + 1).padStart(2, "0")
+              ),
+              title: String(row.title || localMatch?.title || id),
+              description: String(
+                row.description || localMatch?.description || ""
+              ),
+              coverImage: String(
+                row.cover_image ||
+                  localMatch?.coverImage ||
+                  "/projects/centro-de-trasbordo/01-render-exterior.webp"
+              ),
+              subservices:
+                dbSubservices.length > 0
+                  ? dbSubservices
+                  : localMatch?.subservices || [],
+              technicalSpecs:
+                dbSpecs.length > 0
+                  ? dbSpecs
+                  : localMatch?.technicalSpecs || [],
+            };
+          }
+        );
+
+        setServicesList(mapped);
+      } catch {
+        // Fallback silencioso a servicesData local
+      }
+    }
+
+    loadServices();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const openModal = (src: string, title: string) => {
     setScale(1);
@@ -89,7 +175,7 @@ export default function ServicesView() {
           }}
           className="flex flex-col border-t border-[#1C1C1A]/15"
         >
-          {servicesData.map((service) => {
+          {servicesList.map((service) => {
             const isOpen = activeServiceId === service.id;
             const imageSrc =
               service.coverImage ||
@@ -118,7 +204,11 @@ export default function ServicesView() {
                   </div>
                   <div className="text-[#099AD7] flex items-center justify-center shrink-0">
                     {isOpen ? (
-                      <Minus size={18} strokeWidth={1.5} className="transition-transform duration-300" />
+                      <Minus
+                        size={18}
+                        strokeWidth={1.5}
+                        className="transition-transform duration-300"
+                      />
                     ) : (
                       <Plus
                         size={18}
@@ -136,12 +226,10 @@ export default function ServicesView() {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{
-                        // Apertura pausada y suave de 1 segundo con curva desacelerada
                         height: {
                           duration: 1.0,
                           ease: [0.16, 1, 0.3, 1],
                         },
-                        // Aparición gradual del texto e imagen sin prisa
                         opacity: {
                           duration: 0.75,
                           ease: [0.25, 1, 0.5, 1],
@@ -154,7 +242,6 @@ export default function ServicesView() {
                       {/* Panel Desplegado del Servicio */}
                       <div className="pt-2 pb-6 md:pb-8">
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-start">
-                          {/* Columna Izquierda: Alineada al borde superior de la imagen y línea divisoria sutil en desktop */}
                           <div className="md:col-span-7 flex flex-col justify-start md:border-r md:border-[#1C1C1A]/10 md:pr-8">
                             <p className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/80 leading-relaxed max-w-lg">
                               {service.description}
@@ -175,11 +262,12 @@ export default function ServicesView() {
                             </div>
                           </div>
 
-                          {/* Columna Derecha: Imagen con marco editorial técnico y clic directo para expandir */}
                           <div className="md:col-span-5 flex justify-end">
                             <button
                               type="button"
-                              onClick={() => openModal(imageSrc, service.title)}
+                              onClick={() =>
+                                openModal(imageSrc, service.title)
+                              }
                               aria-label={`Expandir imagen de ${service.title}`}
                               className="w-full max-w-[420px] aspect-[3/2] border border-[#1C1C1A]/15 hover:border-[#099AD7] hover:shadow-sm bg-white p-1.5 shadow-xs transition-all duration-300 relative overflow-hidden select-none cursor-pointer text-left focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7]"
                             >
@@ -238,7 +326,6 @@ export default function ServicesView() {
             aria-label={expandedImage.title}
             className="fixed inset-0 z-50 bg-[#FFFFFF]/98 flex items-center justify-center p-4 md:p-8 select-none overflow-hidden"
           >
-            {/* Botón de cierre minimalista ✕ en esquina superior derecha */}
             <button
               type="button"
               onClick={(e) => {
@@ -251,7 +338,6 @@ export default function ServicesView() {
               <X size={20} strokeWidth={1.5} />
             </button>
 
-            {/* Contenedor Central: Imagen pura con zoom interactivo por rueda */}
             <div
               onClick={(e) => e.stopPropagation()}
               style={{

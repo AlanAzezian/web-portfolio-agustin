@@ -5,16 +5,68 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface ProjectViewerProps {
+  projectId?: string;
   title: string;
   images: string[];
 }
 
-export default function ProjectViewer({ title, images }: ProjectViewerProps) {
+export default function ProjectViewer({
+  projectId,
+  title: initialTitle,
+  images: initialImages,
+}: ProjectViewerProps) {
+  const [title, setTitle] = useState(initialTitle);
+  const [images, setImages] = useState<string[]>(initialImages);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!projectId) return;
+    let active = true;
+
+    async function loadProjectFromSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .eq("id", projectId)
+          .maybeSingle();
+
+        if (!active || error || !data) return;
+
+        const row = data as Record<string, unknown>;
+        const dbTitle = String(row.title || initialTitle);
+        const cover = String(row.cover_image || row.coverImage || "");
+        const rawImages = Array.isArray(row.images)
+          ? (row.images as string[]).filter(Boolean)
+          : [];
+
+        const finalImages =
+          rawImages.length > 0
+            ? rawImages
+            : cover
+              ? [cover]
+              : initialImages;
+
+        if (finalImages.length > 0) {
+          setTitle(dbTitle);
+          setImages(finalImages);
+          setCurrentIndex(0);
+        }
+      } catch {
+        // Fallback a props iniciales
+      }
+    }
+
+    loadProjectFromSupabase();
+    return () => {
+      active = false;
+    };
+  }, [projectId, initialTitle, initialImages]);
 
   const total = images.length;
 
@@ -73,7 +125,7 @@ export default function ProjectViewer({ title, images }: ProjectViewerProps) {
 
   const formattedCurrent = String(currentIndex + 1).padStart(2, "0");
   const formattedTotal = String(total).padStart(2, "0");
-  const currentSrc = images[currentIndex];
+  const currentSrc = images[currentIndex] || "/projects/centro-de-trasbordo/01-render-exterior.webp";
 
   return (
     <main

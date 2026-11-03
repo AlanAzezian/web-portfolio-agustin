@@ -4,22 +4,69 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { projects } from "@/data/projects";
+import { projects as fallbackProjects, type Project } from "@/data/projects";
+import { supabase } from "@/lib/supabase";
 
 export default function HomeSlider() {
+  const [projectsList, setProjectsList] = useState<Project[]>(fallbackProjects);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (isPaused) return;
+    let active = true;
+
+    async function loadProjects() {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .order("order_index", { ascending: true });
+
+        if (!active || error || !data || data.length === 0) return;
+
+        const mapped: Project[] = data.map((row: Record<string, unknown>) => {
+          const id = String(row.id || "");
+          const coverImage = String(
+            row.cover_image ||
+              row.coverImage ||
+              "/projects/centro-de-trasbordo/01-render-exterior.webp"
+          );
+          const rawImages = Array.isArray(row.images)
+            ? (row.images as string[])
+            : [];
+          return {
+            id,
+            title: String(row.title || id),
+            coverImage,
+            images: rawImages.length > 0 ? rawImages : [coverImage],
+          };
+        });
+
+        setProjectsList(mapped);
+        setActiveIndex(0);
+      } catch {
+        // Fallback silencioso a datos locales
+      }
+    }
+
+    loadProjects();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isPaused || projectsList.length === 0) return;
 
     const interval = setInterval(() => {
-      setActiveIndex((current) => (current + 1) % projects.length);
+      setActiveIndex((current) => (current + 1) % projectsList.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, projectsList.length]);
+
+  const currentProject = projectsList[activeIndex] ?? projectsList[0] ?? fallbackProjects[0];
 
   return (
     <div className="w-full flex flex-col bg-[#FFFFFF]">
@@ -29,13 +76,13 @@ export default function HomeSlider() {
         <div
           role="button"
           className="relative w-[90vw] max-w-[1120px] max-h-[calc(100vh-12rem)] aspect-[3/2] overflow-hidden cursor-pointer group flex-none shadow-none"
-          onClick={() => router.push(`/proyectos/${projects[activeIndex].id}`)}
+          onClick={() => router.push(`/proyectos/${currentProject.id}`)}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeIndex}
+              key={currentProject.id + "-" + activeIndex}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -43,8 +90,8 @@ export default function HomeSlider() {
               className="absolute inset-0"
             >
               <Image
-                src={projects[activeIndex].coverImage}
-                alt={projects[activeIndex].title}
+                src={currentProject.coverImage}
+                alt={currentProject.title}
                 fill
                 sizes="(max-width: 768px) 90vw, 1120px"
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"

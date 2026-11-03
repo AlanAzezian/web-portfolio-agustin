@@ -1,16 +1,81 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Check } from "lucide-react";
-import type { ServiceItem } from "@/data/services";
+import type { ServiceItem, Subservice } from "@/data/services";
+import { supabase } from "@/lib/supabase";
 import { getWhatsAppLink, SERVICE_WHATSAPP_MESSAGES } from "@/lib/whatsapp";
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
 }
 
-export default function ServiceDetailView({ service }: ServiceDetailViewProps) {
+function normalizeSubservices(raw: unknown): Subservice[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item, idx) => {
+    if (typeof item === "string") {
+      return { id: `sub-${idx + 1}`, title: item };
+    }
+    if (item && typeof item === "object") {
+      const obj = item as Record<string, unknown>;
+      return {
+        id: typeof obj.id === "string" && obj.id ? obj.id : `sub-${idx + 1}`,
+        title: typeof obj.title === "string" ? obj.title : "",
+      };
+    }
+    return { id: `sub-${idx + 1}`, title: "" };
+  });
+}
+
+export default function ServiceDetailView({
+  service: initialService,
+}: ServiceDetailViewProps) {
+  const [service, setService] = useState<ServiceItem>(initialService);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadServiceFromSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from("services")
+          .select("*")
+          .eq("id", initialService.id)
+          .maybeSingle();
+
+        if (!active || error || !data) return;
+
+        const row = data as Record<string, unknown>;
+        const dbSubservices = normalizeSubservices(row.subservices);
+        const dbSpecs = Array.isArray(row.methodology_steps)
+          ? (row.methodology_steps as string[]).filter(Boolean)
+          : [];
+
+        setService({
+          ...initialService,
+          orderNumber: String(row.order_number || initialService.orderNumber),
+          title: String(row.title || initialService.title),
+          description: String(row.description || initialService.description),
+          subservices:
+            dbSubservices.length > 0
+              ? dbSubservices
+              : initialService.subservices,
+          technicalSpecs:
+            dbSpecs.length > 0 ? dbSpecs : initialService.technicalSpecs,
+        });
+      } catch {
+        // Fallback silencioso a initialService
+      }
+    }
+
+    loadServiceFromSupabase();
+    return () => {
+      active = false;
+    };
+  }, [initialService]);
+
   const whatsappMessage =
     SERVICE_WHATSAPP_MESSAGES[service.id] ??
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;

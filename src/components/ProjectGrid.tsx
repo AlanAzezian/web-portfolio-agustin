@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { projects } from "@/data/projects";
+import { projects as fallbackProjects, type Project } from "@/data/projects";
+import { supabase } from "@/lib/supabase";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 const FILTER_TAGS = ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"] as const;
@@ -28,12 +29,62 @@ export default function ProjectGrid() {
   const router = useRouter();
   const pathname = usePathname();
 
+  const [projectsList, setProjectsList] = useState<Project[]>(fallbackProjects);
+
   const catParam = searchParams.get("cat")?.toUpperCase() ?? null;
   const selectedTag: FilterTag | null =
     catParam && QUERY_TO_TAG[catParam] ? QUERY_TO_TAG[catParam] : null;
 
   const gridRef = useRef<HTMLDivElement>(null);
   const revealedImagesRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadProjects() {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .order("order_index", { ascending: true });
+
+        if (!active || error || !data || data.length === 0) return;
+
+        const mapped: Project[] = data.map((row: Record<string, unknown>) => {
+          const id = String(row.id || "");
+          const coverImage = String(
+            row.cover_image ||
+              row.coverImage ||
+              "/projects/centro-de-trasbordo/01-render-exterior.webp"
+          );
+          const rawImages = Array.isArray(row.images)
+            ? (row.images as string[])
+            : [];
+          const images = rawImages.length > 0 ? rawImages : [coverImage];
+          const tags = Array.isArray(row.tags)
+            ? (row.tags as string[])
+            : ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"];
+
+          return {
+            id,
+            title: String(row.title || id),
+            coverImage,
+            images,
+            tags,
+          };
+        });
+
+        setProjectsList(mapped);
+      } catch {
+        // Fallback silencioso a datos locales
+      }
+    }
+
+    loadProjects();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSelectTag = (tag: FilterTag) => {
     const nextTag = selectedTag === tag ? null : tag;
@@ -50,9 +101,11 @@ export default function ProjectGrid() {
 
   // Proyectos filtrados según la etiqueta seleccionada
   const filteredProjects = useMemo(() => {
-    if (!selectedTag) return projects;
-    return projects.filter((p) => p.tags?.includes(selectedTag));
-  }, [selectedTag]);
+    if (!selectedTag) return projectsList;
+    return projectsList.filter(
+      (p) => !p.tags || p.tags.length === 0 || p.tags.includes(selectedTag)
+    );
+  }, [selectedTag, projectsList]);
 
   // Reveal de tarjetas con ScrollTrigger.batch y clip-path en primera aparición
   useEffect(() => {

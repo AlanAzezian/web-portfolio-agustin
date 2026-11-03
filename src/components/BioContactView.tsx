@@ -12,13 +12,16 @@ import {
   Images,
 } from "lucide-react";
 import { ScrollTrigger } from "@/lib/gsap";
-import { getWhatsAppLink } from "@/lib/whatsapp";
+import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import { supabase } from "@/lib/supabase";
 import {
   type BioSectionId,
   EDUCATION_ITEMS,
   WORK_ACCORDION_ITEMS,
   PARTICIPATION_ITEMS,
+  type WorkAccordionItem,
   type ParticipationItem,
+  type SkillCard,
   SKILL_CARDS,
 } from "@/data/bio";
 
@@ -43,6 +46,85 @@ export default function BioContactView() {
   } | null>(null);
   const [modalSlideIdx, setModalSlideIdx] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  // Estado sincronizado con Supabase public.bio (id = 'main')
+  const [manifesto, setManifesto] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string>("/agustin-perfil.webp");
+  const [whatsappNumber, setWhatsappNumber] = useState<string>(WHATSAPP_NUMBER);
+  const [emailAddress, setEmailAddress] = useState<string>(
+    "hola@agustinfabrizio.com"
+  );
+  const [behanceUrl, setBehanceUrl] = useState<string>(
+    "https://www.behance.net/agustinfabrizio"
+  );
+  const [linkedinUrl, setLinkedinUrl] = useState<string>(
+    "https://www.linkedin.com/"
+  );
+  const [workItems, setWorkItems] =
+    useState<WorkAccordionItem[]>(WORK_ACCORDION_ITEMS);
+  const [participationItems, setParticipationItems] =
+    useState<ParticipationItem[]>(PARTICIPATION_ITEMS);
+  const [skillCards, setSkillCards] = useState<SkillCard[]>(SKILL_CARDS);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadBioFromSupabase() {
+      try {
+        const { data, error } = await supabase
+          .from("bio")
+          .select("*")
+          .eq("id", "main")
+          .maybeSingle();
+
+        if (!active || error || !data) return;
+
+        const row = data as Record<string, unknown>;
+
+        if (typeof row.manifesto === "string" && row.manifesto.trim()) {
+          setManifesto(row.manifesto.trim());
+        }
+        if (typeof row.avatar_url === "string" && row.avatar_url.trim()) {
+          setAvatarUrl(row.avatar_url.trim());
+          setProfileImgError(false);
+        }
+        if (typeof row.whatsapp === "string" && row.whatsapp.trim()) {
+          setWhatsappNumber(row.whatsapp.trim().replace(/[^0-9]/g, ""));
+        }
+        if (typeof row.email === "string" && row.email.trim()) {
+          setEmailAddress(row.email.trim());
+        }
+        if (typeof row.behance === "string" && row.behance.trim()) {
+          setBehanceUrl(row.behance.trim());
+        }
+        if (typeof row.linkedin === "string" && row.linkedin.trim()) {
+          setLinkedinUrl(row.linkedin.trim());
+        }
+        if (
+          Array.isArray(row.work_experience) &&
+          row.work_experience.length > 0
+        ) {
+          setWorkItems(row.work_experience as WorkAccordionItem[]);
+        }
+        if (
+          Array.isArray(row.participations) &&
+          row.participations.length > 0
+        ) {
+          setParticipationItems(row.participations as ParticipationItem[]);
+        }
+        if (Array.isArray(row.skills) && row.skills.length > 0) {
+          setSkillCards(row.skills as SkillCard[]);
+        }
+      } catch {
+        // Fallback silencioso a datos locales de src/data/bio.ts
+      }
+    }
+
+    loadBioFromSupabase();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastClickedSectionRef = useRef<BioSectionId | null>(null);
@@ -70,8 +152,6 @@ export default function BioContactView() {
             duration: 0.6,
           });
         } else if (sectionId === "habilidades") {
-          // Al cerrarse Sobre Mí y Experiencia, alineamos al tope del contenedor
-          // para que se vean los rótulos colapsados 01 y 02 junto con 03 / Habilidades completo
           window.__lenis.scrollTo("#sobre-mi", {
             offset: -80,
             duration: 0.6,
@@ -167,6 +247,12 @@ export default function BioContactView() {
     setTouchStartX(null);
   };
 
+  const whatsappHref = `https://wa.me/${
+    whatsappNumber || WHATSAPP_NUMBER
+  }?text=${encodeURIComponent(
+    "Hola Agustín, vi tu portfolio y me gustaría ponerme en contacto contigo."
+  )}`;
+
   return (
     <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-start bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
       <motion.div
@@ -235,7 +321,7 @@ export default function BioContactView() {
                                 <div className="relative w-full aspect-square overflow-hidden bg-[#FFFFFF] flex items-center justify-center">
                                   {!profileImgError ? (
                                     <Image
-                                      src="/agustin-perfil.webp"
+                                      src={avatarUrl}
                                       alt="Agustín Fabrizio — Retrato"
                                       fill
                                       sizes="(max-width: 768px) 100vw, 320px"
@@ -260,7 +346,7 @@ export default function BioContactView() {
                                 {/* Fila de Links y Contacto directamente debajo de la foto */}
                                 <div className="mt-2.5 pt-2.5 border-t border-[#1C1C1A]/10 grid grid-cols-2 gap-2">
                                   <a
-                                    href="https://www.behance.net/agustinfabrizio"
+                                    href={behanceUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
@@ -269,7 +355,7 @@ export default function BioContactView() {
                                     <ArrowUpRight size={12} strokeWidth={1.75} />
                                   </a>
                                   <a
-                                    href="https://www.linkedin.com/"
+                                    href={linkedinUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
@@ -278,9 +364,7 @@ export default function BioContactView() {
                                     <ArrowUpRight size={12} strokeWidth={1.75} />
                                   </a>
                                   <a
-                                    href={getWhatsAppLink(
-                                      "Hola Agustín, vi tu portfolio y me gustaría ponerme en contacto contigo."
-                                    )}
+                                    href={whatsappHref}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
@@ -289,7 +373,7 @@ export default function BioContactView() {
                                     <ArrowUpRight size={12} strokeWidth={1.75} />
                                   </a>
                                   <a
-                                    href="mailto:hola@agustinfabrizio.com"
+                                    href={`mailto:${emailAddress}`}
                                     className="inline-flex items-center justify-between px-2.5 py-1.5 border border-[#1C1C1A]/15 text-[11px] font-roboto font-medium uppercase tracking-wider text-[#1C1C1A] hover:border-[#099AD7] hover:text-[#099AD7] transition-colors"
                                   >
                                     <span>Email</span>
@@ -302,27 +386,33 @@ export default function BioContactView() {
                             {/* Columna Derecha: Manifiesto textual + Educación y Certificación BIM */}
                             <div className="md:col-span-7 lg:col-span-8 flex flex-col justify-between gap-7 w-full">
                               <blockquote className="w-full text-sm md:text-base font-roboto font-normal leading-relaxed text-[#1C1C1A]/85 border-l-2 border-[#099AD7] pl-5 md:pl-6 py-1">
-                                &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
-                                <strong className="font-medium text-[#099AD7]">
-                                  construir ideas en conjunto
-                                </strong>
-                                . Me interesa proyectar una arquitectura conectada con{" "}
-                                <strong className="font-medium text-[#099AD7]">
-                                  lo cotidiano
-                                </strong>
-                                , enfocada en resolver necesidades reales, sin dejar de aprovechar los espacios lúdicos como instancias para{" "}
-                                <strong className="font-medium text-[#099AD7]">
-                                  explorar otras formas
-                                </strong>{" "}
-                                de habitar y pensar el diseño. Me considero metódico y técnico en el uso de{" "}
-                                <strong className="font-medium text-[#099AD7]">
-                                  herramientas digitales
-                                </strong>
-                                , lo que me permite integrar con fluidez el diseño, la representación y la producción. Me motiva{" "}
-                                <strong className="font-medium text-[#099AD7]">
-                                  aprender
-                                </strong>{" "}
-                                constantemente, tanto desde lo teórico como desde lo práctico, incorporando recursos que optimicen y agilicen mis procesos proyectuales.&rdquo;
+                                {manifesto ? (
+                                  <>&ldquo;{manifesto}&rdquo;</>
+                                ) : (
+                                  <>
+                                    &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
+                                    <strong className="font-medium text-[#099AD7]">
+                                      construir ideas en conjunto
+                                    </strong>
+                                    . Me interesa proyectar una arquitectura conectada con{" "}
+                                    <strong className="font-medium text-[#099AD7]">
+                                      lo cotidiano
+                                    </strong>
+                                    , enfocada en resolver necesidades reales, sin dejar de aprovechar los espacios lúdicos como instancias para{" "}
+                                    <strong className="font-medium text-[#099AD7]">
+                                      explorar otras formas
+                                    </strong>{" "}
+                                    de habitar y pensar el diseño. Me considero metódico y técnico en el uso de{" "}
+                                    <strong className="font-medium text-[#099AD7]">
+                                      herramientas digitales
+                                    </strong>
+                                    , lo que me permite integrar con fluidez el diseño, la representación y la producción. Me motiva{" "}
+                                    <strong className="font-medium text-[#099AD7]">
+                                      aprender
+                                    </strong>{" "}
+                                    constantemente, tanto desde lo teórico como desde lo práctico, incorporando recursos que optimicen y agilicen mis procesos proyectuales.&rdquo;
+                                  </>
+                                )}
                               </blockquote>
 
                               {/* Bloque Educación */}
@@ -383,7 +473,7 @@ export default function BioContactView() {
                               </div>
 
                               <div className="flex flex-col border-t border-[#1C1C1A]/15">
-                                {WORK_ACCORDION_ITEMS.map((item) => {
+                                {workItems.map((item) => {
                                   const isWorkOpen = openWorkId === item.id;
                                   return (
                                     <div
@@ -483,12 +573,16 @@ export default function BioContactView() {
                               </div>
 
                               <div className="flex flex-col divide-y divide-[#1C1C1A]/15 border-t border-b border-[#1C1C1A]/15">
-                                {PARTICIPATION_ITEMS.map((item) => {
+                                {participationItems.map((item) => {
                                   const projectHref =
                                     item.link ??
-                                    (item.projectId ? `/proyectos/${item.projectId}` : null);
+                                    (item.projectId
+                                      ? `/proyectos/${item.projectId}`
+                                      : null);
                                   const hasExclusiveGallery =
-                                    !projectHref && item.gallery && item.gallery.length > 0;
+                                    !projectHref &&
+                                    item.gallery &&
+                                    item.gallery.length > 0;
 
                                   return (
                                     <article key={item.id} className="py-6 md:py-7">
@@ -612,7 +706,7 @@ export default function BioContactView() {
                         ===================================================== */}
                         {section.id === "habilidades" && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                            {SKILL_CARDS.map((card) => (
+                            {skillCards.map((card) => (
                               <div
                                 key={card.title}
                                 className="border border-[#1C1C1A]/15 p-6 bg-[#FFFFFF] flex flex-col"
@@ -647,7 +741,7 @@ export default function BioContactView() {
       </motion.div>
 
       {/* =====================================================================
-          MODAL EXCLUSIVO PARA PARTICIPACIONES INDEPENDIENTES (LAYOUT PROJECTVIEWER)
+           MODAL EXCLUSIVO PARA PARTICIPACIONES INDEPENDIENTES (LAYOUT PROJECTVIEWER)
       ===================================================================== */}
       <AnimatePresence>
         {modalParticipation && modalParticipation.item.gallery && (
@@ -725,7 +819,10 @@ export default function BioContactView() {
             <div className="fixed bottom-6 md:bottom-8 right-6 md:right-16 z-30 pointer-events-auto">
               <span className="font-roboto font-medium tabular-nums tracking-wider text-[13px] text-[#1C1C1A] select-none">
                 {String(modalSlideIdx + 1).padStart(2, "0")} /{" "}
-                {String(modalParticipation.item.gallery.length).padStart(2, "0")}
+                {String(modalParticipation.item.gallery.length).padStart(
+                  2,
+                  "0"
+                )}
               </span>
             </div>
           </motion.div>
