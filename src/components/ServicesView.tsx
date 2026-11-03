@@ -76,6 +76,11 @@ export default function ServicesView() {
               ),
               coverImage: String(
                 row.cover_image ||
+                  (typeof row.methodology_title === "string" &&
+                  (row.methodology_title.startsWith("http") ||
+                    row.methodology_title.startsWith("/"))
+                    ? row.methodology_title
+                    : "") ||
                   localMatch?.coverImage ||
                   "/projects/centro-de-trasbordo/01-render-exterior.webp"
               ),
