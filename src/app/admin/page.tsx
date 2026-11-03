@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import AdminProjects from "@/components/admin/AdminProjects";
+import AdminServices from "@/components/admin/AdminServices";
+import AdminBio from "@/components/admin/AdminBio";
 
 type AdminTab = "projects" | "services" | "bio";
 
@@ -271,28 +273,8 @@ export default function AdminPage() {
       {/* Contenido principal del Dashboard */}
       <section className="w-full max-w-6xl mx-auto px-6 md:px-16 py-10 flex-1">
         {activeTab === "projects" && <AdminProjects />}
-
-        {activeTab === "services" && (
-          <div className="py-20 border border-neutral-200 bg-[#FFFFFF] flex flex-col items-center justify-center gap-2">
-            <span className="text-[11px] uppercase tracking-wider text-[#099AD7] font-semibold">
-              [ 02 / SERVICIOS ]
-            </span>
-            <p className="text-sm uppercase tracking-wider text-[#1C1C1A] font-medium">
-              Próximamente
-            </p>
-          </div>
-        )}
-
-        {activeTab === "bio" && (
-          <div className="py-20 border border-neutral-200 bg-[#FFFFFF] flex flex-col items-center justify-center gap-2">
-            <span className="text-[11px] uppercase tracking-wider text-[#099AD7] font-semibold">
-              [ 03 / BIO & CONTACTO ]
-            </span>
-            <p className="text-sm uppercase tracking-wider text-[#1C1C1A] font-medium">
-              Próximamente
-            </p>
-          </div>
-        )}
+        {activeTab === "services" && <AdminServices />}
+        {activeTab === "bio" && <AdminBio />}
       </section>
     </main>
   );

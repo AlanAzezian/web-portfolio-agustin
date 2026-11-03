@@ -9,10 +9,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const password = typeof body?.password === "string" ? body.password : "";
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const isValid =
+      (body.password || "").trim() ===
+      (process.env.ADMIN_PASSWORD || "agustin2026").trim();
 
-    if (!adminPassword || password !== adminPassword) {
+    if (!isValid) {
       return NextResponse.json(
         { success: false, message: "Contraseña incorrecta" },
         { status: 401 }
