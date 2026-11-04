@@ -1,9 +1,9 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import type { Project } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
 
@@ -13,6 +13,13 @@ export default function HomeSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.__lenis?.scrollTo(0, { immediate: true });
+      window.scrollTo(0, 0);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -82,18 +89,26 @@ export default function HomeSlider() {
   const currentProject = projectsList[activeIndex] ?? projectsList[0] ?? null;
 
   if (isLoading || !currentProject?.coverImage) {
-    return <div className="w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF]" />;
+    return <div className="w-full h-[calc(100dvh-5rem)] bg-[#FFFFFF]" />;
   }
 
   return (
     <div className="w-full flex flex-col bg-[#FFFFFF]">
-      {/* 1. PRIMER PLIEGUE (Centrado armónico en el 100vh con proximidad al encabezado) */}
-      <section className="w-full h-[calc(100vh-5rem)] flex flex-col items-center justify-center -mt-4 md:-mt-8 px-4 md:px-12 select-none relative">
-        {/* Cuadro de la imagen: ancho máximo 1120px, relación 3:2, centrado armónico y elevado */}
+      {/* Primer pliegue exacto: ocupa la altura de pantalla visible restando el navbar */}
+      <section className="relative w-full h-[calc(100dvh-5rem)] flex items-center justify-center px-6 md:px-12 select-none overflow-hidden">
+        {/* Caja de contención rígida y centrada */}
         <div
           role="button"
-          className="relative w-[90vw] max-w-[1120px] max-h-[calc(100vh-12rem)] aspect-[3/2] overflow-hidden cursor-pointer group flex-none shadow-none"
+          tabIndex={0}
+          aria-label={`Ver proyecto ${currentProject.title}`}
+          className="relative w-full h-full flex items-center justify-center max-w-7xl mx-auto cursor-pointer group focus:outline-none"
           onClick={() => router.push(`/proyectos/${currentProject.id}`)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              router.push(`/proyectos/${currentProject.id}`);
+            }
+          }}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
@@ -104,24 +119,21 @@ export default function HomeSlider() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="absolute inset-0"
+              className="relative w-full h-full flex items-center justify-center"
             >
-              <Image
-                src={currentProject.coverImage}
+              <img
+                src={currentProject.coverImage || currentProject.images?.[0]}
                 alt={currentProject.title}
-                fill
-                sizes="(max-width: 768px) 90vw, 1120px"
-                className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                style={{ objectPosition: "50% 50%" }}
-                priority
+                className="max-h-[calc(100dvh-8rem)] max-w-full w-auto h-auto object-contain block mx-auto transition-transform duration-700 ease-out group-hover:scale-[1.01]"
+                style={{ maxHeight: "calc(100dvh - 8rem)" }}
               />
             </motion.div>
           </AnimatePresence>
         </div>
       </section>
 
-      {/* 2. SEGUNDO BLOQUE: Redes sociales y créditos descubierto al scrollear */}
-      <footer className="w-full py-16 md:py-20 flex flex-col items-center justify-center gap-8 border-t border-[#1C1C1A]/10 bg-[#FFFFFF]">
+      {/* Bloque inferior: único destino al scrollear hacia abajo */}
+      <footer className="w-full py-8 md:py-12 bg-white border-t border-[#1C1C1A]/10 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6 text-xs tracking-wider">
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 text-[#1C1C1A]">
           <a
             href="https://instagram.com/agustinfabrizio"

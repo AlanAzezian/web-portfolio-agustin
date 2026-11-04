@@ -57,5 +57,13 @@ export default function SmoothScroll() {
     };
   }, [isProjectDetail]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.__lenis) {
+      window.__lenis.scrollTo(0, { immediate: true });
+    }
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return null;
 }
