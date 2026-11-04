@@ -125,7 +125,11 @@ export default function ProjectViewer({
 
   const formattedCurrent = String(currentIndex + 1).padStart(2, "0");
   const formattedTotal = String(total).padStart(2, "0");
-  const currentSrc = images[currentIndex] || "/projects/centro-de-trasbordo/01-render-exterior.webp";
+  const currentSrc = images[currentIndex] || "";
+
+  if (!currentSrc) {
+    return <main className="fixed inset-0 z-20 bg-[#FFFFFF]" />;
+  }
 
   return (
     <main

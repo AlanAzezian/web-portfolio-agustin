@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { projects as fallbackProjects, type Project } from "@/data/projects";
+import type { Project } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
 
 export default function HomeSlider() {
-  const [projectsList, setProjectsList] = useState<Project[]>(fallbackProjects);
+  const [projectsList, setProjectsList] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const router = useRouter();
@@ -23,30 +24,42 @@ export default function HomeSlider() {
           .select("*")
           .order("order_index", { ascending: true });
 
-        if (!active || error || !data || data.length === 0) return;
+        if (!active) return;
 
-        const mapped: Project[] = data.map((row: Record<string, unknown>) => {
-          const id = String(row.id || "");
-          const coverImage = String(
-            row.cover_image ||
-              row.coverImage ||
-              "/projects/centro-de-trasbordo/01-render-exterior.webp"
-          );
-          const rawImages = Array.isArray(row.images)
-            ? (row.images as string[])
-            : [];
-          return {
-            id,
-            title: String(row.title || id),
-            coverImage,
-            images: rawImages.length > 0 ? rawImages : [coverImage],
-          };
-        });
+        if (error || !data || data.length === 0) {
+          setProjectsList([]);
+          return;
+        }
+
+        const mapped: Project[] = data
+          .map((row: Record<string, unknown>) => {
+            const id = String(row.id || "");
+            const rawImages = Array.isArray(row.images)
+              ? (row.images as string[]).filter(Boolean)
+              : [];
+            const coverImage = String(
+              row.cover_image || row.coverImage || rawImages[0] || ""
+            );
+            return {
+              id,
+              title: String(row.title || id),
+              coverImage,
+              images:
+                rawImages.length > 0
+                  ? rawImages
+                  : coverImage
+                    ? [coverImage]
+                    : [],
+            };
+          })
+          .filter((p) => Boolean(p.id && p.coverImage));
 
         setProjectsList(mapped);
         setActiveIndex(0);
       } catch {
-        // Fallback silencioso a datos locales
+        if (active) setProjectsList([]);
+      } finally {
+        if (active) setIsLoading(false);
       }
     }
 
@@ -66,7 +79,11 @@ export default function HomeSlider() {
     return () => clearInterval(interval);
   }, [isPaused, projectsList.length]);
 
-  const currentProject = projectsList[activeIndex] ?? projectsList[0] ?? fallbackProjects[0];
+  const currentProject = projectsList[activeIndex] ?? projectsList[0] ?? null;
+
+  if (isLoading || !currentProject?.coverImage) {
+    return <div className="w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF]" />;
+  }
 
   return (
     <div className="w-full flex flex-col bg-[#FFFFFF]">

@@ -4,7 +4,7 @@
 import { useMemo, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { projects as fallbackProjects, type Project } from "@/data/projects";
+import type { Project } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
 
 const FILTER_TAGS = ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"] as const;
@@ -77,7 +77,8 @@ export default function ProjectGrid() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [projectsList, setProjectsList] = useState<Project[]>(fallbackProjects);
+  const [projectsList, setProjectsList] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [measuredHeights, setMeasuredHeights] = useState<Record<string, number>>(
     {}
   );
@@ -96,45 +97,57 @@ export default function ProjectGrid() {
           .select("*")
           .order("order_index", { ascending: true });
 
-        if (!active || error || !data || data.length === 0) return;
+        if (!active) return;
 
-        const mapped: Project[] = data.map((row: Record<string, unknown>) => {
-          const id = String(row.id || "");
-          const coverImage = String(
-            row.cover_image ||
-              row.coverImage ||
-              "/projects/centro-de-trasbordo/01-render-exterior.webp"
-          );
-          const rawImages = Array.isArray(row.images)
-            ? (row.images as string[])
-            : [];
-          const images = rawImages.length > 0 ? rawImages : [coverImage];
-          const tags = Array.isArray(row.tags)
-            ? (row.tags as string[])
-            : ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"];
-          const aspectRatio =
-            typeof row.aspect_ratio === "string"
-              ? row.aspect_ratio
-              : typeof row.aspectRatio === "string"
-                ? row.aspectRatio
-                : undefined;
-          const height =
-            typeof row.height === "number" ? row.height : undefined;
+        if (error || !data || data.length === 0) {
+          setProjectsList([]);
+          return;
+        }
 
-          return {
-            id,
-            title: String(row.title || id),
-            coverImage,
-            images,
-            tags,
-            aspectRatio,
-            height,
-          };
-        });
+        const mapped: Project[] = data
+          .map((row: Record<string, unknown>) => {
+            const id = String(row.id || "");
+            const rawImages = Array.isArray(row.images)
+              ? (row.images as string[]).filter(Boolean)
+              : [];
+            const coverImage = String(
+              row.cover_image || row.coverImage || rawImages[0] || ""
+            );
+            const images =
+              rawImages.length > 0
+                ? rawImages
+                : coverImage
+                  ? [coverImage]
+                  : [];
+            const tags = Array.isArray(row.tags)
+              ? (row.tags as string[])
+              : ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"];
+            const aspectRatio =
+              typeof row.aspect_ratio === "string"
+                ? row.aspect_ratio
+                : typeof row.aspectRatio === "string"
+                  ? row.aspectRatio
+                  : undefined;
+            const height =
+              typeof row.height === "number" ? row.height : undefined;
+
+            return {
+              id,
+              title: String(row.title || id),
+              coverImage,
+              images,
+              tags,
+              aspectRatio,
+              height,
+            };
+          })
+          .filter((p) => Boolean(p.id && p.coverImage));
 
         setProjectsList(mapped);
       } catch {
-        // Fallback silencioso a datos locales
+        if (active) setProjectsList([]);
+      } finally {
+        if (active) setIsLoading(false);
       }
     }
 
@@ -169,6 +182,10 @@ export default function ProjectGrid() {
     () => distributeProjects(filteredProjects, 4, measuredHeights),
     [filteredProjects, measuredHeights]
   );
+
+  if (isLoading && projectsList.length === 0) {
+    return <div className="w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF]" />;
+  }
 
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">

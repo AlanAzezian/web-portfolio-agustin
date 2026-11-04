@@ -1,15 +1,9 @@
-import { projects } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import ProjectViewer from "@/components/ProjectViewer";
 
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
-
-export function generateStaticParams() {
-  return projects.map((project) => ({
-    id: project.id,
-  }));
-}
 
 async function resolveProject(
   id: string
@@ -35,17 +29,10 @@ async function resolveProject(
       }
     }
   } catch {
-    // Fallback silencioso a datos locales
+    // Error de red o base de datos
   }
 
-  const localProject = projects.find((p) => p.id === id);
-  if (!localProject) return null;
-
-  return {
-    id: localProject.id,
-    title: localProject.title,
-    images: localProject.images,
-  };
+  return null;
 }
 
 export default async function ProjectPage({
