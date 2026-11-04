@@ -103,31 +103,37 @@ export default function ProjectGrid() {
     );
   }, [selectedTag, projectsList]);
 
+  // Dividir los proyectos filtrados en 4 columnas balanceadas para desktop
+  const cols: Project[][] = [[], [], [], []];
+  filteredProjects.forEach((project, idx) => {
+    cols[idx % 4].push(project);
+  });
+
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
-      {/* Contenedor con columnas de mampostería continuas */}
-      <div className="columns-1 sm:columns-2 lg:columns-4 gap-6 md:gap-8 [column-fill:_balance]">
-        {filteredProjects.map((project) => (
-          <div key={project.id} className="break-inside-avoid mb-8 group">
-            {/* Tarjeta de Proyecto */}
-            <Link
-              className="block focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
-              href={`/proyectos/${project.id}`}
-            >
-              {/* Contenedor de la Imagen con su proporción natural */}
-              <div className="w-full overflow-hidden bg-neutral-100 border border-[#1C1C1A]/10">
-                <img
-                  src={project.coverImage || project.images[0]}
-                  alt={project.title}
-                  className="w-full h-auto object-contain block transition-transform duration-500 group-hover:scale-[1.02]"
-                />
+      {/* Grilla Masonry en 4 columnas independientes alineadas con los filtros */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start">
+        {cols.map((columnProjects, colIdx) => (
+          <div key={colIdx} className="flex flex-col gap-8">
+            {columnProjects.map((project) => (
+              <div key={project.id} className="group w-full">
+                <Link
+                  className="block focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
+                  href={`/proyectos/${project.id}`}
+                >
+                  <div className="w-full overflow-hidden bg-neutral-100 border border-[#1C1C1A]/10">
+                    <img
+                      src={project.coverImage || project.images[0]}
+                      alt={project.title}
+                      className="w-full h-auto object-contain block transition-transform duration-500 group-hover:scale-[1.02]"
+                    />
+                  </div>
+                  <h3 className="mt-3 text-base md:text-[17px] font-roboto font-medium text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200 leading-snug tracking-tight">
+                    {project.title}
+                  </h3>
+                </Link>
               </div>
-
-              {/* Título y metadatos debajo de la imagen */}
-              <h3 className="mt-3 text-base md:text-[17px] font-roboto font-normal text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors leading-snug">
-                {project.title}
-              </h3>
-            </Link>
+            ))}
           </div>
         ))}
       </div>

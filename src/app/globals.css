@@ -35,11 +35,15 @@
 }
 
 @layer utilities {
+  .font-roboto {
+    font-family: var(--font-roboto), Arial, Helvetica, sans-serif;
+  }
 }
 
 body {
   background-color: var(--background) !important;
   color: var(--foreground) !important;
+  font-family: var(--font-roboto), Arial, Helvetica, sans-serif;
 }
 
 /* Ocultar cursor nativo globalmente en toda la web para usar el punto negro custom permanente */
