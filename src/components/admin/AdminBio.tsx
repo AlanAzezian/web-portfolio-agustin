@@ -596,7 +596,7 @@ export default function AdminBio() {
             PERFIL PROFESIONAL, EXPERIENCIA, CONCURSOS & CANALES DIRECTOS
           </span>
           <h2 className="text-lg font-medium tracking-tight text-[#1C1C1A] mt-0.5">
-            Bio & Contacto (Registro: main)
+            Bio & Contacto
           </h2>
         </div>
 
@@ -654,15 +654,12 @@ export default function AdminBio() {
           <span className="text-xs uppercase tracking-wider text-[#099AD7] font-semibold">
             01 / SOBRE MÍ & CANALES DE CONTACTO
           </span>
-          <span className="text-[11px] uppercase tracking-wider text-[#686661]">
-            TABLA: public.bio
-          </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Avatar + URLs de Contacto */}
           <div className="lg:col-span-5 flex flex-col gap-4">
-            <div className="flex items-start gap-4">
+            <div className="flex items-center gap-4">
               <div className="w-24 h-24 border border-neutral-300 bg-neutral-50 shrink-0 overflow-hidden">
                 {bio.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -675,21 +672,9 @@ export default function AdminBio() {
               </div>
 
               <div className="flex-1 flex flex-col gap-2">
-                <label
-                  htmlFor="bio-avatar-url"
-                  className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
-                >
-                  Retrato / Avatar URL
-                </label>
-                <input
-                  id="bio-avatar-url"
-                  type="text"
-                  value={bio.avatar_url}
-                  onChange={(e) =>
-                    setBio((prev) => ({ ...prev, avatar_url: e.target.value }))
-                  }
-                  className="w-full h-9 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7]"
-                />
+                <span className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium">
+                  Retrato de perfil
+                </span>
                 <input
                   ref={avatarInputRef}
                   type="file"
@@ -701,11 +686,11 @@ export default function AdminBio() {
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={uploadingAvatar}
-                  className="inline-flex items-center justify-center gap-1.5 h-8 px-3 border border-neutral-300 hover:border-[#099AD7] text-[11px] uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors w-fit"
+                  className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium transition-colors w-fit"
                 >
-                  <Upload className="w-3 h-3" />
+                  <Upload className="w-3.5 h-3.5" />
                   <span>
-                    {uploadingAvatar ? "Subiendo..." : "Subir nueva foto"}
+                    {uploadingAvatar ? "Subiendo..." : "Reemplazar imagen"}
                   </span>
                 </button>
               </div>
@@ -1112,8 +1097,8 @@ export default function AdminBio() {
                         Imagen Principal / Portada
                       </span>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                        <div className="sm:col-span-5 relative aspect-[3/2] border border-neutral-300 bg-neutral-50 overflow-hidden">
+                      <div className="flex items-center gap-4">
+                        <div className="w-36 relative aspect-[3/2] border border-neutral-300 bg-neutral-50 overflow-hidden shrink-0">
                           {part.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -1128,42 +1113,26 @@ export default function AdminBio() {
                           )}
                         </div>
 
-                        <div className="sm:col-span-7 flex flex-col gap-2">
-                          <label className="inline-flex items-center justify-center gap-1.5 h-8 px-3 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-[11px] uppercase tracking-wider font-medium transition-colors cursor-pointer">
-                            <Upload className="w-3.5 h-3.5" />
-                            <span>
-                              {isUploadingThis
-                                ? "Subiendo..."
-                                : "Subir portada"}
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              disabled={isUploadingThis}
-                              onChange={(e) =>
-                                handleParticipationCoverUpload(
-                                  part.id,
-                                  e.target.files?.[0]
-                                )
-                              }
-                              className="hidden"
-                            />
-                          </label>
-
+                        <label className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium transition-colors cursor-pointer">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>
+                            {isUploadingThis
+                              ? "Subiendo..."
+                              : "Reemplazar imagen"}
+                          </span>
                           <input
-                            type="text"
-                            value={part.image}
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploadingThis}
                             onChange={(e) =>
-                              handleParticipationChange(
+                              handleParticipationCoverUpload(
                                 part.id,
-                                "image",
-                                e.target.value
+                                e.target.files?.[0]
                               )
                             }
-                            placeholder="URL de portada..."
-                            className="h-8 px-2.5 border border-neutral-300 text-[11px] text-[#686661] focus:outline-none focus:border-[#099AD7]"
+                            className="hidden"
                           />
-                        </div>
+                        </label>
                       </div>
                     </div>
 

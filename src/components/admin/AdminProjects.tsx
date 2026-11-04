@@ -2,7 +2,14 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Trash2, Plus, X, Upload, Image as ImageIcon } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  X,
+  Upload,
+  Image as ImageIcon,
+  Pencil,
+} from "lucide-react";
 
 export interface SupabaseProject {
   id: string;
@@ -45,15 +52,18 @@ export default function AdminProjects() {
   const [loadingList, setLoadingList] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
-  // Modal / Form state
+  // Modal / Form state (Create & Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<SupabaseProject | null>(
+    null
+  );
   const [formTitle, setFormTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
+  // Existing gallery URLs (when editing) + newly added local files
+  const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([]);
   const [galleryItems, setGalleryItems] = useState<GalleryPreviewItem[]>([]);
 
   // Saving & status states
@@ -127,27 +137,43 @@ export default function AdminProjects() {
   // Clean up object URLs on unmount
   useEffect(() => {
     return () => {
-      if (coverPreview) URL.revokeObjectURL(coverPreview);
+      if (coverPreview && coverPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(coverPreview);
+      }
       galleryItems.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     };
   }, [coverPreview, galleryItems]);
 
   const resetForm = () => {
+    setEditingProject(null);
     setFormTitle("");
-    setSlug("");
-    setSlugManuallyEdited(false);
-    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    if (coverPreview && coverPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(coverPreview);
+    }
     setCoverFile(null);
     setCoverPreview(null);
+    setExistingGalleryUrls([]);
     galleryItems.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     setGalleryItems([]);
     setFormError(null);
     setStatusMessage(null);
   };
 
-  const handleOpenModal = () => {
+  const handleOpenCreateModal = () => {
     resetForm();
     setFeedbackSuccess(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (project: SupabaseProject) => {
+    resetForm();
+    setFeedbackSuccess(null);
+    setEditingProject(project);
+    setFormTitle(project.title);
+    setCoverPreview(project.cover_image || null);
+    setExistingGalleryUrls(
+      Array.isArray(project.images) ? [...project.images] : []
+    );
     setIsModalOpen(true);
   };
 
@@ -158,22 +184,16 @@ export default function AdminProjects() {
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setFormTitle(val);
-    if (!slugManuallyEdited) {
-      setSlug(generateSlug(val));
-    }
-  };
-
-  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSlugManuallyEdited(true);
-    setSlug(generateSlug(e.target.value));
+    setFormTitle(e.target.value);
+    if (formError) setFormError(null);
   };
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    if (coverPreview && coverPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(coverPreview);
+    }
     setCoverFile(file);
     setCoverPreview(URL.createObjectURL(file));
     if (formError) setFormError(null);
@@ -195,7 +215,11 @@ export default function AdminProjects() {
     if (formError) setFormError(null);
   };
 
-  const handleRemoveGalleryItem = (index: number) => {
+  const handleRemoveExistingGalleryUrl = (index: number) => {
+    setExistingGalleryUrls((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleRemoveNewGalleryItem = (index: number) => {
     setGalleryItems((prev) => {
       const target = prev[index];
       if (target) {
@@ -233,17 +257,17 @@ export default function AdminProjects() {
     if (submitting) return;
 
     const cleanTitle = formTitle.trim();
-    const cleanSlug = slug.trim() || generateSlug(cleanTitle);
-
     if (!cleanTitle) {
       setFormError("Ingresa el título del proyecto.");
       return;
     }
-    if (!cleanSlug) {
-      setFormError("El ID / Slug del proyecto es obligatorio.");
-      return;
-    }
-    if (!coverFile) {
+
+    const isEditing = Boolean(editingProject);
+    const projectSlug = isEditing
+      ? editingProject!.id
+      : generateSlug(cleanTitle) || `proyecto-${projects.length + 1}`;
+
+    if (!isEditing && !coverFile) {
       setFormError("Selecciona una imagen de portada (Cover).");
       return;
     }
@@ -251,83 +275,122 @@ export default function AdminProjects() {
     setSubmitting(true);
     setFormError(null);
     setFeedbackSuccess(null);
-    setStatusMessage("Subiendo imágenes...");
+    setStatusMessage("Procesando imágenes...");
 
     try {
-      // 1. Subir portada a Supabase Storage
-      const coverFileName = `cover-${sanitizeFileName(coverFile.name)}`;
-      const coverPath = `projects/${cleanSlug}/${coverFileName}`;
+      // 1. Portada: subir nueva si fue reemplazada, o mantener la actual en edición
+      let finalCoverUrl = editingProject?.cover_image || "";
 
-      const { error: coverUploadError } = await supabase.storage
-        .from("portfolio")
-        .upload(coverPath, coverFile, { upsert: true });
+      if (coverFile) {
+        setStatusMessage("Subiendo imagen de portada...");
+        const coverFileName = `cover-${sanitizeFileName(coverFile.name)}`;
+        const coverPath = `projects/${projectSlug}/${coverFileName}`;
 
-      if (coverUploadError) {
-        throw new Error(
-          `Error al subir la portada: ${coverUploadError.message}`
-        );
-      }
-
-      const coverPublicUrl = supabase.storage
-        .from("portfolio")
-        .getPublicUrl(coverPath).data.publicUrl;
-
-      // 2. Subir galería de imágenes
-      const galleryPublicUrls: string[] = [];
-
-      for (let i = 0; i < galleryItems.length; i++) {
-        const item = galleryItems[i];
-        const fileName = `${String(i + 1).padStart(2, "0")}-${sanitizeFileName(
-          item.file.name
-        )}`;
-        const path = `projects/${cleanSlug}/${fileName}`;
-
-        const { error: galleryError } = await supabase.storage
+        const { error: coverUploadError } = await supabase.storage
           .from("portfolio")
-          .upload(path, item.file, { upsert: true });
+          .upload(coverPath, coverFile, { upsert: true });
 
-        if (galleryError) {
+        if (coverUploadError) {
           throw new Error(
-            `Error al subir imagen ${i + 1}: ${galleryError.message}`
+            `Error al subir la portada: ${coverUploadError.message}`
           );
         }
 
-        const publicUrl = supabase.storage
+        finalCoverUrl = supabase.storage
           .from("portfolio")
-          .getPublicUrl(path).data.publicUrl;
-
-        galleryPublicUrls.push(publicUrl);
+          .getPublicUrl(coverPath).data.publicUrl;
       }
 
-      // 3. Guardar registro en base de datos
-      setStatusMessage("Guardando proyecto...");
+      // 2. Galería: subir nuevas imágenes agregadas y combinarlas con las existentes que quedaron
+      const uploadedGalleryUrls: string[] = [];
 
-      const existingProjects = projects;
-      const nextOrderIndex =
-        existingProjects.length > 0
-          ? Math.max(...existingProjects.map((p) => p.order_index || 0)) + 1
-          : 1;
+      if (galleryItems.length > 0) {
+        setStatusMessage("Subiendo imágenes de galería...");
+        const baseOffset = existingGalleryUrls.length;
 
-      const { error: insertError } = await supabase.from("projects").insert([
-        {
-          id: cleanSlug,
-          title: cleanTitle,
-          cover_image: coverPublicUrl,
-          images: galleryPublicUrls,
-          order_index: nextOrderIndex,
-        },
-      ]);
+        for (let i = 0; i < galleryItems.length; i++) {
+          const item = galleryItems[i];
+          const fileName = `${String(baseOffset + i + 1).padStart(
+            2,
+            "0"
+          )}-${sanitizeFileName(item.file.name)}`;
+          const path = `projects/${projectSlug}/${fileName}`;
 
-      if (insertError) {
-        throw new Error(
-          `Error al guardar en base de datos: ${insertError.message}`
-        );
+          const { error: galleryError } = await supabase.storage
+            .from("portfolio")
+            .upload(path, item.file, { upsert: true });
+
+          if (galleryError) {
+            throw new Error(
+              `Error al subir imagen ${i + 1}: ${galleryError.message}`
+            );
+          }
+
+          const publicUrl = supabase.storage
+            .from("portfolio")
+            .getPublicUrl(path).data.publicUrl;
+
+          uploadedGalleryUrls.push(publicUrl);
+        }
       }
 
-      await fetchProjects();
-      resetForm();
-      setIsModalOpen(false);
-      setFeedbackSuccess("Proyecto publicado y sincronizado correctamente.");
+      const finalGalleryUrls = [...existingGalleryUrls, ...uploadedGalleryUrls];
+
+      // 3. Guardar o actualizar registro en base de datos
+      setStatusMessage(
+        isEditing ? "Actualizando proyecto..." : "Guardando proyecto..."
+      );
+
+      if (isEditing && editingProject) {
+        const { error: updateError } = await supabase
+          .from("projects")
+          .update({
+            title: cleanTitle,
+            cover_image: finalCoverUrl,
+            images: finalGalleryUrls,
+          })
+          .eq("id", editingProject.id);
+
+        if (updateError) {
+          throw new Error(
+            `Error al actualizar el proyecto: ${updateError.message}`
+          );
+        }
+
+        await fetchProjects();
+        resetForm();
+        setIsModalOpen(false);
+        setFeedbackSuccess("Proyecto actualizado correctamente.");
+      } else {
+        const safeMaxOrder = projects.reduce((max, p, idx) => {
+          const val = Number(p.order_index);
+          const cleanVal =
+            Number.isFinite(val) && val > 0 && val < 1000000 ? val : idx + 1;
+          return Math.max(max, cleanVal);
+        }, 0);
+        const nextOrderIndex = Math.max(projects.length + 1, safeMaxOrder + 1);
+
+        const { error: insertError } = await supabase.from("projects").insert([
+          {
+            id: projectSlug,
+            title: cleanTitle,
+            cover_image: finalCoverUrl,
+            images: finalGalleryUrls,
+            order_index: nextOrderIndex,
+          },
+        ]);
+
+        if (insertError) {
+          throw new Error(
+            `Error al guardar en base de datos: ${insertError.message}`
+          );
+        }
+
+        await fetchProjects();
+        resetForm();
+        setIsModalOpen(false);
+        setFeedbackSuccess("Proyecto publicado y sincronizado correctamente.");
+      }
     } catch (err) {
       setFormError(
         err instanceof Error
@@ -339,6 +402,8 @@ export default function AdminProjects() {
       setStatusMessage(null);
     }
   };
+
+  const totalGalleryCount = existingGalleryUrls.length + galleryItems.length;
 
   return (
     <div className="w-full font-roboto text-[#1C1C1A]">
@@ -355,7 +420,7 @@ export default function AdminProjects() {
 
         <button
           type="button"
-          onClick={handleOpenModal}
+          onClick={handleOpenCreateModal}
           className="inline-flex items-center justify-center gap-2 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium px-5 h-10 rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7]"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -414,7 +479,8 @@ export default function AdminProjects() {
               SIN PROYECTOS CARGADOS EN LA BASE DE DATOS
             </span>
             <p className="text-xs text-[#686661] max-w-md">
-              Haz clic en &ldquo;+ NUEVO PROYECTO&rdquo; para subir la portada, renders y planos técnicos al bucket portfolio.
+              Haz clic en &ldquo;+ NUEVO PROYECTO&rdquo; para subir la portada,
+              renders y planos técnicos al portfolio.
             </p>
           </div>
         ) : (
@@ -450,19 +516,16 @@ export default function AdminProjects() {
                       </span>
                     </div>
 
-                    {/* Detalles técnicos */}
+                    {/* Título limpio sin ID técnico */}
                     <div className="p-4">
-                      <span className="text-[10px] uppercase tracking-wider text-[#686661] block truncate">
-                        ID: {project.id}
-                      </span>
-                      <h3 className="text-sm font-medium text-[#1C1C1A] mt-1 line-clamp-2 leading-snug">
+                      <h3 className="text-sm font-medium text-[#1C1C1A] line-clamp-2 leading-snug">
                         {project.title}
                       </h3>
                     </div>
                   </div>
 
-                  {/* Pie de tarjeta con contador y botón eliminar */}
-                  <div className="px-4 py-3 border-t border-neutral-100 flex items-center justify-between">
+                  {/* Pie de tarjeta con contador y botones Editar / Eliminar */}
+                  <div className="px-4 py-3 border-t border-neutral-100 flex items-center justify-between gap-2">
                     <span className="text-[11px] uppercase tracking-wider text-[#686661]">
                       {secondaryCount}{" "}
                       {secondaryCount === 1
@@ -470,17 +533,31 @@ export default function AdminProjects() {
                         : "imágenes secundarias"}
                     </span>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteProject(project.id)}
-                      disabled={isDeleting}
-                      title="Eliminar proyecto"
-                      aria-label={`Eliminar proyecto ${project.title}`}
-                      className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#A84A4A] hover:text-white hover:bg-[#A84A4A] border border-transparent hover:border-[#A84A4A] px-2.5 py-1 transition-colors duration-200 disabled:opacity-50"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>{isDeleting ? "Borrando..." : "Eliminar"}</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditModal(project)}
+                        disabled={isDeleting}
+                        title="Editar proyecto"
+                        aria-label={`Editar proyecto ${project.title}`}
+                        className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#099AD7] hover:bg-[#099AD7]/10 border border-transparent hover:border-[#099AD7]/30 px-2.5 py-1 transition-colors duration-200 disabled:opacity-50"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Editar</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProject(project.id)}
+                        disabled={isDeleting}
+                        title="Eliminar proyecto"
+                        aria-label={`Eliminar proyecto ${project.title}`}
+                        className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#A84A4A] hover:text-white hover:bg-[#A84A4A] border border-transparent hover:border-[#A84A4A] px-2.5 py-1 transition-colors duration-200 disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{isDeleting ? "Borrando..." : "Eliminar"}</span>
+                      </button>
+                    </div>
                   </div>
                 </article>
               );
@@ -489,12 +566,12 @@ export default function AdminProjects() {
         )}
       </div>
 
-      {/* Modal / Vista de Creación de Proyecto */}
+      {/* Modal de Creación / Edición de Proyecto */}
       {isModalOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modal-new-project-title"
+          aria-labelledby="modal-project-title"
           className="fixed inset-0 z-50 bg-[#1C1C1A]/40 flex items-center justify-center p-4 md:p-8 overflow-y-auto"
         >
           <div className="w-full max-w-2xl bg-[#FFFFFF] border border-neutral-300 shadow-none my-auto">
@@ -502,13 +579,15 @@ export default function AdminProjects() {
             <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-[#099AD7] font-semibold block">
-                  NUEVO REGISTRO
+                  {editingProject ? "EDICIÓN DE PROYECTO" : "NUEVO REGISTRO"}
                 </span>
                 <h3
-                  id="modal-new-project-title"
+                  id="modal-project-title"
                   className="text-base font-medium text-[#1C1C1A]"
                 >
-                  Cargar Proyecto en Portfolio
+                  {editingProject
+                    ? "Editar Proyecto del Portfolio"
+                    : "Cargar Proyecto en Portfolio"}
                 </h3>
               </div>
 
@@ -524,7 +603,11 @@ export default function AdminProjects() {
             </div>
 
             {/* Formulario */}
-            <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5" noValidate>
+            <form
+              onSubmit={handleSubmit}
+              className="p-6 flex flex-col gap-5"
+              noValidate
+            >
               {/* Campo Título */}
               <div className="flex flex-col gap-1.5">
                 <label
@@ -545,36 +628,13 @@ export default function AdminProjects() {
                 />
               </div>
 
-              {/* Campo ID / Slug */}
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="project-slug"
-                  className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium flex items-center justify-between"
-                >
-                  <span>ID / Slug</span>
-                  <span className="text-[10px] text-[#686661] font-normal">
-                    CARPETA EN STORAGE: projects/{slug || "..."}
-                  </span>
-                </label>
-                <input
-                  id="project-slug"
-                  type="text"
-                  value={slug}
-                  onChange={handleSlugChange}
-                  disabled={submitting}
-                  placeholder="centro-de-trasbordo-triangulo-de-bernal-quilmes"
-                  required
-                  className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs font-mono border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
-                />
-              </div>
-
               {/* Campo Imagen de Portada (Cover) */}
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="project-cover"
                   className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
                 >
-                  Imagen de portada (Cover)
+                  Imagen de portada
                 </label>
 
                 <input
@@ -634,7 +694,8 @@ export default function AdminProjects() {
                     Galería de imágenes (Renders y Planos)
                   </label>
                   <span className="text-[11px] text-[#686661]">
-                    {galleryItems.length} seleccionadas
+                    {totalGalleryCount}{" "}
+                    {totalGalleryCount === 1 ? "imagen" : "imágenes"}
                   </span>
                 </div>
 
@@ -661,16 +722,17 @@ export default function AdminProjects() {
                   </span>
                 </button>
 
-                {galleryItems.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-2 max-h-48 overflow-y-auto pr-1">
-                    {galleryItems.map((item, idx) => (
+                {totalGalleryCount > 0 && (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-2 max-h-56 overflow-y-auto pr-1">
+                    {/* Imágenes actuales del proyecto */}
+                    {existingGalleryUrls.map((url, idx) => (
                       <div
-                        key={`${item.file.name}-${idx}`}
+                        key={`existing-${url}-${idx}`}
                         className="relative aspect-[4/3] border border-neutral-200 bg-neutral-50 group overflow-hidden"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={item.previewUrl}
+                          src={url}
                           alt={`Galería ${idx + 1}`}
                           className="w-full h-full object-cover"
                         />
@@ -679,7 +741,7 @@ export default function AdminProjects() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => handleRemoveGalleryItem(idx)}
+                          onClick={() => handleRemoveExistingGalleryUrl(idx)}
                           disabled={submitting}
                           aria-label={`Quitar imagen ${idx + 1}`}
                           className="absolute top-1 right-1 bg-[#FFFFFF]/95 hover:bg-[#A84A4A] text-[#1C1C1A] hover:text-white border border-neutral-300 hover:border-[#A84A4A] p-1 transition-colors"
@@ -688,6 +750,36 @@ export default function AdminProjects() {
                         </button>
                       </div>
                     ))}
+
+                    {/* Nuevas imágenes seleccionadas para subir */}
+                    {galleryItems.map((item, idx) => {
+                      const displayIndex = existingGalleryUrls.length + idx + 1;
+                      return (
+                        <div
+                          key={`new-${item.file.name}-${idx}`}
+                          className="relative aspect-[4/3] border border-[#099AD7]/40 bg-neutral-50 group overflow-hidden"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.previewUrl}
+                            alt={`Nueva imagen ${displayIndex}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <span className="absolute bottom-1 left-1 bg-[#099AD7] px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white">
+                            {String(displayIndex).padStart(2, "0")}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveNewGalleryItem(idx)}
+                            disabled={submitting}
+                            aria-label={`Quitar imagen ${displayIndex}`}
+                            className="absolute top-1 right-1 bg-[#FFFFFF]/95 hover:bg-[#A84A4A] text-[#1C1C1A] hover:text-white border border-neutral-300 hover:border-[#A84A4A] p-1 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -723,7 +815,11 @@ export default function AdminProjects() {
                   disabled={submitting}
                   className="h-10 px-6 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors disabled:opacity-50"
                 >
-                  {submitting ? "PROCESANDO..." : "GUARDAR PROYECTO"}
+                  {submitting
+                    ? "PROCESANDO..."
+                    : editingProject
+                    ? "GUARDAR CAMBIOS"
+                    : "GUARDAR PROYECTO"}
                 </button>
               </div>
             </form>
