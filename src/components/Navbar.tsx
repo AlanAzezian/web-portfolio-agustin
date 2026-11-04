@@ -260,7 +260,7 @@ export default function Navbar() {
     if (typeof window === "undefined") return;
 
     const handleScroll = () => {
-      setIsAtTop(window.scrollY < 40);
+      setIsAtTop(window.scrollY <= 5);
     };
 
     handleScroll();

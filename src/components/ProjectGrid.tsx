@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useEffect, useState } from "react";
+/* eslint-disable @next/next/no-img-element */
+import { useMemo, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { projects as fallbackProjects, type Project } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 const FILTER_TAGS = ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"] as const;
 type FilterTag = (typeof FILTER_TAGS)[number];
@@ -34,9 +33,6 @@ export default function ProjectGrid() {
   const catParam = searchParams.get("cat")?.toUpperCase() ?? null;
   const selectedTag: FilterTag | null =
     catParam && QUERY_TO_TAG[catParam] ? QUERY_TO_TAG[catParam] : null;
-
-  const gridRef = useRef<HTMLDivElement>(null);
-  const revealedImagesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let active = true;
@@ -107,115 +103,30 @@ export default function ProjectGrid() {
     );
   }, [selectedTag, projectsList]);
 
-  // Reveal de tarjetas con ScrollTrigger.batch y clip-path en primera aparición
-  useEffect(() => {
-    if (!gridRef.current) return;
-
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>(".project-card-reveal");
-      if (cards.length === 0) return;
-
-      if (prefersReducedMotion) {
-        gsap.set(cards, { opacity: 1, y: 0 });
-        cards.forEach((card) => {
-          const mask = card.querySelector<HTMLElement>(".project-image-mask");
-          if (mask) {
-            gsap.set(mask, { clipPath: "inset(0% 0% 0% 0%)" });
-          }
-        });
-        return;
-      }
-
-      gsap.set(cards, { opacity: 0, y: 16 });
-
-      cards.forEach((card) => {
-        const projectId = card.dataset.projectId;
-        const mask = card.querySelector<HTMLElement>(".project-image-mask");
-        if (mask) {
-          if (projectId && !revealedImagesRef.current.has(projectId)) {
-            gsap.set(mask, { clipPath: "inset(100% 0% 0% 0%)" });
-          } else {
-            gsap.set(mask, { clipPath: "inset(0% 0% 0% 0%)" });
-          }
-        }
-      });
-
-      ScrollTrigger.batch(cards, {
-        start: "top 92%",
-        once: true,
-        onEnter: (batch) => {
-          const elements = batch as HTMLElement[];
-          gsap.to(elements, {
-            opacity: 1,
-            y: 0,
-            duration: 0.45,
-            stagger: 0.06,
-            ease: "power2.out",
-            overwrite: "auto",
-          });
-
-          const firstTimeMasks: HTMLElement[] = [];
-          elements.forEach((el) => {
-            const projectId = el.dataset.projectId;
-            const mask = el.querySelector<HTMLElement>(".project-image-mask");
-            if (mask && projectId && !revealedImagesRef.current.has(projectId)) {
-              revealedImagesRef.current.add(projectId);
-              firstTimeMasks.push(mask);
-            }
-          });
-
-          if (firstTimeMasks.length > 0) {
-            gsap.to(firstTimeMasks, {
-              clipPath: "inset(0% 0% 0% 0%)",
-              duration: 0.6,
-              stagger: 0.06,
-              ease: "power3.out",
-              overwrite: "auto",
-            });
-          }
-        },
-      });
-
-      ScrollTrigger.refresh();
-    }, gridRef);
-
-    return () => ctx.revert();
-  }, [filteredProjects]);
-
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
-      {/* Layout Masonry fluido de 4 columnas en escritorio */}
-      <div
-        ref={gridRef}
-        className="columns-1 sm:columns-2 lg:columns-4 gap-6 md:gap-8 [column-fill:_balance]"
-      >
+      {/* Contenedor con columnas de mampostería continuas */}
+      <div className="columns-1 sm:columns-2 lg:columns-4 gap-6 md:gap-8 [column-fill:_balance]">
         {filteredProjects.map((project) => (
           <div key={project.id} className="break-inside-avoid mb-8 group">
+            {/* Tarjeta de Proyecto */}
             <Link
+              className="block focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
               href={`/proyectos/${project.id}`}
-              data-project-id={project.id}
-              className="project-card-reveal flex flex-col w-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
             >
-              {/* Portada con aspect-ratio dinámico y escala contenida */}
-              <div className="project-image-mask relative w-full max-h-[340px] overflow-hidden bg-[#FFFFFF]">
-                <Image
-                  src={project.coverImage}
+              {/* Contenedor de la Imagen con su proporción natural */}
+              <div className="w-full overflow-hidden bg-neutral-100 border border-[#1C1C1A]/10">
+                <img
+                  src={project.coverImage || project.images[0]}
                   alt={project.title}
-                  width={1600}
-                  height={1067}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="w-full h-auto max-h-[340px] object-cover block"
+                  className="w-full h-auto object-contain block transition-transform duration-500 group-hover:scale-[1.02]"
                 />
               </div>
 
-              {/* Título debajo con Roboto Medium (500), color base #1C1C1A, hover #099AD7 */}
-              <h2 className="mt-2.5 font-roboto font-medium font-[500] text-base md:text-lg tracking-tight text-[#1C1C1A] group-hover:text-acento transition-colors duration-200">
+              {/* Título y metadatos debajo de la imagen */}
+              <h3 className="mt-3 text-base md:text-[17px] font-roboto font-normal text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors leading-snug">
                 {project.title}
-              </h2>
+              </h3>
             </Link>
           </div>
         ))}
