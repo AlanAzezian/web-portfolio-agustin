@@ -351,11 +351,11 @@ export default function BioContactView() {
                         height: "auto",
                         opacity: 1,
                         transition: {
-                          height: { duration: 1.1, ease: [0.16, 1, 0.3, 1] },
+                          height: { duration: 1.45, ease: [0.16, 1, 0.3, 1] },
                           opacity: {
-                            duration: 0.8,
+                            duration: 1.0,
                             ease: [0.25, 1, 0.5, 1],
-                            delay: 0.05,
+                            delay: 0.1,
                           },
                         },
                       }}
@@ -368,11 +368,11 @@ export default function BioContactView() {
                         },
                       }}
                       transition={{
-                        height: { duration: 1.1, ease: [0.16, 1, 0.3, 1] },
+                        height: { duration: 1.45, ease: [0.16, 1, 0.3, 1] },
                         opacity: {
-                          duration: 0.8,
+                          duration: 1.0,
                           ease: [0.25, 1, 0.5, 1],
-                          delay: 0.05,
+                          delay: 0.1,
                         },
                       }}
                       className="overflow-hidden will-change-[height,opacity]"
@@ -589,13 +589,13 @@ export default function BioContactView() {
                                               opacity: 1,
                                               transition: {
                                                 height: {
-                                                  duration: 1.1,
+                                                  duration: 1.45,
                                                   ease: [0.16, 1, 0.3, 1],
                                                 },
                                                 opacity: {
-                                                  duration: 0.8,
+                                                  duration: 1.0,
                                                   ease: [0.25, 1, 0.5, 1],
-                                                  delay: 0.05,
+                                                  delay: 0.1,
                                                 },
                                               },
                                             }}
@@ -615,13 +615,13 @@ export default function BioContactView() {
                                             }}
                                             transition={{
                                               height: {
-                                                duration: 1.1,
+                                                duration: 1.45,
                                                 ease: [0.16, 1, 0.3, 1],
                                               },
                                               opacity: {
-                                                duration: 0.8,
+                                                duration: 1.0,
                                                 ease: [0.25, 1, 0.5, 1],
-                                                delay: 0.05,
+                                                delay: 0.1,
                                               },
                                             }}
                                             onAnimationComplete={() => {
