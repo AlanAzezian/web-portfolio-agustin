@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { servicesData, type ServiceItem, type Subservice } from "@/data/services";
+import {
+  servicesData,
+  parseMethodologyMetadata,
+  type ServiceItem,
+  type Subservice,
+} from "@/data/services";
 import { supabase } from "@/lib/supabase";
 import ServiceDetailView from "@/components/ServiceDetailView";
 
@@ -44,18 +49,29 @@ async function resolveService(id: string): Promise<ServiceItem | null> {
       const rawSubservices = row.subservices ?? row.scope_items;
       const dbSubservices = normalizeSubservices(rawSubservices);
       const rawSpecs =
-        row.methodology_steps ?? row.specifications ?? row.tools;
+        row.specifications ?? row.tools ?? row.methodology_steps;
       const dbSpecs = Array.isArray(rawSpecs)
         ? (rawSpecs as string[]).filter(Boolean)
         : [];
+      const meta = parseMethodologyMetadata(row.methodology_title);
+      const desc = String(row.description || localMatch?.description || "");
+      const detailDesc = String(
+        row.detail_description ||
+          row.long_description ||
+          meta.detailDescription ||
+          localMatch?.detailDescription ||
+          desc
+      );
 
       return {
         id: String(row.id || id),
         orderNumber: String(row.order_number || localMatch?.orderNumber || "01"),
         title: String(row.title || localMatch?.title || id),
-        description: String(row.description || localMatch?.description || ""),
+        description: desc,
+        detailDescription: detailDesc,
         coverImage: String(
-          row.cover_image ||
+          (typeof row.cover_image === "string" && row.cover_image.trim()) ||
+            meta.coverImage ||
             localMatch?.coverImage ||
             "/projects/centro-de-trasbordo/01-render-exterior.webp"
         ),

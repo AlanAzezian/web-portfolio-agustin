@@ -8,9 +8,39 @@ export interface ServiceItem {
   orderNumber: string; // "01", "02", etc.
   title: string;
   description: string;
+  detailDescription?: string;
   coverImage: string;
   subservices: Subservice[];
   technicalSpecs: string[];
+}
+
+export function parseMethodologyMetadata(raw: unknown): {
+  coverImage?: string;
+  detailDescription?: string;
+} {
+  if (typeof raw !== "string" || !raw.trim()) return {};
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+      return {
+        coverImage:
+          typeof parsed.cover_image === "string" && parsed.cover_image.trim()
+            ? parsed.cover_image.trim()
+            : undefined,
+        detailDescription:
+          typeof parsed.detail_description === "string"
+            ? parsed.detail_description
+            : undefined,
+      };
+    } catch {
+      return {};
+    }
+  }
+  if (trimmed.startsWith("http") || trimmed.startsWith("/")) {
+    return { coverImage: trimmed };
+  }
+  return {};
 }
 
 export const servicesData: ServiceItem[] = [

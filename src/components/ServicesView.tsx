@@ -8,6 +8,7 @@ import { Plus, Minus, ArrowUpRight, X } from "lucide-react";
 import { ScrollTrigger } from "@/lib/gsap";
 import {
   servicesData as fallbackServices,
+  parseMethodologyMetadata,
   type ServiceItem,
   type Subservice,
 } from "@/data/services";
@@ -58,10 +59,24 @@ export default function ServicesView() {
             const id = String(row.id || `service-${idx + 1}`);
             const localMatch = fallbackServices.find((s) => s.id === id);
 
-            const dbSubservices = normalizeSubservices(row.subservices);
-            const dbSpecs = Array.isArray(row.methodology_steps)
-              ? (row.methodology_steps as string[]).filter(Boolean)
+            const dbSubservices = normalizeSubservices(
+              row.subservices ?? row.scope_items
+            );
+            const rawSpecs =
+              row.specifications ?? row.tools ?? row.methodology_steps;
+            const dbSpecs = Array.isArray(rawSpecs)
+              ? (rawSpecs as string[]).filter(Boolean)
               : [];
+            const meta = parseMethodologyMetadata(row.methodology_title);
+            const desc = String(
+              row.description || localMatch?.description || ""
+            );
+            const detailDesc = String(
+              row.detail_description ||
+                row.long_description ||
+                meta.detailDescription ||
+                desc
+            );
 
             return {
               id,
@@ -71,27 +86,20 @@ export default function ServicesView() {
                   String(idx + 1).padStart(2, "0")
               ),
               title: String(row.title || localMatch?.title || id),
-              description: String(
-                row.description || localMatch?.description || ""
-              ),
+              description: desc,
+              detailDescription: detailDesc,
               coverImage: String(
-                row.cover_image ||
-                  (typeof row.methodology_title === "string" &&
-                  (row.methodology_title.startsWith("http") ||
-                    row.methodology_title.startsWith("/"))
-                    ? row.methodology_title
-                    : "") ||
+                (typeof row.cover_image === "string" && row.cover_image.trim()) ||
+                  meta.coverImage ||
                   localMatch?.coverImage ||
                   "/projects/centro-de-trasbordo/01-render-exterior.webp"
               ),
-              subservices:
-                dbSubservices.length > 0
-                  ? dbSubservices
-                  : localMatch?.subservices || [],
-              technicalSpecs:
-                dbSpecs.length > 0
-                  ? dbSpecs
-                  : localMatch?.technicalSpecs || [],
+              subservices: Array.isArray(row.subservices ?? row.scope_items)
+                ? dbSubservices
+                : localMatch?.subservices || [],
+              technicalSpecs: Array.isArray(rawSpecs)
+                ? dbSpecs
+                : localMatch?.technicalSpecs || [],
             };
           }
         );

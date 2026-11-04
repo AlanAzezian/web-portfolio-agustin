@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Check } from "lucide-react";
-import type { ServiceItem, Subservice } from "@/data/services";
+import {
+  parseMethodologyMetadata,
+  type ServiceItem,
+  type Subservice,
+} from "@/data/services";
 import { supabase } from "@/lib/supabase";
 import { getWhatsAppLink, SERVICE_WHATSAPP_MESSAGES } from "@/lib/whatsapp";
 
@@ -51,16 +55,26 @@ export default function ServiceDetailView({
         const rawSubservices = row.subservices ?? row.scope_items;
         const dbSubservices = normalizeSubservices(rawSubservices);
         const rawSpecs =
-          row.methodology_steps ?? row.specifications ?? row.tools;
+          row.specifications ?? row.tools ?? row.methodology_steps;
         const dbSpecs = Array.isArray(rawSpecs)
           ? (rawSpecs as string[]).filter(Boolean)
           : [];
+        const meta = parseMethodologyMetadata(row.methodology_title);
+        const desc = String(row.description || initialService.description);
+        const detailDesc = String(
+          row.detail_description ||
+            row.long_description ||
+            meta.detailDescription ||
+            initialService.detailDescription ||
+            desc
+        );
 
         setService({
           ...initialService,
           orderNumber: String(row.order_number || initialService.orderNumber),
           title: String(row.title || initialService.title),
-          description: String(row.description || initialService.description),
+          description: desc,
+          detailDescription: detailDesc,
           subservices: Array.isArray(rawSubservices)
             ? dbSubservices
             : initialService.subservices,
@@ -110,7 +124,7 @@ export default function ServiceDetailView({
           </h1>
 
           <p className="text-sm md:text-base font-roboto font-normal text-[#1C1C1A]/85 max-w-3xl leading-relaxed">
-            {service.description}
+            {service.detailDescription || service.description}
           </p>
         </header>
 

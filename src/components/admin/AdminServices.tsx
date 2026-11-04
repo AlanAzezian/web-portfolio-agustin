@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { servicesData, type Subservice } from "@/data/services";
+import {
+  servicesData,
+  parseMethodologyMetadata,
+  type Subservice,
+} from "@/data/services";
 import {
   Plus,
   Trash2,
@@ -18,6 +22,7 @@ export interface SupabaseServiceRow {
   order_number: string;
   title: string;
   description: string;
+  detail_description: string;
   cover_image?: string | null;
   subservices: Subservice[];
   methodology_title?: string | null;
@@ -40,9 +45,13 @@ function buildInitialSeedRows(): SupabaseServiceRow[] {
     order_number: srv.orderNumber,
     title: srv.title,
     description: srv.description,
+    detail_description: srv.detailDescription || srv.description,
     cover_image: srv.coverImage,
     subservices: srv.subservices,
-    methodology_title: srv.coverImage || "02 / ESPECIFICACIONES Y HERRAMIENTAS",
+    methodology_title: JSON.stringify({
+      cover_image: srv.coverImage,
+      detail_description: srv.detailDescription || srv.description,
+    }),
     methodology_steps: srv.technicalSpecs,
     order_index: idx + 1,
   }));
@@ -72,53 +81,95 @@ function normalizeSpecs(raw: unknown, fallback: string[] = []): string[] {
     .filter((s) => s.trim() !== "");
 }
 
-function extractCoverImage(
-  row: Record<string, unknown>,
-  fallback?: string
-): string {
-  if (typeof row.cover_image === "string" && row.cover_image.trim()) {
-    return row.cover_image.trim();
-  }
-  if (
-    typeof row.methodology_title === "string" &&
-    (row.methodology_title.startsWith("http") ||
-      row.methodology_title.startsWith("/"))
-  ) {
-    return row.methodology_title.trim();
-  }
-  return fallback || "/projects/centro-de-trasbordo/01-render-exterior.webp";
+function mapRawRowToServiceRow(
+  r: Record<string, unknown>,
+  idx: number
+): SupabaseServiceRow {
+  const id = String(r.id || "");
+  const localMatch = servicesData.find((s) => s.id === id);
+  const meta = parseMethodologyMetadata(r.methodology_title);
+
+  const description = String(r.description || localMatch?.description || "");
+  const detailDescription = String(
+    r.detail_description ||
+      r.long_description ||
+      meta.detailDescription ||
+      localMatch?.detailDescription ||
+      description
+  );
+  const coverImage = String(
+    (typeof r.cover_image === "string" && r.cover_image.trim()) ||
+      meta.coverImage ||
+      localMatch?.coverImage ||
+      "/projects/centro-de-trasbordo/01-render-exterior.webp"
+  );
+
+  return {
+    id,
+    order_number: String(
+      r.order_number ||
+        localMatch?.orderNumber ||
+        String(idx + 1).padStart(2, "0")
+    ),
+    title: String(r.title || localMatch?.title || ""),
+    description,
+    detail_description: detailDescription,
+    cover_image: coverImage,
+    subservices: normalizeSubservices(
+      r.subservices ?? r.scope_items ?? localMatch?.subservices ?? []
+    ),
+    methodology_title:
+      typeof r.methodology_title === "string" ? r.methodology_title : null,
+    methodology_steps: normalizeSpecs(
+      r.specifications ?? r.tools ?? r.methodology_steps,
+      localMatch?.technicalSpecs || []
+    ),
+    order_index: Number(r.order_index ?? idx + 1),
+  };
 }
 
 async function upsertServicesSafe(rows: SupabaseServiceRow[]) {
-  const fullPayload = rows.map((r, idx) => ({
-    id: r.id,
-    order_number: r.order_number,
-    title: r.title.trim(),
-    description: r.description.trim(),
-    cover_image:
-      r.cover_image || "/projects/centro-de-trasbordo/01-render-exterior.webp",
-    subservices: r.subservices
+  const fullPayload = rows.map((r, idx) => {
+    const coverUrl =
+      r.cover_image || "/projects/centro-de-trasbordo/01-render-exterior.webp";
+    const cleanDesc = r.description.trim();
+    const cleanDetailDesc = r.detail_description.trim() || cleanDesc;
+    const cleanSubservices = r.subservices
       .map((s) => ({ ...s, title: s.title.trim() }))
-      .filter((s) => s.title !== ""),
-    methodology_title:
-      r.cover_image ||
-      r.methodology_title ||
-      "02 / ESPECIFICACIONES Y HERRAMIENTAS",
-    methodology_steps: (r.methodology_steps || [])
+      .filter((s) => s.title !== "");
+    const cleanSpecs = (r.methodology_steps || [])
       .map((s) => s.trim())
-      .filter((s) => s !== ""),
-    order_index: r.order_index ?? idx + 1,
-  }));
+      .filter((s) => s !== "");
+
+    return {
+      id: r.id,
+      order_number: r.order_number,
+      title: r.title.trim(),
+      description: cleanDesc,
+      detail_description: cleanDetailDesc,
+      cover_image: coverUrl,
+      subservices: cleanSubservices,
+      specifications: cleanSpecs,
+      methodology_title: JSON.stringify({
+        cover_image: coverUrl,
+        detail_description: cleanDetailDesc,
+      }),
+      methodology_steps: cleanSpecs,
+      order_index: r.order_index ?? idx + 1,
+    };
+  });
 
   const { data, error } = await supabase
     .from("services")
     .upsert(fullPayload, { onConflict: "id" })
     .select("*");
 
-  if (error && error.message.toLowerCase().includes("cover_image")) {
+  if (error) {
+    // Fallback compatible con el esquema base de public.services en Supabase
+    // respaldando cover_image y detail_description en methodology_title y specifications en methodology_steps
     const fallbackPayload = fullPayload.map(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ({ cover_image, ...rest }) => rest
+      ({ cover_image, detail_description, specifications, ...rest }) => rest
     );
     return await supabase
       .from("services")
@@ -149,6 +200,7 @@ export default function AdminServices() {
   const [newOrderNumber, setNewOrderNumber] = useState("06");
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [newDetailDescription, setNewDetailDescription] = useState("");
   const [newSubservices, setNewSubservices] = useState<Subservice[]>([]);
   const [newModalSubInput, setNewModalSubInput] = useState("");
   const [newSpecs, setNewSpecs] = useState<string[]>([]);
@@ -192,31 +244,7 @@ export default function AdminServices() {
               rawList.length > 0
                 ? rawList
                 : (seedRows as unknown as Record<string, unknown>[])
-            ).map((r, idx) => {
-              const id = String(r.id || "");
-              const localMatch = servicesData.find((s) => s.id === id);
-              return {
-                id,
-                order_number: String(
-                  r.order_number || String(idx + 1).padStart(2, "0")
-                ),
-                title: String(r.title || ""),
-                description: String(r.description || ""),
-                cover_image: extractCoverImage(r, localMatch?.coverImage),
-                subservices: normalizeSubservices(
-                  r.subservices ?? r.scope_items
-                ),
-                methodology_title:
-                  typeof r.methodology_title === "string"
-                    ? r.methodology_title
-                    : null,
-                methodology_steps: normalizeSpecs(
-                  r.methodology_steps ?? r.specifications ?? r.tools,
-                  localMatch?.technicalSpecs || []
-                ),
-                order_index: Number(r.order_index ?? idx + 1),
-              };
-            });
+            ).map(mapRawRowToServiceRow);
             setServices(normalized);
             setFeedbackSuccess(
               "Tabla services inicializada automáticamente con los servicios del catálogo."
@@ -225,29 +253,7 @@ export default function AdminServices() {
         } else {
           const normalized: SupabaseServiceRow[] = (
             data as Record<string, unknown>[]
-          ).map((r, idx) => {
-            const id = String(r.id || "");
-            const localMatch = servicesData.find((s) => s.id === id);
-            return {
-              id,
-              order_number: String(
-                r.order_number || String(idx + 1).padStart(2, "0")
-              ),
-              title: String(r.title || ""),
-              description: String(r.description || ""),
-              cover_image: extractCoverImage(r, localMatch?.coverImage),
-              subservices: normalizeSubservices(r.subservices ?? r.scope_items),
-              methodology_title:
-                typeof r.methodology_title === "string"
-                  ? r.methodology_title
-                  : null,
-              methodology_steps: normalizeSpecs(
-                r.methodology_steps ?? r.specifications ?? r.tools,
-                localMatch?.technicalSpecs || []
-              ),
-              order_index: Number(r.order_index ?? idx + 1),
-            };
-          });
+          ).map(mapRawRowToServiceRow);
           setServices(normalized);
         }
       } catch (err) {
@@ -278,7 +284,12 @@ export default function AdminServices() {
 
   const handleFieldChange = (
     serviceId: string,
-    field: "title" | "description" | "order_number" | "cover_image",
+    field:
+      | "title"
+      | "description"
+      | "detail_description"
+      | "order_number"
+      | "cover_image",
     value: string
   ) => {
     setServices((prev) =>
@@ -316,7 +327,6 @@ export default function AdminServices() {
           ? {
               ...srv,
               cover_image: publicUrl,
-              methodology_title: publicUrl,
             }
           : srv
       );
@@ -346,7 +356,7 @@ export default function AdminServices() {
     }
   };
 
-  // --- Handlers para 01 / ALCANCE DEL SERVICIO (subservices) ---
+  // --- Handlers para 01 / ALCANCE DEL SERVICIO (subservices / scope_items) ---
   const handleSubserviceEdit = (
     serviceId: string,
     subIndex: number,
@@ -395,7 +405,7 @@ export default function AdminServices() {
     setNewSubInputs((prev) => ({ ...prev, [serviceId]: "" }));
   };
 
-  // --- Handlers para 02 / ESPECIFICACIONES Y HERRAMIENTAS (methodology_steps) ---
+  // --- Handlers para 02 / ESPECIFICACIONES Y HERRAMIENTAS (specifications / tools / methodology_steps) ---
   const handleSpecEdit = (
     serviceId: string,
     specIndex: number,
@@ -456,7 +466,7 @@ export default function AdminServices() {
         );
       } else {
         setFeedbackSuccess(
-          `Servicio [${service.order_number}] "${service.title}" guardado en Supabase.`
+          `Servicio [${service.order_number} / ${service.title}] guardado correctamente.`
         );
       }
     } catch (err) {
@@ -512,7 +522,7 @@ export default function AdminServices() {
       } else {
         setServices((prev) => prev.filter((s) => s.id !== id));
         setConfirmDeleteId(null);
-        setFeedbackSuccess("Servicio eliminado correctamente de Supabase.");
+        setFeedbackSuccess("Servicio eliminado correctamente.");
       }
     } catch (err) {
       setError(
@@ -529,6 +539,7 @@ export default function AdminServices() {
     setNewOrderNumber(nextNum);
     setNewTitle("");
     setNewDescription("");
+    setNewDetailDescription("");
     setNewSubservices([]);
     setNewModalSubInput("");
     setNewSpecs([]);
@@ -582,16 +593,23 @@ export default function AdminServices() {
           ? Math.max(...services.map((s) => s.order_index || 0)) + 1
           : 1;
 
+      const cleanDesc = newDescription.trim();
+      const cleanDetailDesc = newDetailDescription.trim() || cleanDesc;
+
       const newRow: SupabaseServiceRow = {
         id: cleanSlug,
         order_number:
           newOrderNumber.trim() ||
           String(services.length + 1).padStart(2, "0"),
         title: cleanTitle,
-        description: newDescription.trim(),
+        description: cleanDesc,
+        detail_description: cleanDetailDesc,
         cover_image: coverPublicUrl,
         subservices: newSubservices.filter((s) => s.title.trim() !== ""),
-        methodology_title: coverPublicUrl,
+        methodology_title: JSON.stringify({
+          cover_image: coverPublicUrl,
+          detail_description: cleanDetailDesc,
+        }),
         methodology_steps: newSpecs.filter((s) => s.trim() !== ""),
         order_index: nextOrderIndex,
       };
@@ -619,7 +637,7 @@ export default function AdminServices() {
   return (
     <div className="w-full font-roboto text-[#1C1C1A]">
       {/* Cabecera del Módulo */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1C1C1A]/15">
         <div>
           <span className="text-[11px] uppercase tracking-wider text-[#686661] block">
             ESPECIFICACIONES, IMAGEN REPRESENTATIVA & ALCANCE TÉCNICO
@@ -691,15 +709,15 @@ export default function AdminServices() {
         </div>
       )}
 
-      {/* Listado Editable de Servicios */}
+      {/* Listado Editable de Servicios en Dos Niveles Horizontales */}
       {loading ? (
-        <div className="mt-8 py-16 border border-neutral-200 bg-[#FFFFFF] flex items-center justify-center">
+        <div className="mt-8 py-16 border border-[#1C1C1A]/15 bg-white flex items-center justify-center">
           <span className="text-xs uppercase tracking-wider text-[#686661]">
             Cargando servicios desde Supabase...
           </span>
         </div>
       ) : (
-        <div className="mt-8 flex flex-col gap-8">
+        <div className="mt-8">
           {services.map((service) => {
             const isSavingThis = savingId === service.id;
             const isUploadingCover = uploadingCoverId === service.id;
@@ -712,30 +730,15 @@ export default function AdminServices() {
             return (
               <article
                 key={service.id}
-                className="border border-neutral-200 bg-[#FFFFFF] p-6"
+                className="bg-white border border-[#1C1C1A]/15 p-6 mb-8 rounded-none"
               >
-                {/* Encabezado de la tarjeta de servicio */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-neutral-200">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      value={service.order_number}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          service.id,
-                          "order_number",
-                          e.target.value
-                        )
-                      }
-                      aria-label="Número de orden"
-                      className="w-12 h-7 text-center bg-[#099AD7]/10 text-[#099AD7] text-xs font-semibold tabular-nums tracking-wider border border-[#099AD7]/30 focus:outline-none focus:border-[#099AD7]"
-                    />
-                    <span className="text-xs font-medium uppercase tracking-wider text-[#1C1C1A]">
-                      {service.title}
-                    </span>
-                  </div>
+                {/* A. Cabecera Superior de la Tarjeta */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-6 border-b border-[#1C1C1A]/10">
+                  <span className="text-xs font-medium uppercase tracking-wider text-[#099AD7] tabular-nums">
+                    [ {service.order_number} / {service.title} ]
+                  </span>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2.5">
                     {isConfirmingDelete ? (
                       <div className="flex items-center gap-2 border border-[#A84A4A] bg-[#A84A4A]/5 px-2.5 py-1">
                         <span className="text-[11px] uppercase tracking-wider text-[#A84A4A] font-medium">
@@ -762,10 +765,10 @@ export default function AdminServices() {
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteId(service.id)}
-                        className="inline-flex items-center gap-1.5 h-9 px-3 border border-neutral-200 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white hover:border-[#A84A4A] text-xs uppercase tracking-wider transition-colors"
+                        className="inline-flex items-center gap-1.5 h-9 px-3.5 border border-[#1C1C1A]/15 text-[#A84A4A]/85 hover:bg-[#A84A4A] hover:text-white hover:border-[#A84A4A] text-xs uppercase tracking-wider rounded-none transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        <span>Eliminar servicio</span>
+                        <span>ELIMINAR</span>
                       </button>
                     )}
 
@@ -783,16 +786,16 @@ export default function AdminServices() {
                   </div>
                 </div>
 
-                {/* Cuerpo en 12 columnas: Datos principales + Ficha Técnica Interior (01 y 02) */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-5">
-                  {/* Columna Izquierda (5 cols): Título, Descripción e Imagen Representativa */}
-                  <div className="lg:col-span-5 flex flex-col gap-4">
+                {/* B. Bloque Superior: Nivel Acordeón (/servicios) */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-6 border-b border-[#1C1C1A]/10">
+                  {/* Columna Izquierda (6 cols): Título del Servicio + Imagen Representativa del Acordeón */}
+                  <div className="md:col-span-6 flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
                       <label
                         htmlFor={`srv-title-${service.id}`}
-                        className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
+                        className="text-[11px] font-medium uppercase tracking-wider text-[#1C1C1A]/60"
                       >
-                        Título del servicio
+                        TÍTULO DEL SERVICIO
                       </label>
                       <input
                         id={`srv-title-${service.id}`}
@@ -801,40 +804,17 @@ export default function AdminServices() {
                         onChange={(e) =>
                           handleFieldChange(service.id, "title", e.target.value)
                         }
-                        className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-sm border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                        className="w-full h-10 px-3 bg-white text-[#1C1C1A] text-sm border border-[#1C1C1A]/20 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
                       />
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor={`srv-desc-${service.id}`}
-                        className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
-                      >
-                        Descripción principal
-                      </label>
-                      <textarea
-                        id={`srv-desc-${service.id}`}
-                        rows={3}
-                        value={service.description}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            service.id,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                        className="w-full p-3 bg-[#FFFFFF] text-[#1C1C1A] text-sm border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors leading-relaxed resize-y"
-                      />
-                    </div>
-
-                    {/* Imagen representativa del servicio (miniatura limpia + botón Reemplazar imagen) */}
-                    <div className="flex flex-col gap-2 pt-2 border-t border-neutral-100">
-                      <span className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium">
-                        Imagen representativa
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[11px] font-medium uppercase tracking-wider text-[#1C1C1A]/60">
+                        IMAGEN REPRESENTATIVA DEL ACORDEÓN
                       </span>
 
                       <div className="flex items-center gap-4">
-                        <div className="w-36 relative aspect-[3/2] border border-neutral-300 bg-neutral-50 overflow-hidden shrink-0">
+                        <div className="w-40 relative aspect-[3/2] border border-[#1C1C1A]/15 bg-neutral-50 overflow-hidden shrink-0">
                           {coverSrc ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -849,7 +829,7 @@ export default function AdminServices() {
                           )}
                         </div>
 
-                        <label className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium transition-colors cursor-pointer">
+                        <label className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium rounded-none transition-colors cursor-pointer">
                           <Upload className="w-3.5 h-3.5" />
                           <span>
                             {isUploadingCover
@@ -873,15 +853,65 @@ export default function AdminServices() {
                     </div>
                   </div>
 
-                  {/* Columna Derecha (7 cols): Ficha Técnica Interior (/servicios/[id]) */}
-                  <div className="lg:col-span-7 flex flex-col gap-6 lg:border-l lg:border-neutral-200 lg:pl-6">
-                    {/* Bloque 01 / ALCANCE DEL SERVICIO */}
+                  {/* Columna Derecha (6 cols): Descripción del Acordeón (Catálogo General) */}
+                  <div className="md:col-span-6 flex flex-col justify-start gap-2">
+                    <label
+                      htmlFor={`srv-desc-${service.id}`}
+                      className="text-[11px] font-medium uppercase tracking-wider text-[#1C1C1A]/60"
+                    >
+                      DESCRIPCIÓN DEL ACORDEÓN (CATÁLOGO GENERAL)
+                    </label>
+                    <textarea
+                      id={`srv-desc-${service.id}`}
+                      rows={5}
+                      value={service.description}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          service.id,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      className="w-full p-3 bg-white text-[#1C1C1A] text-sm border border-[#1C1C1A]/20 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors leading-relaxed resize-y"
+                    />
+                  </div>
+                </div>
+
+                {/* C. Bloque Inferior: Nivel Detalle Interior (/servicios/[id]) */}
+                <div className="pt-6 flex flex-col gap-4">
+                  {/* Descripción Extendida de Detalle (Ancho Completo) */}
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor={`srv-detail-desc-${service.id}`}
+                      className="text-[11px] font-medium uppercase tracking-wider text-[#1C1C1A]/60"
+                    >
+                      DESCRIPCIÓN EXTENDIDA (FICHA INTERNA DEL SERVICIO)
+                    </label>
+                    <textarea
+                      id={`srv-detail-desc-${service.id}`}
+                      rows={3}
+                      value={service.detail_description}
+                      onChange={(e) =>
+                        handleFieldChange(
+                          service.id,
+                          "detail_description",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Bajada introductoria que encabeza la vista de detalle /servicios/[id]..."
+                      className="w-full p-3 bg-white text-[#1C1C1A] text-sm border border-[#1C1C1A]/20 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors leading-relaxed resize-y"
+                    />
+                  </div>
+
+                  {/* Cuadrícula de 2 Columnas Inferior: 01 Alcance y 02 Especificaciones */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                    {/* Columna 01 / ALCANCE DEL SERVICIO */}
                     <div className="flex flex-col">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs uppercase tracking-wider text-[#099AD7] font-medium">
+                        <span className="text-xs uppercase tracking-wider font-medium text-[#099AD7]">
                           01 / ALCANCE DEL SERVICIO
                         </span>
-                        <span className="text-[10px] uppercase tracking-wider text-[#686661]">
+                        <span className="text-[10px] uppercase tracking-wider text-[#1C1C1A]/50 tabular-nums">
                           {service.subservices.length}{" "}
                           {service.subservices.length === 1 ? "ÍTEM" : "ÍTEMS"}
                         </span>
@@ -907,16 +937,16 @@ export default function AdminServices() {
                                 )
                               }
                               aria-label={`Ítem de alcance ${subIdx + 1}`}
-                              className="flex-1 h-9 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                              className="flex-1 h-9 px-3 bg-white text-[#1C1C1A] text-xs border border-[#1C1C1A]/20 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
                             />
                             <button
                               type="button"
                               onClick={() =>
                                 handleSubserviceDelete(service.id, subIdx)
                               }
-                              title="Eliminar ítem del alcance"
+                              title="Eliminar ítem"
                               aria-label={`Eliminar ítem ${sub.title}`}
-                              className="h-9 px-2.5 border border-neutral-200 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white hover:border-[#A84A4A] transition-colors"
+                              className="h-9 px-2.5 border border-[#1C1C1A]/15 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white hover:border-[#A84A4A] rounded-none transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -940,31 +970,30 @@ export default function AdminServices() {
                               handleSubserviceAdd(service.id);
                             }
                           }}
-                          placeholder="Agregar ítem o tarea al alcance del servicio..."
-                          className="flex-1 h-9 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                          placeholder="Nuevo ítem del alcance..."
+                          className="flex-1 h-9 px-3 bg-white text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-[#1C1C1A]/20 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
                         />
                         <button
                           type="button"
                           onClick={() => handleSubserviceAdd(service.id)}
-                          className="inline-flex items-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium transition-colors"
+                          className="inline-flex items-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium rounded-none transition-colors shrink-0"
                         >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Agregar</span>
+                          <span>+ AGREGAR ÍTEM</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Bloque 02 / ESPECIFICACIONES Y HERRAMIENTAS */}
-                    <div className="flex flex-col pt-5 border-t border-neutral-200">
+                    {/* Columna 02 / ESPECIFICACIONES Y HERRAMIENTAS */}
+                    <div className="flex flex-col">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs uppercase tracking-wider text-[#099AD7] font-medium">
+                        <span className="text-xs uppercase tracking-wider font-medium text-[#099AD7]">
                           02 / ESPECIFICACIONES Y HERRAMIENTAS
                         </span>
-                        <span className="text-[10px] uppercase tracking-wider text-[#686661]">
+                        <span className="text-[10px] uppercase tracking-wider text-[#1C1C1A]/50 tabular-nums">
                           {(service.methodology_steps || []).length}{" "}
                           {(service.methodology_steps || []).length === 1
-                            ? "ESPECIFICACIÓN"
-                            : "ESPECIFICACIONES"}
+                            ? "ÍTEM"
+                            : "ÍTEMS"}
                         </span>
                       </div>
 
@@ -991,7 +1020,7 @@ export default function AdminServices() {
                                 aria-label={`Especificación o herramienta ${
                                   specIdx + 1
                                 }`}
-                                className="flex-1 h-9 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                                className="flex-1 h-9 px-3 bg-white text-[#1C1C1A] text-xs border border-[#1C1C1A]/20 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
                               />
                               <button
                                 type="button"
@@ -1000,7 +1029,7 @@ export default function AdminServices() {
                                 }
                                 title="Eliminar especificación"
                                 aria-label={`Eliminar especificación ${spec}`}
-                                className="h-9 px-2.5 border border-neutral-200 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white hover:border-[#A84A4A] transition-colors"
+                                className="h-9 px-2.5 border border-[#1C1C1A]/15 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white hover:border-[#A84A4A] rounded-none transition-colors"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -1025,16 +1054,15 @@ export default function AdminServices() {
                               handleSpecAdd(service.id);
                             }
                           }}
-                          placeholder="Agregar software, herramienta o estándar técnico..."
-                          className="flex-1 h-9 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                          placeholder="Nuevo software o estándar técnico..."
+                          className="flex-1 h-9 px-3 bg-white text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-[#1C1C1A]/20 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
                         />
                         <button
                           type="button"
                           onClick={() => handleSpecAdd(service.id)}
-                          className="inline-flex items-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium transition-colors"
+                          className="inline-flex items-center gap-1.5 h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium rounded-none transition-colors shrink-0"
                         >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Agregar</span>
+                          <span>+ AGREGAR ÍTEM</span>
                         </button>
                       </div>
                     </div>
@@ -1086,7 +1114,7 @@ export default function AdminServices() {
             >
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium">
+                  <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 font-medium">
                     N° Orden
                   </label>
                   <input
@@ -1099,7 +1127,7 @@ export default function AdminServices() {
                 </div>
 
                 <div className="sm:col-span-3 flex flex-col gap-1">
-                  <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium">
+                  <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 font-medium">
                     Título del Servicio
                   </label>
                   <input
@@ -1114,22 +1142,35 @@ export default function AdminServices() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium">
-                  Descripción principal
+                <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 font-medium">
+                  Descripción del Acordeón (Catálogo General)
                 </label>
                 <textarea
                   rows={3}
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Descripción técnica del alcance del servicio..."
+                  placeholder="Párrafo corto que se despliega en el acordeón de /servicios..."
+                  className="p-3 border border-neutral-300 text-sm focus:outline-none focus:border-[#099AD7] resize-y"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 font-medium">
+                  Descripción Extendida (Ficha Interna del Servicio)
+                </label>
+                <textarea
+                  rows={3}
+                  value={newDetailDescription}
+                  onChange={(e) => setNewDetailDescription(e.target.value)}
+                  placeholder="Bajada introductoria para la vista de detalle /servicios/[id]..."
                   className="p-3 border border-neutral-300 text-sm focus:outline-none focus:border-[#099AD7] resize-y"
                 />
               </div>
 
               {/* Imagen Representativa */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium">
-                  Imagen representativa
+                <label className="text-[11px] uppercase tracking-wider text-[#1C1C1A]/60 font-medium">
+                  Imagen Representativa del Acordeón
                 </label>
                 {newCoverPreview ? (
                   <div className="relative w-full h-36 border border-neutral-300 bg-neutral-50 overflow-hidden">
@@ -1175,7 +1216,7 @@ export default function AdminServices() {
 
               {/* 01 / Alcance del Servicio */}
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] uppercase tracking-wider text-[#099AD7] font-medium">
+                <label className="text-xs uppercase tracking-wider text-[#099AD7] font-medium">
                   01 / ALCANCE DEL SERVICIO ({newSubservices.length})
                 </label>
                 {newSubservices.map((sub, idx) => (
@@ -1239,14 +1280,14 @@ export default function AdminServices() {
                     }}
                     className="h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium"
                   >
-                    + Agregar
+                    + AGREGAR ÍTEM
                   </button>
                 </div>
               </div>
 
               {/* 02 / Especificaciones y Herramientas */}
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] uppercase tracking-wider text-[#099AD7] font-medium">
+                <label className="text-xs uppercase tracking-wider text-[#099AD7] font-medium">
                   02 / ESPECIFICACIONES Y HERRAMIENTAS ({newSpecs.length})
                 </label>
                 {newSpecs.map((spec, idx) => (
@@ -1283,7 +1324,7 @@ export default function AdminServices() {
                         setNewModalSpecInput("");
                       }
                     }}
-                    placeholder="Agregar software, herramienta o estándar..."
+                    placeholder="Agregar software o estándar técnico..."
                     className="flex-1 h-9 px-3 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
                   />
                   <button
@@ -1296,7 +1337,7 @@ export default function AdminServices() {
                     }}
                     className="h-9 px-3.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium"
                   >
-                    + Agregar
+                    + AGREGAR ÍTEM
                   </button>
                 </div>
               </div>
