@@ -23,12 +23,64 @@ const QUERY_TO_TAG: Record<string, FilterTag> = {
   SERVICIOS: "SERVICIOS",
 };
 
+// Función auxiliar para estimar la altura de una tarjeta según su aspect-ratio
+const estimateItemHeight = (project: Project): number => {
+  const isVertical =
+    project.aspectRatio === "vertical" ||
+    project.aspectRatio === "4/5" ||
+    project.aspectRatio === "3/4";
+  const isWide =
+    project.aspectRatio === "wide" || project.aspectRatio === "16/9";
+
+  if (isVertical) return 460;
+  if (isWide) return 240;
+  return 320; // proporción estándar 3:2 / 4:3
+};
+
+// Distribuir proyectos buscando siempre la columna con menor altura acumulada
+const distributeProjects = (
+  items: Project[],
+  columnCount = 4,
+  measuredHeights: Record<string, number> = {}
+) => {
+  const columns: Project[][] = Array.from({ length: columnCount }, () => []);
+  const colHeights = new Array<number>(columnCount).fill(0);
+
+  items.forEach((project) => {
+    // 1. Encontrar cuál es la columna más corta en este instante
+    let shortestColIndex = 0;
+    let minHeight = colHeights[0];
+
+    for (let i = 1; i < columnCount; i++) {
+      if (colHeights[i] < minHeight) {
+        minHeight = colHeights[i];
+        shortestColIndex = i;
+      }
+    }
+
+    // 2. Colocar el proyecto en la columna más vacía
+    columns[shortestColIndex].push(project);
+
+    // 3. Sumar la altura de la tarjeta a esa columna
+    const height =
+      measuredHeights[project.id] ||
+      project.height ||
+      estimateItemHeight(project);
+    colHeights[shortestColIndex] += height;
+  });
+
+  return columns;
+};
+
 export default function ProjectGrid() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
   const [projectsList, setProjectsList] = useState<Project[]>(fallbackProjects);
+  const [measuredHeights, setMeasuredHeights] = useState<Record<string, number>>(
+    {}
+  );
 
   const catParam = searchParams.get("cat")?.toUpperCase() ?? null;
   const selectedTag: FilterTag | null =
@@ -60,6 +112,14 @@ export default function ProjectGrid() {
           const tags = Array.isArray(row.tags)
             ? (row.tags as string[])
             : ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"];
+          const aspectRatio =
+            typeof row.aspect_ratio === "string"
+              ? row.aspect_ratio
+              : typeof row.aspectRatio === "string"
+                ? row.aspectRatio
+                : undefined;
+          const height =
+            typeof row.height === "number" ? row.height : undefined;
 
           return {
             id,
@@ -67,6 +127,8 @@ export default function ProjectGrid() {
             coverImage,
             images,
             tags,
+            aspectRatio,
+            height,
           };
         });
 
@@ -103,19 +165,18 @@ export default function ProjectGrid() {
     );
   }, [selectedTag, projectsList]);
 
-  // Dividir los proyectos filtrados en 4 columnas balanceadas para desktop
-  const cols: Project[][] = [[], [], [], []];
-  filteredProjects.forEach((project, idx) => {
-    cols[idx % 4].push(project);
-  });
+  const desktopCols = useMemo(
+    () => distributeProjects(filteredProjects, 4, measuredHeights),
+    [filteredProjects, measuredHeights]
+  );
 
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
-      {/* Grilla Masonry en 4 columnas independientes alineadas con los filtros */}
+      {/* Grilla Masonry inteligente que asigna cada proyecto a la columna más corta */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start">
-        {cols.map((columnProjects, colIdx) => (
-          <div key={colIdx} className="flex flex-col gap-8">
-            {columnProjects.map((project) => (
+        {desktopCols.map((colProjects, colIndex) => (
+          <div key={colIndex} className="flex flex-col gap-6 md:gap-8">
+            {colProjects.map((project) => (
               <div key={project.id} className="group w-full">
                 <Link
                   className="block focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
@@ -123,9 +184,23 @@ export default function ProjectGrid() {
                 >
                   <div className="w-full overflow-hidden bg-neutral-100 border border-[#1C1C1A]/10">
                     <img
-                      src={project.coverImage || project.images[0]}
+                      src={project.coverImage || project.images?.[0]}
                       alt={project.title}
                       className="w-full h-auto object-contain block transition-transform duration-500 group-hover:scale-[1.02]"
+                      loading="lazy"
+                      onLoad={(e) => {
+                        const { naturalWidth, naturalHeight } = e.currentTarget;
+                        if (naturalWidth > 0 && naturalHeight > 0) {
+                          const computedHeight =
+                            Math.round((naturalHeight / naturalWidth) * 400) +
+                            60;
+                          setMeasuredHeights((prev) =>
+                            prev[project.id] === computedHeight
+                              ? prev
+                              : { ...prev, [project.id]: computedHeight }
+                          );
+                        }
+                      }}
                     />
                   </div>
                   <h3 className="mt-3 text-base md:text-[17px] font-roboto font-medium text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200 leading-snug tracking-tight">

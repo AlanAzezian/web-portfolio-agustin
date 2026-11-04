@@ -4,6 +4,8 @@ export interface Project {
   coverImage: string;
   images: string[];
   tags?: string[];
+  aspectRatio?: string;
+  height?: number;
 }
 
 export const DEFAULT_BLUR_DATA_URL =
