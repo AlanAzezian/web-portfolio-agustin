@@ -188,27 +188,27 @@ export default function ProjectGrid() {
 
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
-      {/* Retícula de 4 columnas que arranca inmediatamente debajo del header */}
+      {/* Layout Masonry fluido de 4 columnas en escritorio */}
       <div
         ref={gridRef}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start"
+        className="columns-1 sm:columns-2 lg:columns-4 gap-6 md:gap-8 [column-fill:_balance]"
       >
         {filteredProjects.map((project) => (
-          <div key={project.id} className="w-full">
+          <div key={project.id} className="break-inside-avoid mb-8 group">
             <Link
               href={`/proyectos/${project.id}`}
               data-project-id={project.id}
-              className="project-card-reveal group flex flex-col w-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
+              className="project-card-reveal flex flex-col w-full focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
             >
-              {/* Portada con aspect ratio intrínseco flexible */}
-              <div className="project-image-mask relative w-full overflow-hidden bg-[#FFFFFF]">
+              {/* Portada con aspect-ratio dinámico y escala contenida */}
+              <div className="project-image-mask relative w-full max-h-[340px] overflow-hidden bg-[#FFFFFF]">
                 <Image
                   src={project.coverImage}
                   alt={project.title}
                   width={1600}
                   height={1067}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="w-full h-auto object-contain block"
+                  className="w-full h-auto max-h-[340px] object-cover block"
                 />
               </div>
 
