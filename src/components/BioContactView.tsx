@@ -126,52 +126,89 @@ export default function BioContactView() {
     };
   }, []);
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastClickedSectionRef = useRef<BioSectionId | null>(null);
+  const isAutoScrollingRef = useRef(false);
+  const [accordionMinHeight, setAccordionMinHeight] = useState<number | null>(
+    null
+  );
 
-  const scrollToSection = useCallback((sectionId: BioSectionId) => {
-    if (typeof window === "undefined") return;
+  const handleScrollToSection = useCallback(
+    (sectionId: BioSectionId, onScrollFinish?: () => void) => {
+      if (typeof window === "undefined") return;
 
-    const targetElement =
-      sectionId === "experiencia"
-        ? sectionRefs.current["experiencia"]
-        : sectionRefs.current["sobre-mi"];
+      const targetElement =
+        sectionId === "experiencia"
+          ? sectionRefs.current["experiencia"]
+          : sectionRefs.current["sobre-mi"];
 
-    if (window.__lenis && targetElement) {
-      window.__lenis.scrollTo(targetElement, {
-        offset: -85, // Margen seguro bajo el header
-        duration: 1.2, // Scroll pausado y suave
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Easing exponencial suave
-      });
-    }
-  }, []);
+      if (window.__lenis && targetElement) {
+        isAutoScrollingRef.current = true;
+        window.__lenis.scrollTo(targetElement, {
+          offset: -85, // Margen seguro bajo la Navbar
+          duration: 1.6, // Duración pausada y suave sin disparos bruscos
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Curva exponencial desacelerada ultra-suave
+          immediate: false,
+          lock: false,
+          onComplete: () => {
+            isAutoScrollingRef.current = false;
+            onScrollFinish?.();
+          },
+        });
+      } else {
+        onScrollFinish?.();
+      }
+    },
+    []
+  );
 
   const handleToggleSection = (sectionId: BioSectionId) => {
     const isOpening = activeSection !== sectionId;
-    lastClickedSectionRef.current = isOpening ? sectionId : null;
-    setActiveSection(isOpening ? sectionId : null);
 
     if (
       isOpening &&
       (sectionId === "habilidades" || sectionId === "sobre-mi") &&
       typeof window !== "undefined" &&
-      window.scrollY > 120
+      window.scrollY > 80
     ) {
-      scrollToSection(sectionId);
+      if (containerRef.current) {
+        setAccordionMinHeight(containerRef.current.offsetHeight);
+      }
+      lastClickedSectionRef.current = null;
+      setActiveSection(sectionId);
+
+      requestAnimationFrame(() => {
+        handleScrollToSection(sectionId, () => {
+          setAccordionMinHeight(null);
+          requestAnimationFrame(() => {
+            window.__lenis?.resize();
+            ScrollTrigger.refresh();
+          });
+        });
+      });
+      return;
     }
+
+    setAccordionMinHeight(null);
+    lastClickedSectionRef.current = isOpening ? sectionId : null;
+    setActiveSection(isOpening ? sectionId : null);
   };
 
   const handleSectionAnimationComplete = (sectionId: BioSectionId) => {
     if (typeof window === "undefined") return;
 
-    window.__lenis?.resize();
     ScrollTrigger.refresh();
+
+    if (!isAutoScrollingRef.current) {
+      window.__lenis?.resize();
+    }
 
     if (
       lastClickedSectionRef.current === sectionId &&
       activeSection === sectionId
     ) {
-      scrollToSection(sectionId);
+      handleScrollToSection(sectionId);
       lastClickedSectionRef.current = null;
     }
   };
@@ -257,7 +294,13 @@ export default function BioContactView() {
   )}`;
 
   return (
-    <div className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-start bg-[#FFFFFF] text-[#1C1C1A] font-roboto">
+    <div
+      ref={containerRef}
+      style={
+        accordionMinHeight ? { minHeight: `${accordionMinHeight}px` } : undefined
+      }
+      className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8 pt-1 pb-12 md:pt-2 md:pb-16 min-h-[calc(100vh-5rem)] flex flex-col justify-start bg-[#FFFFFF] text-[#1C1C1A] font-roboto"
+    >
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -304,17 +347,32 @@ export default function BioContactView() {
                   {isOpen && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{
-                        height: {
-                          duration: 0.9,
-                          ease: [0.16, 1, 0.3, 1],
+                      animate={{
+                        height: "auto",
+                        opacity: 1,
+                        transition: {
+                          height: { duration: 1.1, ease: [0.16, 1, 0.3, 1] },
+                          opacity: {
+                            duration: 0.8,
+                            ease: [0.25, 1, 0.5, 1],
+                            delay: 0.05,
+                          },
                         },
+                      }}
+                      exit={{
+                        height: 0,
+                        opacity: 0,
+                        transition: {
+                          height: { duration: 1.0, ease: [0.25, 1, 0.5, 1] },
+                          opacity: { duration: 0.6, ease: [0.25, 1, 0.5, 1] },
+                        },
+                      }}
+                      transition={{
+                        height: { duration: 1.1, ease: [0.16, 1, 0.3, 1] },
                         opacity: {
-                          duration: 0.65,
+                          duration: 0.8,
                           ease: [0.25, 1, 0.5, 1],
-                          delay: 0.08,
+                          delay: 0.05,
                         },
                       }}
                       className="overflow-hidden will-change-[height,opacity]"
@@ -526,22 +584,51 @@ export default function BioContactView() {
                                         {isWorkOpen && (
                                           <motion.div
                                             initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: "auto", opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
+                                            animate={{
+                                              height: "auto",
+                                              opacity: 1,
+                                              transition: {
+                                                height: {
+                                                  duration: 1.1,
+                                                  ease: [0.16, 1, 0.3, 1],
+                                                },
+                                                opacity: {
+                                                  duration: 0.8,
+                                                  ease: [0.25, 1, 0.5, 1],
+                                                  delay: 0.05,
+                                                },
+                                              },
+                                            }}
+                                            exit={{
+                                              height: 0,
+                                              opacity: 0,
+                                              transition: {
+                                                height: {
+                                                  duration: 1.0,
+                                                  ease: [0.25, 1, 0.5, 1],
+                                                },
+                                                opacity: {
+                                                  duration: 0.6,
+                                                  ease: [0.25, 1, 0.5, 1],
+                                                },
+                                              },
+                                            }}
                                             transition={{
                                               height: {
-                                                duration: 0.9,
+                                                duration: 1.1,
                                                 ease: [0.16, 1, 0.3, 1],
                                               },
                                               opacity: {
-                                                duration: 0.65,
+                                                duration: 0.8,
                                                 ease: [0.25, 1, 0.5, 1],
-                                                delay: 0.08,
+                                                delay: 0.05,
                                               },
                                             }}
                                             onAnimationComplete={() => {
                                               if (typeof window !== "undefined") {
-                                                window.__lenis?.resize();
+                                                if (!isAutoScrollingRef.current) {
+                                                  window.__lenis?.resize();
+                                                }
                                                 ScrollTrigger.refresh();
                                               }
                                             }}
