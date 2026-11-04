@@ -41,9 +41,12 @@ async function resolveService(id: string): Promise<ServiceItem | null> {
 
     if (!error && data) {
       const row = data as Record<string, unknown>;
-      const dbSubservices = normalizeSubservices(row.subservices);
-      const dbSpecs = Array.isArray(row.methodology_steps)
-        ? (row.methodology_steps as string[]).filter(Boolean)
+      const rawSubservices = row.subservices ?? row.scope_items;
+      const dbSubservices = normalizeSubservices(rawSubservices);
+      const rawSpecs =
+        row.methodology_steps ?? row.specifications ?? row.tools;
+      const dbSpecs = Array.isArray(rawSpecs)
+        ? (rawSpecs as string[]).filter(Boolean)
         : [];
 
       return {
@@ -56,12 +59,12 @@ async function resolveService(id: string): Promise<ServiceItem | null> {
             localMatch?.coverImage ||
             "/projects/centro-de-trasbordo/01-render-exterior.webp"
         ),
-        subservices:
-          dbSubservices.length > 0
-            ? dbSubservices
-            : localMatch?.subservices || [],
-        technicalSpecs:
-          dbSpecs.length > 0 ? dbSpecs : localMatch?.technicalSpecs || [],
+        subservices: Array.isArray(rawSubservices)
+          ? dbSubservices
+          : localMatch?.subservices || [],
+        technicalSpecs: Array.isArray(rawSpecs)
+          ? dbSpecs
+          : localMatch?.technicalSpecs || [],
       };
     }
   } catch {

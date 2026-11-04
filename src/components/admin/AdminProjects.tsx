@@ -302,13 +302,19 @@ export default function AdminProjects() {
       // 3. Guardar registro en base de datos
       setStatusMessage("Guardando proyecto...");
 
+      const existingProjects = projects;
+      const nextOrderIndex =
+        existingProjects.length > 0
+          ? Math.max(...existingProjects.map((p) => p.order_index || 0)) + 1
+          : 1;
+
       const { error: insertError } = await supabase.from("projects").insert([
         {
           id: cleanSlug,
           title: cleanTitle,
           cover_image: coverPublicUrl,
           images: galleryPublicUrls,
-          order_index: Date.now(),
+          order_index: nextOrderIndex,
         },
       ]);
 

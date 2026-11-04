@@ -48,9 +48,12 @@ export default function ServiceDetailView({
         if (!active || error || !data) return;
 
         const row = data as Record<string, unknown>;
-        const dbSubservices = normalizeSubservices(row.subservices);
-        const dbSpecs = Array.isArray(row.methodology_steps)
-          ? (row.methodology_steps as string[]).filter(Boolean)
+        const rawSubservices = row.subservices ?? row.scope_items;
+        const dbSubservices = normalizeSubservices(rawSubservices);
+        const rawSpecs =
+          row.methodology_steps ?? row.specifications ?? row.tools;
+        const dbSpecs = Array.isArray(rawSpecs)
+          ? (rawSpecs as string[]).filter(Boolean)
           : [];
 
         setService({
@@ -58,12 +61,12 @@ export default function ServiceDetailView({
           orderNumber: String(row.order_number || initialService.orderNumber),
           title: String(row.title || initialService.title),
           description: String(row.description || initialService.description),
-          subservices:
-            dbSubservices.length > 0
-              ? dbSubservices
-              : initialService.subservices,
-          technicalSpecs:
-            dbSpecs.length > 0 ? dbSpecs : initialService.technicalSpecs,
+          subservices: Array.isArray(rawSubservices)
+            ? dbSubservices
+            : initialService.subservices,
+          technicalSpecs: Array.isArray(rawSpecs)
+            ? dbSpecs
+            : initialService.technicalSpecs,
         });
       } catch {
         // Fallback silencioso a initialService
