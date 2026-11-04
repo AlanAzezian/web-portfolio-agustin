@@ -129,10 +129,36 @@ export default function BioContactView() {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastClickedSectionRef = useRef<BioSectionId | null>(null);
 
+  const scrollToSection = useCallback((sectionId: BioSectionId) => {
+    if (typeof window === "undefined") return;
+
+    const targetElement =
+      sectionId === "experiencia"
+        ? sectionRefs.current["experiencia"]
+        : sectionRefs.current["sobre-mi"];
+
+    if (window.__lenis && targetElement) {
+      window.__lenis.scrollTo(targetElement, {
+        offset: -85, // Margen seguro bajo el header
+        duration: 1.2, // Scroll pausado y suave
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Easing exponencial suave
+      });
+    }
+  }, []);
+
   const handleToggleSection = (sectionId: BioSectionId) => {
     const isOpening = activeSection !== sectionId;
     lastClickedSectionRef.current = isOpening ? sectionId : null;
     setActiveSection(isOpening ? sectionId : null);
+
+    if (
+      isOpening &&
+      (sectionId === "habilidades" || sectionId === "sobre-mi") &&
+      typeof window !== "undefined" &&
+      window.scrollY > 120
+    ) {
+      scrollToSection(sectionId);
+    }
   };
 
   const handleSectionAnimationComplete = (sectionId: BioSectionId) => {
@@ -145,30 +171,7 @@ export default function BioContactView() {
       lastClickedSectionRef.current === sectionId &&
       activeSection === sectionId
     ) {
-      if (window.__lenis) {
-        if (sectionId === "experiencia") {
-          window.__lenis.scrollTo("#experiencia", {
-            offset: -90,
-            duration: 0.6,
-          });
-        } else if (sectionId === "habilidades") {
-          window.__lenis.scrollTo("#sobre-mi", {
-            offset: -80,
-            duration: 0.6,
-          });
-        } else if (sectionId === "sobre-mi") {
-          window.__lenis.scrollTo("#sobre-mi", {
-            offset: -80,
-            duration: 0.6,
-          });
-        }
-      } else {
-        const targetEl =
-          sectionId === "experiencia"
-            ? sectionRefs.current["experiencia"]
-            : sectionRefs.current["sobre-mi"];
-        targetEl?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      scrollToSection(sectionId);
       lastClickedSectionRef.current = null;
     }
   };
@@ -272,7 +275,7 @@ export default function BioContactView() {
                 ref={(el) => {
                   sectionRefs.current[section.id] = el;
                 }}
-                className="border-b border-[#1C1C1A]/15 bg-[#FFFFFF] scroll-mt-24"
+                className="border-b border-[#1C1C1A]/15 bg-[#FFFFFF]"
               >
                 <button
                   type="button"
@@ -303,11 +306,21 @@ export default function BioContactView() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+                      transition={{
+                        height: {
+                          duration: 0.9,
+                          ease: [0.16, 1, 0.3, 1],
+                        },
+                        opacity: {
+                          duration: 0.65,
+                          ease: [0.25, 1, 0.5, 1],
+                          delay: 0.08,
+                        },
+                      }}
+                      className="overflow-hidden will-change-[height,opacity]"
                       onAnimationComplete={() =>
                         handleSectionAnimationComplete(section.id)
                       }
-                      className="overflow-hidden will-change-[height,opacity]"
                     >
                       <div className="pb-8 pt-2 pl-0 sm:pl-10 md:pl-15 max-w-4xl mx-auto w-full">
                         {/* =====================================================
@@ -516,8 +529,15 @@ export default function BioContactView() {
                                             animate={{ height: "auto", opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
                                             transition={{
-                                              duration: 0.3,
-                                              ease: [0.25, 1, 0.5, 1],
+                                              height: {
+                                                duration: 0.9,
+                                                ease: [0.16, 1, 0.3, 1],
+                                              },
+                                              opacity: {
+                                                duration: 0.65,
+                                                ease: [0.25, 1, 0.5, 1],
+                                                delay: 0.08,
+                                              },
                                             }}
                                             onAnimationComplete={() => {
                                               if (typeof window !== "undefined") {
