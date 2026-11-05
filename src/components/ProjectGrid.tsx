@@ -203,7 +203,7 @@ export default function ProjectGrid() {
                     <img
                       src={project.coverImage || project.images?.[0]}
                       alt={project.title}
-                      className="w-full h-auto object-contain block transition-transform duration-500 group-hover:scale-[1.02]"
+                      className="w-full h-auto object-contain block"
                       loading="lazy"
                       onLoad={(e) => {
                         const { naturalWidth, naturalHeight } = e.currentTarget;
@@ -220,7 +220,7 @@ export default function ProjectGrid() {
                       }}
                     />
                   </div>
-                  <h3 className="mt-3 text-base md:text-[17px] font-roboto font-medium text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors duration-200 leading-snug tracking-tight">
+                  <h3 className="mt-3 text-base md:text-[17px] font-roboto font-medium text-[#1C1C1A] group-hover:text-[#099AD7] hover:text-[#099AD7] transition-colors duration-200 leading-snug tracking-tight">
                     {project.title}
                   </h3>
                 </Link>

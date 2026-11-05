@@ -269,7 +269,7 @@ export default function ServicesView() {
                                 <ArrowUpRight
                                   size={15}
                                   strokeWidth={1.75}
-                                  className="group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:scale-110 transition-transform duration-200"
+                                  className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-200"
                                 />
                               </Link>
                             </div>

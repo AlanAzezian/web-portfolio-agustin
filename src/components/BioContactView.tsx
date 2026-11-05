@@ -764,7 +764,7 @@ export default function BioContactView() {
                                                   alt={item.imageCaption}
                                                   fill
                                                   sizes="(max-width: 768px) 100vw, 320px"
-                                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                                  className="object-cover"
                                                 />
                                               </div>
                                             </Link>
@@ -781,7 +781,7 @@ export default function BioContactView() {
                                                   alt={item.imageCaption}
                                                   fill
                                                   sizes="(max-width: 768px) 100vw, 320px"
-                                                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                                  className="object-cover"
                                                 />
                                               </div>
                                             </button>

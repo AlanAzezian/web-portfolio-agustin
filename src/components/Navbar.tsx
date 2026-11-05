@@ -245,6 +245,8 @@ export const NAV_ACTIVE_DOT = false;
 
 export default function Navbar() {
   const pathname = usePathname();
+  const isProjectsPage =
+    pathname === "/proyectos" || pathname.startsWith("/proyectos?");
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
   const isAdminRoute = pathname.startsWith("/admin");
@@ -260,13 +262,19 @@ export default function Navbar() {
     if (typeof window === "undefined") return;
 
     const handleScroll = () => {
-      setIsAtTop(window.scrollY <= 5);
+      if (!isProjectsPage) {
+        setIsAtTop(true);
+        return;
+      }
+      setIsAtTop(window.scrollY <= 0);
     };
 
     handleScroll();
+    if (!isProjectsPage) return;
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [pathname]);
+  }, [pathname, isProjectsPage]);
 
   useEffect(() => {
     if (!navListRef.current) return;
@@ -313,15 +321,17 @@ export default function Navbar() {
     return () => ctx.revert();
   }, [pathname]);
 
+  const shouldHideOnScroll = isProjectsPage && !isAtTop;
+
   return (
     <nav
-      aria-hidden={isHidden || !isAtTop}
+      aria-hidden={isHidden || shouldHideOnScroll}
       className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-all duration-300 ${
         isHidden
           ? "hidden"
-          : isAtTop
-            ? "translate-y-0 opacity-100"
-            : "-translate-y-full opacity-0 pointer-events-none"
+          : shouldHideOnScroll
+            ? "-translate-y-full opacity-0 pointer-events-none"
+            : "translate-y-0 opacity-100"
       }`}
     >
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
