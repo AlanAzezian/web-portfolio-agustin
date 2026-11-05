@@ -66,7 +66,14 @@ export default function HomeSlider() {
       } catch {
         if (active) setProjectsList([]);
       } finally {
-        if (active) setIsLoading(false);
+        if (active) {
+          setIsLoading(false);
+          if (typeof window !== "undefined") {
+            requestAnimationFrame(() => {
+              window.__lenis?.resize();
+            });
+          }
+        }
       }
     }
 
@@ -129,96 +136,46 @@ export default function HomeSlider() {
         )}
       </section>
 
-      {/* Bloque inferior: único destino al scrollear hacia abajo */}
-      <footer className="w-full bg-[#FFFFFF] border-t border-[#1C1C1A]/10 px-6 md:px-12 lg:px-16 py-6">
-        <div className="w-full flex flex-wrap items-center justify-between gap-6">
-          <a
-            href="https://www.behance.net/agustinfabrizio"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors"
-            aria-label="BEHANCE"
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+      <footer className="w-full bg-[#FFFFFF] border-t border-[#1C1C1A]/10 px-6 md:px-12 lg:px-16 py-6 md:py-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 font-roboto text-xs tracking-widest text-[#1C1C1A] uppercase">
+          {/* Enlaces a Redes y Contacto */}
+          <div className="flex items-center gap-6 md:gap-8">
+            <a
+              href="https://www.behance.net/agustinfabrizio"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#099AD7] transition-colors"
             >
-              <path d="M3 8h5a2.5 2.5 0 0 1 0 5H3V8z" />
-              <path d="M3 13h5.5a2.5 2.5 0 0 1 0 5H3v-5z" />
-              <path d="M14 13h7a3.5 3.5 0 0 0-7 0v1a3.5 3.5 0 0 0 7 0" />
-              <line x1="15" y1="8" x2="20" y2="8" />
-            </svg>
-            <span>BEHANCE</span>
-          </a>
+              BEHANCE
+            </a>
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#099AD7] transition-colors"
+            >
+              INSTAGRAM
+            </a>
+            <a
+              href="https://wa.me/5492364714924"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#099AD7] transition-colors"
+            >
+              WHATSAPP
+            </a>
+            <a
+              href="mailto:hola@agustinfabrizio.com"
+              className="hover:text-[#099AD7] transition-colors"
+            >
+              MAIL
+            </a>
+          </div>
 
-          <a
-            href="https://instagram.com/agustinfabrizio"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors"
-            aria-label="INSTAGRAM"
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-            </svg>
-            <span>INSTAGRAM</span>
-          </a>
-
-          <a
-            href="https://wa.me/5492364714924"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors"
-            aria-label="WHATSAPP"
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-            </svg>
-            <span>WHATSAPP</span>
-          </a>
-
-          <a
-            href="mailto:hola@agustinfabrizio.com"
-            className="flex items-center gap-2 font-roboto text-xs uppercase tracking-wider text-[#1C1C1A] hover:text-[#099AD7] transition-colors"
-            aria-label="MAIL"
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-            <span>MAIL</span>
-          </a>
+          {/* Crédito / Copyright sutil */}
+          <div className="text-[11px] text-[#1C1C1A]/50 tracking-wider">
+            AGUSTÍN FABRIZIO © {new Date().getFullYear()}
+          </div>
         </div>
       </footer>
     </div>
