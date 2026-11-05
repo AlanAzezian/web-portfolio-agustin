@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { MessageCircle, Mail } from "lucide-react";
 import type { Project } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
 
@@ -136,46 +137,64 @@ export default function HomeSlider() {
         )}
       </section>
 
-      <footer className="w-full bg-[#FFFFFF] border-t border-[#1C1C1A]/10 px-6 md:px-12 lg:px-16 py-6 md:py-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 font-roboto text-xs tracking-widest text-[#1C1C1A] uppercase">
-          {/* Enlaces a Redes y Contacto */}
-          <div className="flex items-center gap-6 md:gap-8">
-            <a
-              href="https://www.behance.net/agustinfabrizio"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#099AD7] transition-colors"
+      <footer className="w-full bg-[#FFFFFF] py-8 md:py-10 border-t border-[#1C1C1A]/10 px-6 md:px-12 flex flex-col items-center justify-center gap-4 select-none">
+        {/* Fila Superior: Redes Sociales con Iconos Centrados */}
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 font-roboto text-[11px] md:text-xs tracking-wider text-[#1C1C1A] uppercase">
+          <a
+            href="https://instagram.com/agustinfabrizio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 hover:text-[#099AD7] transition-colors"
+          >
+            <svg
+              width={14}
+              height={14}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              BEHANCE
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#099AD7] transition-colors"
-            >
-              INSTAGRAM
-            </a>
-            <a
-              href="https://wa.me/5492364714924"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#099AD7] transition-colors"
-            >
-              WHATSAPP
-            </a>
-            <a
-              href="mailto:hola@agustinfabrizio.com"
-              className="hover:text-[#099AD7] transition-colors"
-            >
-              MAIL
-            </a>
-          </div>
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+            </svg>
+            <span>INSTAGRAM</span>
+          </a>
 
-          {/* Crédito / Copyright sutil */}
-          <div className="text-[11px] text-[#1C1C1A]/50 tracking-wider">
-            AGUSTÍN FABRIZIO © {new Date().getFullYear()}
-          </div>
+          <a
+            href="https://www.behance.net/agustinfabrizio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 hover:text-[#099AD7] transition-colors"
+          >
+            <span className="font-bold text-[12px] leading-none">Bē</span>
+            <span>BEHANCE</span>
+          </a>
+
+          <a
+            href="https://wa.me/5492364714924"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 hover:text-[#099AD7] transition-colors"
+          >
+            <MessageCircle className="stroke-[1.5]" size={14} />
+            <span>WHATSAPP</span>
+          </a>
+
+          <a
+            href="mailto:hola@agustinfabrizio.com"
+            className="inline-flex items-center gap-2 hover:text-[#099AD7] transition-colors"
+          >
+            <Mail className="stroke-[1.5]" size={14} />
+            <span>EMAIL</span>
+          </a>
+        </div>
+
+        {/* Fila Inferior: Crédito Institucional Centrado */}
+        <div className="font-roboto text-[10px] md:text-[11px] text-[#1C1C1A]/40 tracking-widest uppercase text-center mt-1">
+          AGUSTÍN FABRIZIO © 2026 — ARQUITECTURA &amp; VISUALIZACIÓN
         </div>
       </footer>
     </div>
