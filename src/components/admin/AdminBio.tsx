@@ -12,6 +12,9 @@ import {
 } from "@/data/bio";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import RichTextEditor from "@/components/admin/RichTextEditor";
+import SortableImageGallery, {
+  type SortableGalleryItem,
+} from "@/components/admin/SortableImageGallery";
 import {
   Save,
   Check,
@@ -20,7 +23,6 @@ import {
   Upload,
   ArrowUp,
   ArrowDown,
-  X,
   Image as ImageIcon,
   Link2,
 } from "lucide-react";
@@ -529,6 +531,25 @@ export default function AdminBio() {
           gallery: existingGallery.map((item, idx) =>
             idx === photoIdx ? { ...item, caption } : item
           ),
+        };
+      }),
+    }));
+  };
+
+  const handleReorderParticipationGallery = (
+    partId: string,
+    newItems: SortableGalleryItem[]
+  ) => {
+    setBio((prev) => ({
+      ...prev,
+      participations: prev.participations.map((p) => {
+        if (p.id !== partId) return p;
+        return {
+          ...p,
+          gallery: newItems.map((item) => ({
+            src: item.src,
+            caption: item.caption || "",
+          })),
         };
       }),
     }));
@@ -1254,48 +1275,34 @@ export default function AdminBio() {
                           Sin fotos secundarias en la galería exclusiva. Puedes subir múltiples imágenes para habilitar el visor fullscreen en Bio.
                         </p>
                       ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1 max-h-56 overflow-y-auto pr-1">
-                          {galleryList.map((gItem, gIdx) => (
-                            <div
-                              key={`${gItem.src}-${gIdx}`}
-                              className="border border-neutral-200 bg-neutral-50 p-1.5 flex flex-col gap-1.5"
-                            >
-                              <div className="relative aspect-[3/2] w-full overflow-hidden bg-white">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={gItem.src}
-                                  alt={gItem.caption}
-                                  className="w-full h-full object-cover"
-                                />
-                                <span className="absolute bottom-1 left-1 bg-[#FFFFFF]/90 px-1.5 py-0.5 text-[9px] font-medium text-[#1C1C1A]">
-                                  {String(gIdx + 1).padStart(2, "0")}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemoveGalleryPhoto(part.id, gIdx)
-                                  }
-                                  aria-label="Quitar foto de galería"
-                                  className="absolute top-1 right-1 bg-[#FFFFFF]/95 hover:bg-[#A84A4A] text-[#1C1C1A] hover:text-white border border-neutral-300 p-0.5 transition-colors"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                              <input
-                                type="text"
-                                value={gItem.caption}
-                                onChange={(e) =>
-                                  handleGalleryCaptionChange(
-                                    part.id,
-                                    gIdx,
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Epígrafe..."
-                                className="w-full h-6 px-1.5 bg-[#FFFFFF] border border-neutral-200 text-[10px] text-[#1C1C1A] focus:outline-none focus:border-[#099AD7]"
-                              />
-                            </div>
-                          ))}
+                        <div className="pt-1 max-h-64 overflow-y-auto pr-1">
+                          <SortableImageGallery
+                            items={galleryList.map((gItem, gIdx) => ({
+                              id: `${part.id}-gal-${gIdx}-${gItem.src}`,
+                              src: gItem.src,
+                              caption: gItem.caption,
+                            }))}
+                            onReorder={(newItems) =>
+                              handleReorderParticipationGallery(
+                                part.id,
+                                newItems
+                              )
+                            }
+                            onRemove={(_id, gIdx) =>
+                              handleRemoveGalleryPhoto(part.id, gIdx)
+                            }
+                            showCaption={true}
+                            onCaptionChange={(_id, gIdx, caption) =>
+                              handleGalleryCaptionChange(
+                                part.id,
+                                gIdx,
+                                caption
+                              )
+                            }
+                            disabled={isUploadingThis || saving}
+                            columnsClassName="grid-cols-2 sm:grid-cols-3"
+                            aspectClassName="aspect-[3/2]"
+                          />
                         </div>
                       )}
                     </div>

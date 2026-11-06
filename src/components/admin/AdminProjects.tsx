@@ -8,6 +8,9 @@ import {
   normalizeFilterLabel,
   parseProjectImagesAndMeta,
 } from "@/data/projects";
+import SortableImageGallery, {
+  type SortableGalleryItem,
+} from "@/components/admin/SortableImageGallery";
 import {
   Trash2,
   Plus,
@@ -32,10 +35,7 @@ export interface SupabaseProject {
   created_at?: string;
 }
 
-interface GalleryPreviewItem {
-  file: File;
-  previewUrl: string;
-}
+type ProjectGalleryEntry = SortableGalleryItem;
 
 function generateSlug(value: string): string {
   return value
@@ -84,9 +84,10 @@ export default function AdminProjects() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
-  // Existing gallery URLs (when editing) + newly added local files
-  const [existingGalleryUrls, setExistingGalleryUrls] = useState<string[]>([]);
-  const [galleryItems, setGalleryItems] = useState<GalleryPreviewItem[]>([]);
+  // Unified gallery entries (existing remote URLs + newly added local files) for Drag & Drop
+  const [galleryEntries, setGalleryEntries] = useState<ProjectGalleryEntry[]>(
+    []
+  );
 
   // Saving & status states
   const [submitting, setSubmitting] = useState(false);
@@ -258,9 +259,13 @@ export default function AdminProjects() {
       if (coverPreview && coverPreview.startsWith("blob:")) {
         URL.revokeObjectURL(coverPreview);
       }
-      galleryItems.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      galleryEntries.forEach((entry) => {
+        if (entry.isNew && entry.src.startsWith("blob:")) {
+          URL.revokeObjectURL(entry.src);
+        }
+      });
     };
-  }, [coverPreview, galleryItems]);
+  }, [coverPreview, galleryEntries]);
 
   const handleAddGlobalFilter = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -319,9 +324,12 @@ export default function AdminProjects() {
     }
     setCoverFile(null);
     setCoverPreview(null);
-    setExistingGalleryUrls([]);
-    galleryItems.forEach((item) => URL.revokeObjectURL(item.previewUrl));
-    setGalleryItems([]);
+    galleryEntries.forEach((entry) => {
+      if (entry.isNew && entry.src.startsWith("blob:")) {
+        URL.revokeObjectURL(entry.src);
+      }
+    });
+    setGalleryEntries([]);
     setFormError(null);
     setStatusMessage(null);
   };
@@ -344,8 +352,14 @@ export default function AdminProjects() {
     );
     setFormShowInMainGrid(project.show_in_main_grid !== false);
     setCoverPreview(project.cover_image || null);
-    setExistingGalleryUrls(
-      Array.isArray(project.images) ? [...project.images] : []
+    setGalleryEntries(
+      Array.isArray(project.images)
+        ? project.images.map((url, idx) => ({
+            id: `existing-${idx}-${url}`,
+            src: url,
+            isNew: false,
+          }))
+        : []
     );
     setIsModalOpen(true);
   };
@@ -376,29 +390,34 @@ export default function AdminProjects() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const newItems: GalleryPreviewItem[] = Array.from(files).map((file) => ({
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
+    const timestamp = Date.now();
+    const newEntries: ProjectGalleryEntry[] = Array.from(files).map(
+      (file, idx) => ({
+        id: `new-${timestamp}-${idx}-${file.name}`,
+        src: URL.createObjectURL(file),
+        isNew: true,
+        file,
+      })
+    );
 
-    setGalleryItems((prev) => [...prev, ...newItems]);
+    setGalleryEntries((prev) => [...prev, ...newEntries]);
     if (galleryInputRef.current) {
       galleryInputRef.current.value = "";
     }
     if (formError) setFormError(null);
   };
 
-  const handleRemoveExistingGalleryUrl = (index: number) => {
-    setExistingGalleryUrls((prev) => prev.filter((_, idx) => idx !== index));
+  const handleReorderGallery = (reordered: ProjectGalleryEntry[]) => {
+    setGalleryEntries(reordered);
   };
 
-  const handleRemoveNewGalleryItem = (index: number) => {
-    setGalleryItems((prev) => {
-      const target = prev[index];
-      if (target) {
-        URL.revokeObjectURL(target.previewUrl);
+  const handleRemoveGalleryEntry = (id: string) => {
+    setGalleryEntries((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (target && target.isNew && target.src.startsWith("blob:")) {
+        URL.revokeObjectURL(target.src);
       }
-      return prev.filter((_, idx) => idx !== index);
+      return prev.filter((item) => item.id !== id);
     });
   };
 
@@ -487,24 +506,28 @@ export default function AdminProjects() {
           .getPublicUrl(coverPath).data.publicUrl;
       }
 
-      // 2. Galería: subir nuevas imágenes agregadas y combinarlas con las existentes que quedaron
-      const uploadedGalleryUrls: string[] = [];
+      // 2. Galería: respetar el orden exacto del Drag & Drop subiendo archivos nuevos y conservando URLs existentes
+      const finalCleanGalleryUrls: string[] = [];
+      const hasNewFilesToUpload = galleryEntries.some(
+        (entry) => entry.isNew && entry.file
+      );
 
-      if (galleryItems.length > 0) {
+      if (hasNewFilesToUpload) {
         setStatusMessage("Subiendo imágenes de galería...");
-        const baseOffset = existingGalleryUrls.length;
+      }
 
-        for (let i = 0; i < galleryItems.length; i++) {
-          const item = galleryItems[i];
-          const fileName = `${String(baseOffset + i + 1).padStart(
+      for (let i = 0; i < galleryEntries.length; i++) {
+        const entry = galleryEntries[i];
+        if (entry.isNew && entry.file) {
+          const fileName = `${String(i + 1).padStart(
             2,
             "0"
-          )}-${sanitizeFileName(item.file.name)}`;
+          )}-${sanitizeFileName(entry.file.name)}`;
           const path = `projects/${projectSlug}/${fileName}`;
 
           const { error: galleryError } = await supabase.storage
             .from("portfolio")
-            .upload(path, item.file, { upsert: true });
+            .upload(path, entry.file, { upsert: true });
 
           if (galleryError) {
             throw new Error(
@@ -516,14 +539,11 @@ export default function AdminProjects() {
             .from("portfolio")
             .getPublicUrl(path).data.publicUrl;
 
-          uploadedGalleryUrls.push(publicUrl);
+          finalCleanGalleryUrls.push(publicUrl);
+        } else if (entry.src) {
+          finalCleanGalleryUrls.push(entry.src);
         }
       }
-
-      const finalCleanGalleryUrls = [
-        ...existingGalleryUrls,
-        ...uploadedGalleryUrls,
-      ];
 
       // Codificar metadatos (categoría, tags y visibilidad en grilla principal) de forma retrocompatible
       const encodedImagesPayload = encodeProjectImagesWithMeta(
@@ -636,7 +656,7 @@ export default function AdminProjects() {
     }
   };
 
-  const totalGalleryCount = existingGalleryUrls.length + galleryItems.length;
+  const totalGalleryCount = galleryEntries.length;
 
   return (
     <div className="w-full font-roboto text-[#1C1C1A]">
@@ -1153,63 +1173,18 @@ export default function AdminProjects() {
                 </button>
 
                 {totalGalleryCount > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-2 max-h-56 overflow-y-auto pr-1">
-                    {/* Imágenes actuales del proyecto */}
-                    {existingGalleryUrls.map((url, idx) => (
-                      <div
-                        key={`existing-${url}-${idx}`}
-                        className="relative aspect-[4/3] border border-neutral-200 bg-neutral-50 group overflow-hidden"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={url}
-                          alt={`Galería ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <span className="absolute bottom-1 left-1 bg-[#FFFFFF]/90 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-[#1C1C1A] border border-neutral-200">
-                          {String(idx + 1).padStart(2, "0")}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExistingGalleryUrl(idx)}
-                          disabled={submitting}
-                          aria-label={`Quitar imagen ${idx + 1}`}
-                          className="absolute top-1 right-1 bg-[#FFFFFF]/95 hover:bg-[#A84A4A] text-[#1C1C1A] hover:text-white border border-neutral-300 hover:border-[#A84A4A] p-1 transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-
-                    {/* Nuevas imágenes seleccionadas para subir */}
-                    {galleryItems.map((item, idx) => {
-                      const displayIndex = existingGalleryUrls.length + idx + 1;
-                      return (
-                        <div
-                          key={`new-${item.file.name}-${idx}`}
-                          className="relative aspect-[4/3] border border-[#099AD7]/40 bg-neutral-50 group overflow-hidden"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={item.previewUrl}
-                            alt={`Nueva imagen ${displayIndex}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <span className="absolute bottom-1 left-1 bg-[#099AD7] px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white">
-                            {String(displayIndex).padStart(2, "0")}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveNewGalleryItem(idx)}
-                            disabled={submitting}
-                            aria-label={`Quitar imagen ${displayIndex}`}
-                            className="absolute top-1 right-1 bg-[#FFFFFF]/95 hover:bg-[#A84A4A] text-[#1C1C1A] hover:text-white border border-neutral-300 hover:border-[#A84A4A] p-1 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      );
-                    })}
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[10px] uppercase tracking-wider text-[#686661]">
+                      Arrastra las miniaturas para cambiar el orden en que se mostrarán en el visor
+                    </span>
+                    <SortableImageGallery
+                      items={galleryEntries}
+                      onReorder={handleReorderGallery}
+                      onRemove={(id) => handleRemoveGalleryEntry(id)}
+                      disabled={submitting}
+                      columnsClassName="grid-cols-3 sm:grid-cols-4"
+                      aspectClassName="aspect-[4/3]"
+                    />
                   </div>
                 )}
               </div>
