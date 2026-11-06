@@ -458,7 +458,29 @@ export default function BioContactView() {
                             <div className="md:col-span-7 lg:col-span-8 flex flex-col justify-between gap-7 w-full">
                               <blockquote className="w-full text-sm md:text-base font-roboto font-normal leading-relaxed text-[#1C1C1A]/85 border-l-2 border-[#099AD7] pl-5 md:pl-6 py-1">
                                 {manifesto ? (
-                                  <>&ldquo;{manifesto}&rdquo;</>
+                                  manifesto.trim().startsWith("<") ? (
+                                    <div
+                                      className="bio-rich-text font-roboto leading-relaxed text-[#1C1C1A]/85 [&_strong]:font-medium [&_b]:font-medium [&_h3]:text-base [&_h3]:md:text-lg [&_h3]:font-medium [&_h3]:text-[#1C1C1A]"
+                                      dangerouslySetInnerHTML={{
+                                        __html: manifesto,
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="bio-rich-text font-roboto leading-relaxed text-[#1C1C1A]/85">
+                                      {manifesto
+                                        .split(/\n{2,}/)
+                                        .map((paragraph, pIdx) => (
+                                          <p key={pIdx}>
+                                            {pIdx === 0 ? "“" : ""}
+                                            {paragraph}
+                                            {pIdx ===
+                                            manifesto.split(/\n{2,}/).length - 1
+                                              ? "”"
+                                              : ""}
+                                          </p>
+                                        ))}
+                                    </div>
+                                  )
                                 ) : (
                                   <>
                                     &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
@@ -681,11 +703,17 @@ export default function BioContactView() {
 
                               <div className="flex flex-col divide-y divide-[#1C1C1A]/15 border-t border-b border-[#1C1C1A]/15">
                                 {participationItems.map((item) => {
-                                  const projectHref =
-                                    item.link ??
-                                    (item.projectId
-                                      ? `/proyectos/${item.projectId}`
-                                      : null);
+                                  const resolvedProjectId =
+                                    typeof item.projectId === "string" &&
+                                    item.projectId.trim()
+                                      ? item.projectId.trim()
+                                      : undefined;
+                                  const projectHref = resolvedProjectId
+                                    ? `/proyectos/${resolvedProjectId}`
+                                    : typeof item.link === "string" &&
+                                        item.link.trim()
+                                      ? item.link.trim()
+                                      : null;
                                   const hasExclusiveGallery =
                                     !projectHref &&
                                     item.gallery &&

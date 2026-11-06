@@ -11,7 +11,7 @@ import {
   parseProjectImagesAndMeta,
   type Project,
 } from "@/data/projects";
-import { gsap } from "@/lib/gsap";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { supabase } from "@/lib/supabase";
 
 // Función auxiliar para estimar la altura de una tarjeta según su aspect-ratio
@@ -116,7 +116,11 @@ export default function ProjectGrid() {
           }
         }
 
-        if (projectsRes.error || !projectsRes.data || projectsRes.data.length === 0) {
+        if (
+          projectsRes.error ||
+          !projectsRes.data ||
+          projectsRes.data.length === 0
+        ) {
           setFilterTags(configuredFilters);
           setProjectsList([]);
           return;
@@ -243,22 +247,19 @@ export default function ProjectGrid() {
     [filteredProjects, measuredHeights]
   );
 
-  // Clave estable de identidad para disparar la animación de revelado al montar y al cambiar de filtro
-  const filteredIdsSignature = useMemo(
-    () => `${selectedTag || "ALL"}::${filteredProjects.map((p) => p.id).join(",")}`,
-    [selectedTag, filteredProjects]
-  );
-
-  // Animación sutil de revelado horizontal (slide de izquierda a derecha con fade-in ~0.4s)
+  // Animación sutil de revelado horizontal en TODOS los ítems de la grilla (al montar y al cambiar de filtro)
   useEffect(() => {
-    if (isLoading || !gridContainerRef.current) return;
+    if (isLoading || filteredProjects.length === 0 || !gridContainerRef.current)
+      return;
 
     const prefersReducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>(".project-card-reveal");
+      const cards = gsap.utils.toArray<HTMLElement>(
+        ".project-card, .project-card-reveal"
+      );
       if (cards.length === 0) return;
 
       if (prefersReducedMotion) {
@@ -266,23 +267,43 @@ export default function ProjectGrid() {
         return;
       }
 
+      // Ordenar visualmente de arriba a abajo e izquierda a derecha para que el stagger recorra toda la grilla
+      const sortedCards = [...cards].sort((a, b) => {
+        const rectA = a.getBoundingClientRect();
+        const rectB = b.getBoundingClientRect();
+        if (Math.abs(rectA.top - rectB.top) > 40) {
+          return rectA.top - rectB.top;
+        }
+        return rectA.left - rectB.left;
+      });
+
+      gsap.killTweensOf(sortedCards);
+
       gsap.fromTo(
-        cards,
+        sortedCards,
         { opacity: 0, x: -24 },
         {
           opacity: 1,
           x: 0,
-          duration: 0.4,
-          stagger: 0.045,
+          duration: 0.42,
+          stagger: {
+            each: 0.045,
+            from: "start",
+          },
           ease: "power2.out",
-          overwrite: "auto",
-          clearProps: "transform",
+          overwrite: true,
+          clearProps: "transform,opacity",
+          onComplete: () => {
+            ScrollTrigger.refresh();
+          },
         }
       );
+
+      ScrollTrigger.refresh();
     }, gridContainerRef);
 
     return () => ctx.revert();
-  }, [isLoading, filteredIdsSignature]);
+  }, [isLoading, filteredProjects]);
 
   if (isLoading && projectsList.length === 0) {
     return <div className="w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF]" />;
@@ -302,8 +323,9 @@ export default function ProjectGrid() {
             {colProjects.map((project) => (
               <div
                 key={project.id}
+                data-project-id={project.id}
                 onMouseEnter={() => handleCardMouseEnter(project)}
-                className="project-card-reveal group w-full"
+                className="project-card project-card-reveal group w-full"
               >
                 <Link
                   className="block focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
@@ -321,11 +343,19 @@ export default function ProjectGrid() {
                           const computedHeight =
                             Math.round((naturalHeight / naturalWidth) * 400) +
                             60;
-                          setMeasuredHeights((prev) =>
-                            prev[project.id] === computedHeight
-                              ? prev
-                              : { ...prev, [project.id]: computedHeight }
-                          );
+                          setMeasuredHeights((prev) => {
+                            if (prev[project.id] === computedHeight) {
+                              return prev;
+                            }
+                            const next = {
+                              ...prev,
+                              [project.id]: computedHeight,
+                            };
+                            requestAnimationFrame(() => {
+                              ScrollTrigger.refresh();
+                            });
+                            return next;
+                          });
                         }
                       }}
                     />

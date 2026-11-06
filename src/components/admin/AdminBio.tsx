@@ -11,6 +11,7 @@ import {
   type SkillCard,
 } from "@/data/bio";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import RichTextEditor from "@/components/admin/RichTextEditor";
 import {
   Save,
   Check,
@@ -21,7 +22,13 @@ import {
   ArrowDown,
   X,
   Image as ImageIcon,
+  Link2,
 } from "lucide-react";
+
+interface ProjectOption {
+  id: string;
+  title: string;
+}
 
 export interface SupabaseBioRow {
   id: string;
@@ -79,6 +86,7 @@ export default function AdminBio() {
 
   const [newTaskInputs, setNewTaskInputs] = useState<Record<string, string>>({});
   const [newSkillInputs, setNewSkillInputs] = useState<Record<number, string>>({});
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -86,13 +94,26 @@ export default function AdminBio() {
 
     async function initBio() {
       try {
-        const { data, error: fetchError } = await supabase
-          .from("bio")
-          .select("*")
-          .eq("id", "main")
-          .maybeSingle();
+        const [{ data, error: fetchError }, projectsRes] = await Promise.all([
+          supabase.from("bio").select("*").eq("id", "main").maybeSingle(),
+          supabase
+            .from("projects")
+            .select("id, title")
+            .order("order_index", { ascending: true }),
+        ]);
 
         if (!active) return;
+
+        if (!projectsRes.error && Array.isArray(projectsRes.data)) {
+          setProjectOptions(
+            projectsRes.data
+              .map((row: Record<string, unknown>) => ({
+                id: String(row.id || ""),
+                title: String(row.title || row.id || ""),
+              }))
+              .filter((p) => Boolean(p.id))
+          );
+        }
 
         if (fetchError) {
           setError(fetchError.message);
@@ -346,6 +367,24 @@ export default function AdminBio() {
           updated.imageCaption = value;
         }
         return updated;
+      }),
+    }));
+  };
+
+  const handleParticipationProjectLinkChange = (
+    partId: string,
+    selectedProjectId: string
+  ) => {
+    const cleanId = selectedProjectId.trim();
+    setBio((prev) => ({
+      ...prev,
+      participations: prev.participations.map((p) => {
+        if (p.id !== partId) return p;
+        return {
+          ...p,
+          projectId: cleanId || undefined,
+          link: cleanId ? `/proyectos/${cleanId}` : undefined,
+        };
       }),
     }));
   };
@@ -773,7 +812,7 @@ export default function AdminBio() {
             </div>
           </div>
 
-          {/* Manifiesto Profesional */}
+          {/* Manifiesto Profesional con Editor Enriquecido Tiptap */}
           <div className="lg:col-span-7 flex flex-col gap-2">
             <label
               htmlFor="bio-manifesto"
@@ -781,14 +820,11 @@ export default function AdminBio() {
             >
               Manifiesto / Declaración Bio
             </label>
-            <textarea
-              id="bio-manifesto"
-              rows={8}
+            <RichTextEditor
               value={bio.manifesto}
-              onChange={(e) =>
-                setBio((prev) => ({ ...prev, manifesto: e.target.value }))
+              onChange={(html) =>
+                setBio((prev) => ({ ...prev, manifesto: html }))
               }
-              className="w-full p-3.5 bg-[#FFFFFF] text-[#1C1C1A] text-sm border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] leading-relaxed resize-y"
             />
           </div>
         </div>
@@ -1086,6 +1122,53 @@ export default function AdminBio() {
                         }
                         className="p-2.5 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7] leading-relaxed resize-y"
                       />
+                    </div>
+
+                    {/* Selector opcional de vinculación a proyecto existente */}
+                    <div className="flex flex-col gap-1 pt-1">
+                      <label
+                        htmlFor={`part-project-link-${part.id}`}
+                        className="text-[10px] uppercase tracking-wider text-[#1C1C1A] font-medium flex items-center gap-1.5"
+                      >
+                        <Link2 className="w-3 h-3 text-[#099AD7]" />
+                        <span>Vincular a un proyecto existente (opcional)</span>
+                      </label>
+                      <select
+                        id={`part-project-link-${part.id}`}
+                        value={
+                          part.projectId ||
+                          (part.link && part.link.startsWith("/proyectos/")
+                            ? part.link.replace("/proyectos/", "")
+                            : "")
+                        }
+                        onChange={(e) =>
+                          handleParticipationProjectLinkChange(
+                            part.id,
+                            e.target.value
+                          )
+                        }
+                        className="h-9 px-3 bg-[#FFFFFF] text-[#1C1C1A] border border-neutral-300 text-xs rounded-none focus:outline-none focus:border-[#099AD7]"
+                      >
+                        <option value="">
+                          -- Ninguno (Galería independiente in situ) --
+                        </option>
+                        {projectOptions.map((proj) => (
+                          <option key={proj.id} value={proj.id}>
+                            {proj.title} ({proj.id})
+                          </option>
+                        ))}
+                        {part.projectId &&
+                          !projectOptions.some(
+                            (p) => p.id === part.projectId
+                          ) && (
+                            <option value={part.projectId}>
+                              {part.projectId} (actual)
+                            </option>
+                          )}
+                      </select>
+                      <span className="text-[10px] text-[#686661]">
+                        Si seleccionas un proyecto, al hacer clic en esta participación desde Bio navegará a su visor en /proyectos/[id].
+                      </span>
                     </div>
                   </div>
 
