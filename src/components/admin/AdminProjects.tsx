@@ -36,8 +36,6 @@ import {
   Image as ImageIcon,
   Pencil,
   Tag,
-  Eye,
-  EyeOff,
   GripVertical,
 } from "lucide-react";
 
@@ -550,6 +548,67 @@ export default function AdminProjects() {
     }
   };
 
+  const handleQuickToggleVisibility = async (project: SupabaseProject) => {
+    const previousValue = project.show_in_main_grid !== false;
+    const nextValue = !previousValue;
+
+    // Actualización optimista inmediata en la UI
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === project.id ? { ...p, show_in_main_grid: nextValue } : p
+      )
+    );
+
+    const cleanCategory = normalizeFilterLabel(project.category || "PROYECTOS");
+    const cleanTags =
+      Array.isArray(project.tags) && project.tags.length > 0
+        ? project.tags
+        : [cleanCategory];
+
+    const encodedImagesPayload = encodeProjectImagesWithMeta(
+      Array.isArray(project.images) ? project.images : [],
+      {
+        category: cleanCategory,
+        tags: cleanTags,
+        show_in_main_grid: nextValue,
+      }
+    );
+
+    try {
+      const { error: fullUpdateErr } = await supabase
+        .from("projects")
+        .update({
+          images: encodedImagesPayload,
+          show_in_main_grid: nextValue,
+        })
+        .eq("id", project.id);
+
+      if (fullUpdateErr) {
+        const { error: fallbackUpdateErr } = await supabase
+          .from("projects")
+          .update({
+            images: encodedImagesPayload,
+          })
+          .eq("id", project.id);
+
+        if (fallbackUpdateErr) {
+          throw new Error(fallbackUpdateErr.message);
+        }
+      }
+    } catch (err) {
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === project.id ? { ...p, show_in_main_grid: previousValue } : p
+        )
+      );
+      setListError(
+        err instanceof Error
+          ? `No se pudo actualizar la visibilidad: ${err.message}`
+          : "Error al actualizar la visibilidad del proyecto."
+      );
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (submitting) return;
@@ -938,39 +997,32 @@ export default function AdminProjects() {
                         {String(index + 1).padStart(2, "0")}
                       </span>
 
-                      <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                        <span className="bg-[#FFFFFF]/95 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#099AD7] border border-neutral-200 font-medium">
-                          {categoryLabel}
-                        </span>
-                        <span
+                      <div className="absolute top-2.5 right-2.5">
+                        <button
+                          type="button"
+                          onClick={() => handleQuickToggleVisibility(project)}
                           title={
                             isVisibleInAll
-                              ? "Visible en la grilla general (Todos)"
-                              : "Oculto en la grilla general (solo visible en su filtro o por link directo)"
+                              ? "Visible en la grilla general ('Todos') — clic para ocultar"
+                              : "Oculto en la grilla general ('Todos') — clic para mostrar"
                           }
-                          className={`px-2 py-0.5 text-[10px] uppercase tracking-wider border font-medium inline-flex items-center gap-1 ${
+                          aria-pressed={isVisibleInAll}
+                          className={
                             isVisibleInAll
-                              ? "bg-[#FFFFFF]/95 text-[#1C1C1A] border-neutral-200"
-                              : "bg-[#1C1C1A]/90 text-white border-[#1C1C1A]"
-                          }`}
+                              ? "bg-white/95 text-[#099AD7] border border-[#099AD7]/30 font-medium text-[11px] px-2.5 py-1 flex items-center gap-1.5 cursor-pointer hover:bg-sky-50 transition-colors"
+                              : "bg-neutral-100/90 text-neutral-400 border border-neutral-300 font-normal text-[11px] px-2.5 py-1 flex items-center gap-1.5 cursor-pointer hover:bg-neutral-200 transition-colors"
+                          }
                         >
-                          {isVisibleInAll ? (
-                            <>
-                              <Eye className="w-2.5 h-2.5 text-[#099AD7]" />
-                              <span>Grilla</span>
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="w-2.5 h-2.5 text-neutral-300" />
-                              <span>Oculto en Todos</span>
-                            </>
-                          )}
-                        </span>
+                          {isVisibleInAll ? "● EN GRILLA" : "○ OCULTO"}
+                        </button>
                       </div>
                     </div>
 
-                    {/* Título limpio sin ID técnico */}
-                    <div className="p-4">
+                    {/* Tag de categoría y título limpio sin ID técnico */}
+                    <div className="p-4 flex flex-col gap-1">
+                      <span className="text-[11px] font-mono text-[#099AD7] tracking-wider uppercase">
+                        {categoryLabel}
+                      </span>
                       <h3 className="text-sm font-medium text-[#1C1C1A] line-clamp-2 leading-snug">
                         {project.title}
                       </h3>
@@ -981,9 +1033,7 @@ export default function AdminProjects() {
                   <div className="px-4 py-3 border-t border-neutral-100 flex items-center justify-between gap-2">
                     <span className="text-[11px] uppercase tracking-wider text-[#686661]">
                       {secondaryCount}{" "}
-                      {secondaryCount === 1
-                        ? "imagen secundaria"
-                        : "imágenes secundarias"}
+                      {secondaryCount === 1 ? "IMAGEN" : "IMÁGENES"}
                     </span>
 
                     <div className="flex items-center gap-1.5">

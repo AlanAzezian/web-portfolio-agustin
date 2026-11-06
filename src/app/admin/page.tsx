@@ -190,9 +190,9 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#FFFFFF] text-[#1C1C1A] font-roboto flex flex-col">
-      {/* Cabecera técnica */}
-      <header className="w-full border-b border-neutral-200 bg-[#FFFFFF] px-6 md:px-16 h-20 flex items-center justify-between">
+    <main className="min-h-screen pt-0 mt-0 w-full bg-[#FFFFFF] text-[#1C1C1A] font-roboto flex flex-col">
+      {/* Cabecera técnica al ras del borde superior */}
+      <header className="w-full flex justify-between items-center py-3.5 px-6 md:px-12 border-b border-neutral-200 bg-white">
         <div className="flex items-center gap-4">
           <Link
             href="/"
@@ -219,7 +219,7 @@ export default function AdminPage() {
             type="button"
             onClick={handleLogout}
             disabled={loggingOut}
-            className="text-xs uppercase tracking-wider text-[#686661] hover:text-[#099AD7] border border-neutral-300 hover:border-[#099AD7] px-3.5 py-2 rounded-none transition-colors duration-200 disabled:opacity-50"
+            className="text-xs uppercase tracking-wider text-[#686661] hover:text-[#099AD7] border border-neutral-300 hover:border-[#099AD7] px-3.5 py-1.5 rounded-none transition-colors duration-200 disabled:opacity-50"
           >
             {loggingOut ? "Saliendo..." : "Cerrar sesión"}
           </button>
@@ -229,9 +229,9 @@ export default function AdminPage() {
       {/* Selector de Pestañas (Tabs de navegación tipo cota técnica) */}
       <nav
         aria-label="Secciones del panel de control"
-        className="w-full border-b border-neutral-200 bg-[#FFFFFF] px-6 md:px-16"
+        className="w-full border-b border-neutral-200 bg-[#FFFFFF] px-6 md:px-12"
       >
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 md:gap-10 py-4">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 md:gap-10 py-2.5">
           <button
             type="button"
             onClick={() => setActiveTab("projects")}
@@ -271,7 +271,7 @@ export default function AdminPage() {
       </nav>
 
       {/* Contenido principal del Dashboard */}
-      <section className="w-full max-w-6xl mx-auto px-6 md:px-16 py-10 flex-1">
+      <section className="w-full max-w-6xl mx-auto px-6 md:px-12 py-6 flex-1">
         {activeTab === "projects" && <AdminProjects />}
         {activeTab === "services" && <AdminServices />}
         {activeTab === "bio" && <AdminBio />}
