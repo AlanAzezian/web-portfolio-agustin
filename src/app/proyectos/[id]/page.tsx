@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import ProjectViewer from "@/components/ProjectViewer";
+import { parseProjectImagesAndMeta } from "@/data/projects";
 
 export const dynamic = "force-dynamic";
 export const dynamicParams = true;
@@ -19,10 +20,9 @@ async function resolveProject(
       const row = data as Record<string, unknown>;
       const title = String(row.title || id);
       const cover = String(row.cover_image || row.coverImage || "");
-      const rawImages = Array.isArray(row.images)
-        ? (row.images as string[]).filter(Boolean)
-        : [];
-      const images = rawImages.length > 0 ? rawImages : cover ? [cover] : [];
+      const { cleanImages } = parseProjectImagesAndMeta(row);
+      const images =
+        cleanImages.length > 0 ? cleanImages : cover ? [cover] : [];
 
       if (images.length > 0) {
         return { id, title, images };

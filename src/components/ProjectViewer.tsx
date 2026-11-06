@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { parseProjectImagesAndMeta } from "@/data/projects";
 
 interface ProjectViewerProps {
   projectId?: string;
@@ -41,21 +42,23 @@ export default function ProjectViewer({
         const row = data as Record<string, unknown>;
         const dbTitle = String(row.title || initialTitle);
         const cover = String(row.cover_image || row.coverImage || "");
-        const rawImages = Array.isArray(row.images)
-          ? (row.images as string[]).filter(Boolean)
-          : [];
+        const { cleanImages } = parseProjectImagesAndMeta(row);
 
         const finalImages =
-          rawImages.length > 0
-            ? rawImages
+          cleanImages.length > 0
+            ? cleanImages
             : cover
               ? [cover]
               : initialImages;
 
         if (finalImages.length > 0) {
           setTitle(dbTitle);
-          setImages(finalImages);
-          setCurrentIndex(0);
+          setImages((prev) =>
+            prev.length === finalImages.length &&
+            prev.every((val, idx) => val === finalImages[idx])
+              ? prev
+              : finalImages
+          );
         }
       } catch {
         // Fallback a props iniciales
@@ -99,11 +102,27 @@ export default function ProjectViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nextSlide, prevSlide, router]);
 
-  // Precarga de todas las imágenes de la galería para corte seco instantáneo y nítido
+  // Precarga inmediata de diapositivas adyacentes (siguiente y anterior) al cambiar de imagen
+  useEffect(() => {
+    if (total <= 1) return;
+    const nextIdx = (currentIndex + 1) % total;
+    const prevIdx = (currentIndex - 1 + total) % total;
+
+    [images[nextIdx], images[prevIdx]].forEach((src) => {
+      if (src) {
+        const img = new window.Image();
+        img.src = src;
+      }
+    });
+  }, [currentIndex, images, total]);
+
+  // Precarga en segundo plano del resto de la galería
   useEffect(() => {
     images.forEach((src) => {
-      const img = new window.Image();
-      img.src = src;
+      if (src) {
+        const img = new window.Image();
+        img.src = src;
+      }
     });
   }, [images]);
 
@@ -126,6 +145,10 @@ export default function ProjectViewer({
   const formattedCurrent = String(currentIndex + 1).padStart(2, "0");
   const formattedTotal = String(total).padStart(2, "0");
   const currentSrc = images[currentIndex] || "";
+  const nextIdx = total > 1 ? (currentIndex + 1) % total : -1;
+  const prevIdx = total > 1 ? (currentIndex - 1 + total) % total : -1;
+  const nextSrc = nextIdx >= 0 ? images[nextIdx] : "";
+  const prevSrc = prevIdx >= 0 && prevIdx !== nextIdx ? images[prevIdx] : "";
 
   if (!currentSrc) {
     return <main className="fixed inset-0 z-20 bg-[#FFFFFF]" />;
@@ -133,7 +156,7 @@ export default function ProjectViewer({
 
   return (
     <main
-      className="fixed inset-0 z-20 bg-white text-[#1C1C1A] select-none overflow-hidden flex items-center justify-center"
+      className="fixed inset-0 z-20 bg-[#FFFFFF] text-[#1C1C1A] select-none overflow-hidden flex items-center justify-center"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -145,19 +168,51 @@ export default function ProjectViewer({
         <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
       </Link>
 
-      {/* Visor central de imagen/plano con corte seco directo, sin blur ni fade */}
-      <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14">
-        <div className="relative w-full h-[80vh] md:h-[82vh] max-h-[82vh] pointer-events-none">
+      {/* Visor central de imagen/plano con corte seco directo y fondo blanco puro #FFFFFF */}
+      <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14 bg-[#FFFFFF]">
+        <div className="relative w-full h-[80vh] md:h-[82vh] max-h-[82vh] bg-[#FFFFFF] pointer-events-none">
           <Image
             key={currentSrc}
             src={currentSrc}
             alt={`${title} - Imagen ${currentIndex + 1}`}
             fill
             sizes="100vw"
-            priority
+            priority={true}
+            loading="eager"
             unoptimized={false}
-            className="object-contain pointer-events-none select-none shadow-none"
+            className="object-contain pointer-events-none select-none shadow-none bg-[#FFFFFF]"
           />
+
+          {/* Precarga invisible de diapositivas adyacentes (siguiente y anterior) con next/image */}
+          <div
+            aria-hidden="true"
+            className="fixed -left-[9999px] -top-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none"
+          >
+            {nextSrc && (
+              <Image
+                key={`preload-next-${nextSrc}`}
+                src={nextSrc}
+                alt=""
+                width={1920}
+                height={1080}
+                sizes="100vw"
+                priority={true}
+                loading="eager"
+              />
+            )}
+            {prevSrc && (
+              <Image
+                key={`preload-prev-${prevSrc}`}
+                src={prevSrc}
+                alt=""
+                width={1920}
+                height={1080}
+                sizes="100vw"
+                priority={true}
+                loading="eager"
+              />
+            )}
+          </div>
         </div>
 
         {/* Áreas interactivas con flechas Iconly (izquierda / derecha) */}

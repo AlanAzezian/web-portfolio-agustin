@@ -1,27 +1,18 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import type { Project } from "@/data/projects";
+import {
+  DEFAULT_PROJECT_FILTERS,
+  normalizeFilterLabel,
+  normalizeFilterSlug,
+  parseProjectImagesAndMeta,
+  type Project,
+} from "@/data/projects";
+import { gsap } from "@/lib/gsap";
 import { supabase } from "@/lib/supabase";
-
-const FILTER_TAGS = ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"] as const;
-type FilterTag = (typeof FILTER_TAGS)[number];
-
-const TAG_TO_QUERY: Record<FilterTag, string> = {
-  ACADÉMICOS: "ACADEMICOS",
-  PROYECTOS: "PROYECTOS",
-  SERVICIOS: "SERVICIOS",
-};
-
-const QUERY_TO_TAG: Record<string, FilterTag> = {
-  ACADEMICOS: "ACADÉMICOS",
-  ACADÉMICOS: "ACADÉMICOS",
-  PROYECTOS: "PROYECTOS",
-  SERVICIOS: "SERVICIOS",
-};
 
 // Función auxiliar para estimar la altura de una tarjeta según su aspect-ratio
 const estimateItemHeight = (project: Project): number => {
@@ -76,52 +67,85 @@ export default function ProjectGrid() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const gridContainerRef = useRef<HTMLDivElement>(null);
 
   const [projectsList, setProjectsList] = useState<Project[]>([]);
+  const [filterTags, setFilterTags] = useState<string[]>([
+    ...DEFAULT_PROJECT_FILTERS,
+  ]);
   const [isLoading, setIsLoading] = useState(true);
   const [measuredHeights, setMeasuredHeights] = useState<Record<string, number>>(
     {}
   );
 
-  const catParam = searchParams.get("cat")?.toUpperCase() ?? null;
-  const selectedTag: FilterTag | null =
-    catParam && QUERY_TO_TAG[catParam] ? QUERY_TO_TAG[catParam] : null;
-
   useEffect(() => {
     let active = true;
 
-    async function loadProjects() {
+    async function loadProjectsAndFilters() {
       try {
-        const { data, error } = await supabase
-          .from("projects")
-          .select("*")
-          .order("order_index", { ascending: true });
+        const [projectsRes, filtersRes] = await Promise.all([
+          supabase
+            .from("projects")
+            .select("*")
+            .order("order_index", { ascending: true }),
+          supabase
+            .from("bio")
+            .select("manifesto")
+            .eq("id", "project_filters")
+            .maybeSingle(),
+        ]);
 
         if (!active) return;
 
-        if (error || !data || data.length === 0) {
+        let configuredFilters: string[] = [...DEFAULT_PROJECT_FILTERS];
+        if (!filtersRes.error && filtersRes.data?.manifesto) {
+          try {
+            const parsed = JSON.parse(String(filtersRes.data.manifesto));
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const cleaned = parsed
+                .filter(
+                  (t): t is string => typeof t === "string" && t.trim() !== ""
+                )
+                .map(normalizeFilterLabel);
+              if (cleaned.length > 0) {
+                configuredFilters = Array.from(new Set(cleaned));
+              }
+            }
+          } catch {
+            // Fallback a filtros predeterminados
+          }
+        }
+
+        if (projectsRes.error || !projectsRes.data || projectsRes.data.length === 0) {
+          setFilterTags(configuredFilters);
           setProjectsList([]);
           return;
         }
 
-        const mapped: Project[] = data
+        const extraTagsFromProjects = new Set<string>(configuredFilters);
+
+        const mapped: Project[] = projectsRes.data
           .map((row: Record<string, unknown>) => {
             const id = String(row.id || "");
-            const rawImages = Array.isArray(row.images)
-              ? (row.images as string[]).filter(Boolean)
-              : [];
+            const { cleanImages, category, tags, showInMainGrid } =
+              parseProjectImagesAndMeta(row);
             const coverImage = String(
-              row.cover_image || row.coverImage || rawImages[0] || ""
+              row.cover_image || row.coverImage || cleanImages[0] || ""
             );
             const images =
-              rawImages.length > 0
-                ? rawImages
+              cleanImages.length > 0
+                ? cleanImages
                 : coverImage
                   ? [coverImage]
                   : [];
-            const tags = Array.isArray(row.tags)
-              ? (row.tags as string[])
-              : ["ACADÉMICOS", "PROYECTOS", "SERVICIOS"];
+
+            if (category) {
+              extraTagsFromProjects.add(normalizeFilterLabel(category));
+            }
+            tags.forEach((t) => {
+              if (t) extraTagsFromProjects.add(normalizeFilterLabel(t));
+            });
+
             const aspectRatio =
               typeof row.aspect_ratio === "string"
                 ? row.aspect_ratio
@@ -137,12 +161,15 @@ export default function ProjectGrid() {
               coverImage,
               images,
               tags,
+              category,
+              showInMainGrid,
               aspectRatio,
               height,
             };
           })
           .filter((p) => Boolean(p.id && p.coverImage));
 
+        setFilterTags(Array.from(extraTagsFromProjects));
         setProjectsList(mapped);
       } catch {
         if (active) setProjectsList([]);
@@ -151,18 +178,33 @@ export default function ProjectGrid() {
       }
     }
 
-    loadProjects();
+    loadProjectsAndFilters();
     return () => {
       active = false;
     };
   }, []);
 
-  const handleSelectTag = (tag: FilterTag) => {
+  const catParam = searchParams.get("cat");
+  const selectedTag = useMemo(() => {
+    if (!catParam) return null;
+    const targetSlug = normalizeFilterSlug(catParam);
+    const matched = filterTags.find(
+      (tag) =>
+        normalizeFilterSlug(tag) === targetSlug ||
+        normalizeFilterLabel(tag) === normalizeFilterLabel(catParam)
+    );
+    return matched || normalizeFilterLabel(catParam);
+  }, [catParam, filterTags]);
+
+  const handleSelectTag = (tag: string) => {
     const nextTag = selectedTag === tag ? null : tag;
     if (!nextTag) {
       router.push(pathname, { scroll: false });
     } else {
-      router.push(`${pathname}?cat=${TAG_TO_QUERY[nextTag]}`, { scroll: false });
+      router.push(
+        `${pathname}?cat=${encodeURIComponent(normalizeFilterSlug(nextTag))}`,
+        { scroll: false }
+      );
     }
 
     if (typeof window !== "undefined" && window.__lenis) {
@@ -170,12 +212,30 @@ export default function ProjectGrid() {
     }
   };
 
-  // Proyectos filtrados según la etiqueta seleccionada
+  // Precarga en segundo plano de la primera imagen de la galería al hacer hover en una tarjeta
+  const handleCardMouseEnter = (project: Project) => {
+    if (typeof window === "undefined") return;
+    const firstSlide = project.images?.[0] || project.coverImage;
+    if (firstSlide) {
+      const preloadImg = new window.Image();
+      preloadImg.src = firstSlide;
+    }
+  };
+
+  // Proyectos filtrados respetando show_in_main_grid cuando no hay filtro seleccionado
   const filteredProjects = useMemo(() => {
-    if (!selectedTag) return projectsList;
-    return projectsList.filter(
-      (p) => !p.tags || p.tags.length === 0 || p.tags.includes(selectedTag)
-    );
+    if (!selectedTag) {
+      return projectsList.filter((p) => p.showInMainGrid !== false);
+    }
+    const targetSlug = normalizeFilterSlug(selectedTag);
+    return projectsList.filter((p) => {
+      const catMatch =
+        p.category && normalizeFilterSlug(p.category) === targetSlug;
+      const tagMatch =
+        Array.isArray(p.tags) &&
+        p.tags.some((t) => normalizeFilterSlug(t) === targetSlug);
+      return Boolean(catMatch || tagMatch);
+    });
   }, [selectedTag, projectsList]);
 
   const desktopCols = useMemo(
@@ -183,18 +243,68 @@ export default function ProjectGrid() {
     [filteredProjects, measuredHeights]
   );
 
+  // Clave estable de identidad para disparar la animación de revelado al montar y al cambiar de filtro
+  const filteredIdsSignature = useMemo(
+    () => `${selectedTag || "ALL"}::${filteredProjects.map((p) => p.id).join(",")}`,
+    [selectedTag, filteredProjects]
+  );
+
+  // Animación sutil de revelado horizontal (slide de izquierda a derecha con fade-in ~0.4s)
+  useEffect(() => {
+    if (isLoading || !gridContainerRef.current) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const ctx = gsap.context(() => {
+      const cards = gsap.utils.toArray<HTMLElement>(".project-card-reveal");
+      if (cards.length === 0) return;
+
+      if (prefersReducedMotion) {
+        gsap.set(cards, { opacity: 1, x: 0 });
+        return;
+      }
+
+      gsap.fromTo(
+        cards,
+        { opacity: 0, x: -24 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.4,
+          stagger: 0.045,
+          ease: "power2.out",
+          overwrite: "auto",
+          clearProps: "transform",
+        }
+      );
+    }, gridContainerRef);
+
+    return () => ctx.revert();
+  }, [isLoading, filteredIdsSignature]);
+
   if (isLoading && projectsList.length === 0) {
     return <div className="w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF]" />;
   }
 
+  const isStandardThreeFilters = filterTags.length === 3;
+
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       {/* Grilla Masonry inteligente que asigna cada proyecto a la columna más corta */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start">
+      <div
+        ref={gridContainerRef}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start"
+      >
         {desktopCols.map((colProjects, colIndex) => (
           <div key={colIndex} className="flex flex-col gap-6 md:gap-8">
             {colProjects.map((project) => (
-              <div key={project.id} className="group w-full">
+              <div
+                key={project.id}
+                onMouseEnter={() => handleCardMouseEnter(project)}
+                className="project-card-reveal group w-full"
+              >
                 <Link
                   className="block focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
                   href={`/proyectos/${project.id}`}
@@ -230,21 +340,28 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros alineada geométricamente con las 3 divisorias de la grilla de 4 columnas */}
+      {/* Barra Inferior de Filtros */}
       <footer
         role="navigation"
         aria-label="Filtros de proyectos"
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full px-6 md:px-12 lg:px-16"
       >
-        <div className="flex justify-center items-center gap-6 lg:grid lg:grid-cols-4 lg:gap-[13.5px] relative py-4">
-          {FILTER_TAGS.map((tag, idx) => {
+        <div
+          className={
+            isStandardThreeFilters
+              ? "flex justify-center items-center gap-6 lg:grid lg:grid-cols-4 lg:gap-[13.5px] relative py-4"
+              : "flex flex-wrap justify-center items-center gap-6 md:gap-10 relative py-4"
+          }
+        >
+          {filterTags.map((tag, idx) => {
             const isSelected = selectedTag === tag;
-            const colStartClass =
-              idx === 0
+            const colStartClass = isStandardThreeFilters
+              ? idx === 0
                 ? "lg:col-start-2"
                 : idx === 1
                   ? "lg:col-start-3"
-                  : "lg:col-start-4";
+                  : "lg:col-start-4"
+              : "";
 
             return (
               <div
@@ -254,7 +371,11 @@ export default function ProjectGrid() {
                 <button
                   type="button"
                   onClick={() => handleSelectTag(tag)}
-                  className={`lg:-ml-[6.75px] lg:-translate-x-1/2 relative inline-flex flex-col items-center justify-center text-[13px] uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                  className={`${
+                    isStandardThreeFilters
+                      ? "lg:-ml-[6.75px] lg:-translate-x-1/2"
+                      : ""
+                  } relative inline-flex flex-col items-center justify-center text-[13px] uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                     isSelected
                       ? "font-semibold font-[600] text-[#099AD7]"
                       : "font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"

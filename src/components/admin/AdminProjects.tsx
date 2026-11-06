@@ -3,12 +3,21 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
+  DEFAULT_PROJECT_FILTERS,
+  encodeProjectImagesWithMeta,
+  normalizeFilterLabel,
+  parseProjectImagesAndMeta,
+} from "@/data/projects";
+import {
   Trash2,
   Plus,
   X,
   Upload,
   Image as ImageIcon,
   Pencil,
+  Tag,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export interface SupabaseProject {
@@ -17,6 +26,9 @@ export interface SupabaseProject {
   cover_image: string;
   images: string[];
   order_index: number;
+  category?: string;
+  tags?: string[];
+  show_in_main_grid?: boolean;
   created_at?: string;
 }
 
@@ -52,12 +64,22 @@ export default function AdminProjects() {
   const [loadingList, setLoadingList] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
+  // Gestor de Filtros / Etiquetas dinámicas
+  const [availableFilters, setAvailableFilters] = useState<string[]>([
+    ...DEFAULT_PROJECT_FILTERS,
+  ]);
+  const [newFilterInput, setNewFilterInput] = useState("");
+  const [savingFilters, setSavingFilters] = useState(false);
+
   // Modal / Form state (Create & Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<SupabaseProject | null>(
     null
   );
   const [formTitle, setFormTitle] = useState("");
+  const [formCategory, setFormCategory] = useState<string>("PROYECTOS");
+  const [formShowInMainGrid, setFormShowInMainGrid] = useState<boolean>(true);
+  const [modalNewCategoryInput, setModalNewCategoryInput] = useState("");
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -76,19 +98,117 @@ export default function AdminProjects() {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  const persistFilterList = useCallback(async (nextList: string[]) => {
+    setSavingFilters(true);
+    try {
+      await supabase.from("bio").upsert(
+        [
+          {
+            id: "project_filters",
+            manifesto: JSON.stringify(nextList),
+            avatar_url: "",
+            whatsapp: "",
+            email: "",
+            behance: "",
+            linkedin: "",
+            work_experience: [],
+            participations: [],
+            skills: [],
+            updated_at: new Date().toISOString(),
+          },
+        ],
+        { onConflict: "id" }
+      );
+    } catch {
+      // Silencioso si falla red
+    } finally {
+      setSavingFilters(false);
+    }
+  }, []);
+
+  const loadDataFromSupabase = useCallback(async () => {
+    const [projectsRes, filtersRes] = await Promise.all([
+      supabase
+        .from("projects")
+        .select("*")
+        .order("order_index", { ascending: true }),
+      supabase
+        .from("bio")
+        .select("manifesto")
+        .eq("id", "project_filters")
+        .maybeSingle(),
+    ]);
+
+    let configuredFilters: string[] = [...DEFAULT_PROJECT_FILTERS];
+    if (!filtersRes.error && filtersRes.data?.manifesto) {
+      try {
+        const parsed = JSON.parse(String(filtersRes.data.manifesto));
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const cleaned = parsed
+            .filter(
+              (t): t is string => typeof t === "string" && t.trim() !== ""
+            )
+            .map(normalizeFilterLabel);
+          if (cleaned.length > 0) {
+            configuredFilters = Array.from(new Set(cleaned));
+          }
+        }
+      } catch {
+        // Fallback a filtros predeterminados
+      }
+    }
+
+    if (projectsRes.error) {
+      return {
+        error: projectsRes.error.message,
+        filters: configuredFilters,
+        projects: [] as SupabaseProject[],
+      };
+    }
+
+    const rawRows = (projectsRes.data as Record<string, unknown>[]) || [];
+    const filterSet = new Set<string>(configuredFilters);
+
+    const normalizedProjects: SupabaseProject[] = rawRows.map((row) => {
+      const { cleanImages, category, tags, showInMainGrid } =
+        parseProjectImagesAndMeta(row);
+      if (category) filterSet.add(normalizeFilterLabel(category));
+      tags.forEach((t) => {
+        if (t) filterSet.add(normalizeFilterLabel(t));
+      });
+
+      return {
+        id: String(row.id || ""),
+        title: String(row.title || ""),
+        cover_image: String(row.cover_image || ""),
+        images: cleanImages,
+        order_index: Number(row.order_index ?? 1),
+        category,
+        tags,
+        show_in_main_grid: showInMainGrid,
+        created_at:
+          typeof row.created_at === "string" ? row.created_at : undefined,
+      };
+    });
+
+    return {
+      error: null,
+      filters: Array.from(filterSet),
+      projects: normalizedProjects,
+    };
+  }, []);
+
   const fetchProjects = useCallback(async () => {
     setLoadingList(true);
     setListError(null);
     try {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .order("order_index", { ascending: true });
-
-      if (error) {
-        setListError(error.message);
+      const res = await loadDataFromSupabase();
+      if (res.error) {
+        setListError(res.error);
+        setAvailableFilters(res.filters);
       } else {
-        setProjects((data as SupabaseProject[]) || []);
+        setAvailableFilters(res.filters);
+        setProjects(res.projects);
       }
     } catch (err) {
       setListError(
@@ -97,23 +217,21 @@ export default function AdminProjects() {
     } finally {
       setLoadingList(false);
     }
-  }, []);
+  }, [loadDataFromSupabase]);
 
   useEffect(() => {
     let active = true;
 
     async function loadInitialProjects() {
       try {
-        const { data, error } = await supabase
-          .from("projects")
-          .select("*")
-          .order("order_index", { ascending: true });
-
+        const res = await loadDataFromSupabase();
         if (!active) return;
-        if (error) {
-          setListError(error.message);
+        if (res.error) {
+          setListError(res.error);
+          setAvailableFilters(res.filters);
         } else {
-          setProjects((data as SupabaseProject[]) || []);
+          setAvailableFilters(res.filters);
+          setProjects(res.projects);
         }
       } catch (err) {
         if (active) {
@@ -132,7 +250,7 @@ export default function AdminProjects() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadDataFromSupabase]);
 
   // Clean up object URLs on unmount
   useEffect(() => {
@@ -144,9 +262,58 @@ export default function AdminProjects() {
     };
   }, [coverPreview, galleryItems]);
 
+  const handleAddGlobalFilter = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const clean = normalizeFilterLabel(newFilterInput);
+    if (!clean) return;
+
+    if (availableFilters.includes(clean)) {
+      setNewFilterInput("");
+      return;
+    }
+
+    const updated = [...availableFilters, clean];
+    setAvailableFilters(updated);
+    setNewFilterInput("");
+    await persistFilterList(updated);
+    setFeedbackSuccess(`Etiqueta "${clean}" agregada al catálogo de filtros.`);
+  };
+
+  const handleRemoveGlobalFilter = async (tagToRemove: string) => {
+    if (availableFilters.length <= 1) return;
+    const updated = availableFilters.filter((t) => t !== tagToRemove);
+    setAvailableFilters(updated);
+    if (formCategory === tagToRemove) {
+      setFormCategory(updated[0] || "PROYECTOS");
+    }
+    await persistFilterList(updated);
+    setFeedbackSuccess(`Etiqueta "${tagToRemove}" eliminada de los filtros.`);
+  };
+
+  const handleQuickAddCategoryInModal = async () => {
+    const clean = normalizeFilterLabel(modalNewCategoryInput);
+    if (!clean) return;
+
+    if (!availableFilters.includes(clean)) {
+      const updated = [...availableFilters, clean];
+      setAvailableFilters(updated);
+      await persistFilterList(updated);
+    }
+    setFormCategory(clean);
+    setModalNewCategoryInput("");
+    if (formError) setFormError(null);
+  };
+
   const resetForm = () => {
     setEditingProject(null);
     setFormTitle("");
+    setFormCategory(
+      availableFilters.includes("PROYECTOS")
+        ? "PROYECTOS"
+        : availableFilters[0] || "PROYECTOS"
+    );
+    setFormShowInMainGrid(true);
+    setModalNewCategoryInput("");
     if (coverPreview && coverPreview.startsWith("blob:")) {
       URL.revokeObjectURL(coverPreview);
     }
@@ -170,6 +337,12 @@ export default function AdminProjects() {
     setFeedbackSuccess(null);
     setEditingProject(project);
     setFormTitle(project.title);
+    setFormCategory(
+      project.category
+        ? normalizeFilterLabel(project.category)
+        : availableFilters[0] || "PROYECTOS"
+    );
+    setFormShowInMainGrid(project.show_in_main_grid !== false);
     setCoverPreview(project.cover_image || null);
     setExistingGalleryUrls(
       Array.isArray(project.images) ? [...project.images] : []
@@ -262,6 +435,12 @@ export default function AdminProjects() {
       return;
     }
 
+    const cleanCategory = normalizeFilterLabel(formCategory);
+    if (!cleanCategory) {
+      setFormError("Selecciona el Tipo / Categoría del proyecto.");
+      return;
+    }
+
     const isEditing = Boolean(editingProject);
     const projectSlug = isEditing
       ? editingProject!.id
@@ -278,6 +457,13 @@ export default function AdminProjects() {
     setStatusMessage("Procesando imágenes...");
 
     try {
+      // Asegurar que la categoría seleccionada exista en el listado global de filtros
+      if (!availableFilters.includes(cleanCategory)) {
+        const nextFilters = [...availableFilters, cleanCategory];
+        setAvailableFilters(nextFilters);
+        await persistFilterList(nextFilters);
+      }
+
       // 1. Portada: subir nueva si fue reemplazada, o mantener la actual en edición
       let finalCoverUrl = editingProject?.cover_image || "";
 
@@ -334,7 +520,20 @@ export default function AdminProjects() {
         }
       }
 
-      const finalGalleryUrls = [...existingGalleryUrls, ...uploadedGalleryUrls];
+      const finalCleanGalleryUrls = [
+        ...existingGalleryUrls,
+        ...uploadedGalleryUrls,
+      ];
+
+      // Codificar metadatos (categoría, tags y visibilidad en grilla principal) de forma retrocompatible
+      const encodedImagesPayload = encodeProjectImagesWithMeta(
+        finalCleanGalleryUrls,
+        {
+          category: cleanCategory,
+          tags: [cleanCategory],
+          show_in_main_grid: formShowInMainGrid,
+        }
+      );
 
       // 3. Guardar o actualizar registro en base de datos
       setStatusMessage(
@@ -342,19 +541,34 @@ export default function AdminProjects() {
       );
 
       if (isEditing && editingProject) {
-        const { error: updateError } = await supabase
+        // Intentar primero con columnas explícitas; si el esquema de Supabase aún no las tiene, hacer fallback transparente
+        const { error: fullUpdateErr } = await supabase
           .from("projects")
           .update({
             title: cleanTitle,
             cover_image: finalCoverUrl,
-            images: finalGalleryUrls,
+            images: encodedImagesPayload,
+            category: cleanCategory,
+            tags: [cleanCategory],
+            show_in_main_grid: formShowInMainGrid,
           })
           .eq("id", editingProject.id);
 
-        if (updateError) {
-          throw new Error(
-            `Error al actualizar el proyecto: ${updateError.message}`
-          );
+        if (fullUpdateErr) {
+          const { error: fallbackUpdateErr } = await supabase
+            .from("projects")
+            .update({
+              title: cleanTitle,
+              cover_image: finalCoverUrl,
+              images: encodedImagesPayload,
+            })
+            .eq("id", editingProject.id);
+
+          if (fallbackUpdateErr) {
+            throw new Error(
+              `Error al actualizar el proyecto: ${fallbackUpdateErr.message}`
+            );
+          }
         }
 
         await fetchProjects();
@@ -370,20 +584,39 @@ export default function AdminProjects() {
         }, 0);
         const nextOrderIndex = Math.max(projects.length + 1, safeMaxOrder + 1);
 
-        const { error: insertError } = await supabase.from("projects").insert([
-          {
-            id: projectSlug,
-            title: cleanTitle,
-            cover_image: finalCoverUrl,
-            images: finalGalleryUrls,
-            order_index: nextOrderIndex,
-          },
-        ]);
+        const { error: fullInsertErr } = await supabase
+          .from("projects")
+          .insert([
+            {
+              id: projectSlug,
+              title: cleanTitle,
+              cover_image: finalCoverUrl,
+              images: encodedImagesPayload,
+              order_index: nextOrderIndex,
+              category: cleanCategory,
+              tags: [cleanCategory],
+              show_in_main_grid: formShowInMainGrid,
+            },
+          ]);
 
-        if (insertError) {
-          throw new Error(
-            `Error al guardar en base de datos: ${insertError.message}`
-          );
+        if (fullInsertErr) {
+          const { error: fallbackInsertErr } = await supabase
+            .from("projects")
+            .insert([
+              {
+                id: projectSlug,
+                title: cleanTitle,
+                cover_image: finalCoverUrl,
+                images: encodedImagesPayload,
+                order_index: nextOrderIndex,
+              },
+            ]);
+
+          if (fallbackInsertErr) {
+            throw new Error(
+              `Error al guardar en base de datos: ${fallbackInsertErr.message}`
+            );
+          }
         }
 
         await fetchProjects();
@@ -427,6 +660,68 @@ export default function AdminProjects() {
           <span>+ NUEVO PROYECTO</span>
         </button>
       </div>
+
+      {/* Gestor de Filtros / Etiquetas en el Admin */}
+      <section className="mt-6 border border-neutral-200 bg-[#FFFFFF] p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
+          <div>
+            <span className="text-[10px] uppercase tracking-wider text-[#099AD7] font-semibold flex items-center gap-1.5">
+              <Tag className="w-3 h-3" />
+              GESTOR DE FILTROS / ETIQUETAS DE PROYECTOS
+            </span>
+            <p className="text-xs text-[#686661] mt-1">
+              Administra las categorías visibles en la barra inferior de{" "}
+              <code className="text-[#1C1C1A]">/proyectos</code> y en el
+              selector de cada obra.
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleAddGlobalFilter}
+            className="flex items-center gap-2 w-full md:w-auto"
+          >
+            <input
+              type="text"
+              value={newFilterInput}
+              onChange={(e) => setNewFilterInput(e.target.value)}
+              disabled={savingFilters}
+              placeholder="Nueva etiqueta (ej. Concursos)"
+              aria-label="Nueva etiqueta de filtro"
+              className="h-9 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] flex-1 md:w-56"
+            />
+            <button
+              type="submit"
+              disabled={savingFilters || !newFilterInput.trim()}
+              className="h-9 px-4 bg-[#1C1C1A] hover:bg-[#099AD7] text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors disabled:opacity-50 shrink-0"
+            >
+              + Agregar
+            </button>
+          </form>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 pt-4">
+          {availableFilters.map((filterTag) => (
+            <span
+              key={filterTag}
+              className="inline-flex items-center gap-2 bg-neutral-50 border border-neutral-300 px-3 py-1 text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
+            >
+              <span>{filterTag}</span>
+              {availableFilters.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveGlobalFilter(filterTag)}
+                  disabled={savingFilters}
+                  title={`Eliminar filtro ${filterTag}`}
+                  aria-label={`Eliminar filtro ${filterTag}`}
+                  className="text-[#686661] hover:text-[#A84A4A] transition-colors disabled:opacity-50"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+      </section>
 
       {/* Mensajes de estado general */}
       {feedbackSuccess && (
@@ -490,6 +785,8 @@ export default function AdminProjects() {
                 ? project.images.length
                 : 0;
               const isDeleting = deletingId === project.id;
+              const isVisibleInAll = project.show_in_main_grid !== false;
+              const categoryLabel = project.category || "PROYECTOS";
 
               return (
                 <article
@@ -514,6 +811,36 @@ export default function AdminProjects() {
                       <span className="absolute top-2.5 left-2.5 bg-[#FFFFFF]/90 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#1C1C1A] border border-neutral-200 font-medium">
                         {String(index + 1).padStart(2, "0")}
                       </span>
+
+                      <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                        <span className="bg-[#FFFFFF]/95 px-2 py-0.5 text-[10px] uppercase tracking-wider text-[#099AD7] border border-neutral-200 font-medium">
+                          {categoryLabel}
+                        </span>
+                        <span
+                          title={
+                            isVisibleInAll
+                              ? "Visible en la grilla general (Todos)"
+                              : "Oculto en la grilla general (solo visible en su filtro o por link directo)"
+                          }
+                          className={`px-2 py-0.5 text-[10px] uppercase tracking-wider border font-medium inline-flex items-center gap-1 ${
+                            isVisibleInAll
+                              ? "bg-[#FFFFFF]/95 text-[#1C1C1A] border-neutral-200"
+                              : "bg-[#1C1C1A]/90 text-white border-[#1C1C1A]"
+                          }`}
+                        >
+                          {isVisibleInAll ? (
+                            <>
+                              <Eye className="w-2.5 h-2.5 text-[#099AD7]" />
+                              <span>Grilla</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-2.5 h-2.5 text-neutral-300" />
+                              <span>Oculto en Todos</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Título limpio sin ID técnico */}
@@ -626,6 +953,109 @@ export default function AdminProjects() {
                   required
                   className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-sm border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
                 />
+              </div>
+
+              {/* Selector Obligatorio: Tipo / Categoría de Proyecto + Creación rápida de etiqueta */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-1">
+                <div className="sm:col-span-6 flex flex-col gap-1.5">
+                  <label
+                    htmlFor="project-category"
+                    className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
+                  >
+                    Tipo / Categoría de Proyecto *
+                  </label>
+                  <select
+                    id="project-category"
+                    value={formCategory}
+                    onChange={(e) => {
+                      setFormCategory(e.target.value);
+                      if (formError) setFormError(null);
+                    }}
+                    disabled={submitting}
+                    required
+                    className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs uppercase tracking-wider font-medium border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                  >
+                    {availableFilters.map((filterOption) => (
+                      <option key={filterOption} value={filterOption}>
+                        {filterOption}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-6 flex flex-col gap-1.5">
+                  <label
+                    htmlFor="project-new-category"
+                    className="text-[11px] uppercase tracking-wider text-[#686661] font-medium"
+                  >
+                    ¿Nueva etiqueta / categoría?
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="project-new-category"
+                      type="text"
+                      value={modalNewCategoryInput}
+                      onChange={(e) => setModalNewCategoryInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleQuickAddCategoryInModal();
+                        }
+                      }}
+                      disabled={submitting}
+                      placeholder="Ej. Edificios Públicos"
+                      className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleQuickAddCategoryInModal}
+                      disabled={submitting || !modalNewCategoryInput.trim()}
+                      className="h-10 px-3 bg-neutral-900 hover:bg-[#099AD7] text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors disabled:opacity-40 shrink-0"
+                    >
+                      Usar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Switch / Toggle de Visibilidad en Grilla General ("Todos") */}
+              <div className="border border-neutral-200 bg-neutral-50/70 p-3.5 flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                  <label
+                    htmlFor="project-show-main-grid"
+                    className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium cursor-pointer"
+                  >
+                    Mostrar en grilla general (&ldquo;Todos&rdquo;)
+                  </label>
+                  <span className="text-[11px] text-[#686661] leading-snug">
+                    Si se desactiva, el proyecto no aparecerá en la vista
+                    general de proyectos, pero sí al filtrar por{" "}
+                    <strong className="font-medium text-[#1C1C1A]">
+                      {formCategory}
+                    </strong>{" "}
+                    o mediante enlace directo.
+                  </span>
+                </div>
+
+                <button
+                  id="project-show-main-grid"
+                  type="button"
+                  role="switch"
+                  aria-checked={formShowInMainGrid}
+                  onClick={() => setFormShowInMainGrid((prev) => !prev)}
+                  disabled={submitting}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center border transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7] ${
+                    formShowInMainGrid
+                      ? "bg-[#099AD7] border-[#099AD7]"
+                      : "bg-neutral-300 border-neutral-400"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 bg-white transition-transform duration-200 ${
+                      formShowInMainGrid ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
               </div>
 
               {/* Campo Imagen de Portada (Cover) */}
@@ -818,8 +1248,8 @@ export default function AdminProjects() {
                   {submitting
                     ? "PROCESANDO..."
                     : editingProject
-                    ? "GUARDAR CAMBIOS"
-                    : "GUARDAR PROYECTO"}
+                      ? "GUARDAR CAMBIOS"
+                      : "GUARDAR PROYECTO"}
                 </button>
               </div>
             </form>

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Mail } from "lucide-react";
-import type { Project } from "@/data/projects";
+import { parseProjectImagesAndMeta, type Project } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
 
 export default function HomeSlider() {
@@ -42,25 +42,25 @@ export default function HomeSlider() {
         const mapped: Project[] = data
           .map((row: Record<string, unknown>) => {
             const id = String(row.id || "");
-            const rawImages = Array.isArray(row.images)
-              ? (row.images as string[]).filter(Boolean)
-              : [];
+            const { cleanImages, showInMainGrid } =
+              parseProjectImagesAndMeta(row);
             const coverImage = String(
-              row.cover_image || row.coverImage || rawImages[0] || ""
+              row.cover_image || row.coverImage || cleanImages[0] || ""
             );
             return {
               id,
               title: String(row.title || id),
               coverImage,
+              showInMainGrid,
               images:
-                rawImages.length > 0
-                  ? rawImages
+                cleanImages.length > 0
+                  ? cleanImages
                   : coverImage
                     ? [coverImage]
                     : [],
             };
           })
-          .filter((p) => Boolean(p.id && p.coverImage));
+          .filter((p) => Boolean(p.id && p.coverImage && p.showInMainGrid !== false));
 
         setProjectsList(mapped);
         setActiveIndex(0);
