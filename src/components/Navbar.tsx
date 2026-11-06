@@ -323,15 +323,17 @@ export default function Navbar() {
 
   const shouldHideOnScroll = isProjectsPage && !isAtTop;
 
+  if (isHidden) {
+    return null;
+  }
+
   return (
     <nav
-      aria-hidden={isHidden || shouldHideOnScroll}
+      aria-hidden={shouldHideOnScroll}
       className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-all duration-300 ${
-        isHidden
-          ? "hidden"
-          : shouldHideOnScroll
-            ? "-translate-y-full opacity-0 pointer-events-none"
-            : "translate-y-0 opacity-100"
+        shouldHideOnScroll
+          ? "-translate-y-full opacity-0 pointer-events-none"
+          : "translate-y-0 opacity-100"
       }`}
     >
       <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">

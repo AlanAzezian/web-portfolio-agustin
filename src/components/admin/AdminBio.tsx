@@ -25,7 +25,10 @@ import {
   ArrowDown,
   Image as ImageIcon,
   Link2,
+  Loader2,
 } from "lucide-react";
+
+type BioSectionKey = "about" | "experience" | "skills";
 
 interface ProjectOption {
   id: string;
@@ -80,7 +83,9 @@ function buildInitialBioSeed(): SupabaseBioRow {
 export default function AdminBio() {
   const [bio, setBio] = useState<SupabaseBioRow>(buildInitialBioSeed);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingSection, setSavingSection] = useState<BioSectionKey | null>(
+    null
+  );
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingPartId, setUploadingPartId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -150,9 +155,6 @@ export default function AdminBio() {
                 ? inserted.skills
                 : seed.skills,
             });
-            setFeedbackSuccess(
-              "Registro bio (id = 'main') inicializado en Supabase."
-            );
           }
         } else {
           const seed = buildInitialBioSeed();
@@ -218,9 +220,7 @@ export default function AdminBio() {
         .data.publicUrl;
 
       setBio((prev) => ({ ...prev, avatar_url: publicUrl }));
-      setFeedbackSuccess(
-        "Foto de perfil subida a Supabase Storage. Recuerda hacer clic en Guardar cambios."
-      );
+      setFeedbackSuccess("Los datos se guardaron exitosamente.");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al subir el avatar."
@@ -424,9 +424,7 @@ export default function AdminBio() {
         ),
       }));
 
-      setFeedbackSuccess(
-        "Portada de participación subida al bucket portfolio. Presiona GUARDAR CAMBIOS para confirmar."
-      );
+      setFeedbackSuccess("Los datos se guardaron exitosamente.");
     } catch (err) {
       setError(
         err instanceof Error
@@ -488,9 +486,7 @@ export default function AdminBio() {
         }),
       }));
 
-      setFeedbackSuccess(
-        `${uploadedItems.length} foto(s) agregadas a la galería de la participación. Presiona GUARDAR CAMBIOS para confirmar.`
-      );
+      setFeedbackSuccess("Los datos se guardaron exitosamente.");
     } catch (err) {
       setError(
         err instanceof Error
@@ -588,48 +584,76 @@ export default function AdminBio() {
     setNewSkillInputs((prev) => ({ ...prev, [cardIdx]: "" }));
   };
 
-  const handleSaveBio = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (saving) return;
+  const handleSaveSection = async (section: BioSectionKey) => {
+    if (savingSection !== null) return;
 
-    setSaving(true);
+    setSavingSection(section);
     setError(null);
     setFeedbackSuccess(null);
 
     try {
-      const payload = {
-        id: "main",
-        manifesto: bio.manifesto.trim(),
-        avatar_url: bio.avatar_url.trim(),
-        whatsapp: bio.whatsapp.trim(),
-        email: bio.email.trim(),
-        behance: bio.behance.trim(),
-        linkedin: bio.linkedin.trim(),
-        work_experience: bio.work_experience,
-        participations: bio.participations,
-        skills: bio.skills,
-        updated_at: new Date().toISOString(),
-      };
+      const nowIso = new Date().toISOString();
+      const partialPayload =
+        section === "about"
+          ? {
+              manifesto: bio.manifesto.trim(),
+              avatar_url: bio.avatar_url.trim(),
+              whatsapp: bio.whatsapp.trim(),
+              email: bio.email.trim(),
+              behance: bio.behance.trim(),
+              linkedin: bio.linkedin.trim(),
+              updated_at: nowIso,
+            }
+          : section === "experience"
+            ? {
+                work_experience: bio.work_experience,
+                participations: bio.participations,
+                updated_at: nowIso,
+              }
+            : {
+                skills: bio.skills,
+                updated_at: nowIso,
+              };
 
-      const { error: upsertError } = await supabase
+      const { data: updatedRows, error: updateError } = await supabase
         .from("bio")
-        .upsert([payload], { onConflict: "id" });
+        .update(partialPayload)
+        .eq("id", "main")
+        .select("id");
 
-      if (upsertError) {
-        setError(`Error al guardar Bio & Contacto: ${upsertError.message}`);
-      } else {
-        setFeedbackSuccess(
-          "Datos de Bio, Experiencia y Participaciones guardados exitosamente en Supabase (id = 'main')."
-        );
+      if (updateError || !updatedRows || updatedRows.length === 0) {
+        const fullPayload = {
+          id: "main",
+          manifesto: bio.manifesto.trim(),
+          avatar_url: bio.avatar_url.trim(),
+          whatsapp: bio.whatsapp.trim(),
+          email: bio.email.trim(),
+          behance: bio.behance.trim(),
+          linkedin: bio.linkedin.trim(),
+          work_experience: bio.work_experience,
+          participations: bio.participations,
+          skills: bio.skills,
+          updated_at: nowIso,
+        };
+
+        const { error: upsertError } = await supabase
+          .from("bio")
+          .upsert([fullPayload], { onConflict: "id" });
+
+        if (upsertError) {
+          throw new Error(upsertError.message);
+        }
       }
+
+      setFeedbackSuccess("Los datos se guardaron exitosamente.");
     } catch (err) {
       setError(
         err instanceof Error
-          ? err.message
-          : "Error inesperado al guardar Bio & Contacto."
+          ? `Error al guardar: ${err.message}`
+          : "Error inesperado al guardar los datos."
       );
     } finally {
-      setSaving(false);
+      setSavingSection(null);
     }
   };
 
@@ -637,19 +661,15 @@ export default function AdminBio() {
     return (
       <div className="py-16 border border-neutral-200 bg-[#FFFFFF] flex items-center justify-center">
         <span className="text-xs uppercase tracking-wider text-[#686661]">
-          Cargando perfil y datos de contacto desde Supabase...
+          Cargando perfil y datos de contacto...
         </span>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSaveBio}
-      className="w-full font-roboto text-[#1C1C1A] flex flex-col gap-8"
-      noValidate
-    >
-      {/* Cabecera del Módulo */}
+    <div className="w-full font-roboto text-[#1C1C1A] flex flex-col gap-8">
+      {/* Cabecera del Módulo (sin botón global) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-200">
         <div>
           <span className="text-[11px] uppercase tracking-wider text-[#686661] block">
@@ -659,25 +679,16 @@ export default function AdminBio() {
             Bio & Contacto
           </h2>
         </div>
-
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center justify-center gap-2 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium px-6 h-10 rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors duration-200 disabled:opacity-50"
-        >
-          <Save className="w-3.5 h-3.5" />
-          <span>{saving ? "GUARDANDO CAMBIOS..." : "GUARDAR CAMBIOS"}</span>
-        </button>
       </div>
 
       {/* Mensajes de estado */}
       {feedbackSuccess && (
         <div
           role="status"
-          className="border border-[#099AD7]/40 bg-[#099AD7]/5 px-4 py-3 flex items-center justify-between"
+          className="sticky top-14 z-40 border border-[#099AD7]/40 bg-[#F5FBFE] px-4 py-3 flex items-center justify-between"
         >
           <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-[#099AD7]" />
+            <Check className="w-4 h-4 text-[#099AD7] shrink-0" />
             <span className="text-xs text-[#1C1C1A] tracking-wide">
               {feedbackSuccess}
             </span>
@@ -685,9 +696,10 @@ export default function AdminBio() {
           <button
             type="button"
             onClick={() => setFeedbackSuccess(null)}
-            className="text-xs uppercase tracking-wider text-[#686661] hover:text-[#1C1C1A]"
+            aria-label="Cerrar notificación"
+            className="text-xs text-[#686661] hover:text-[#1C1C1A] px-1.5 py-0.5 transition-colors cursor-pointer"
           >
-            CERRAR
+            ✕
           </button>
         </div>
       )}
@@ -849,169 +861,197 @@ export default function AdminBio() {
             />
           </div>
         </div>
-      </section>
 
-      {/* SECCIÓN 02: EXPERIENCIA LABORAL */}
-      <section className="border border-neutral-200 bg-[#FFFFFF] p-6">
-        <div className="pb-4 mb-6 border-b border-neutral-200 flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wider text-[#099AD7] font-semibold">
-            02 / EXPERIENCIA LABORAL ({bio.work_experience.length})
-          </span>
+        {/* Pie de Sección 01: Guardar Sobre Mí */}
+        <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-end">
           <button
             type="button"
-            onClick={handleAddWorkExperience}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium transition-colors"
+            onClick={() => handleSaveSection("about")}
+            disabled={savingSection !== null}
+            className="inline-flex items-center justify-center gap-2 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium px-6 h-10 rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors duration-200 disabled:opacity-50 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Agregar Puesto</span>
+            {savingSection === "about" ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Guardando...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>GUARDAR SOBRE MÍ</span>
+              </>
+            )}
           </button>
         </div>
+      </section>
 
-        <div className="flex flex-col gap-6">
-          {bio.work_experience.map((work) => (
-            <div
-              key={work.id}
-              className="border border-neutral-200 p-4 bg-[#FFFFFF] flex flex-col gap-4"
+      {/* SECCIÓN 02: EXPERIENCIA & PARTICIPACIONES */}
+      <section className="border border-neutral-200 bg-[#FFFFFF] p-6 flex flex-col gap-8">
+        <div>
+          <div className="pb-4 mb-6 border-b border-neutral-200 flex items-center justify-between">
+            <div>
+              <span className="text-xs uppercase tracking-wider text-[#099AD7] font-semibold block">
+                02 / EXPERIENCIA & PARTICIPACIONES
+              </span>
+              <span className="text-[11px] text-[#686661] mt-0.5 block">
+                Trayectoria laboral ({bio.work_experience.length}) y concursos / participaciones ({bio.participations.length})
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddWorkExperience}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-xs uppercase tracking-wider font-medium transition-colors"
             >
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
-                <span className="text-xs font-semibold text-[#099AD7] tabular-nums">
-                  PUESTO #{work.orderNumber}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteWorkExperience(work.id)}
-                  className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-[#A84A4A] hover:underline"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Eliminar puesto</span>
-                </button>
-              </div>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Agregar Puesto</span>
+            </button>
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase tracking-wider text-[#686661]">
-                    Rol / Cargo
-                  </label>
-                  <input
-                    type="text"
-                    value={work.role}
-                    onChange={(e) =>
-                      handleWorkFieldChange(work.id, "role", e.target.value)
-                    }
-                    className="h-9 px-3 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
-                  />
+          <div className="flex flex-col gap-6">
+            {bio.work_experience.map((work) => (
+              <div
+                key={work.id}
+                className="border border-neutral-200 p-4 bg-[#FFFFFF] flex flex-col gap-4"
+              >
+                <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
+                  <span className="text-xs font-semibold text-[#099AD7] tabular-nums">
+                    PUESTO #{work.orderNumber}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteWorkExperience(work.id)}
+                    className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-[#A84A4A] hover:underline"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Eliminar puesto</span>
+                  </button>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase tracking-wider text-[#686661]">
-                    Estudio / Empresa
-                  </label>
-                  <input
-                    type="text"
-                    value={work.company}
-                    onChange={(e) =>
-                      handleWorkFieldChange(work.id, "company", e.target.value)
-                    }
-                    className="h-9 px-3 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase tracking-wider text-[#686661]">
-                    Período
-                  </label>
-                  <input
-                    type="text"
-                    value={work.period}
-                    onChange={(e) =>
-                      handleWorkFieldChange(work.id, "period", e.target.value)
-                    }
-                    className="h-9 px-3 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
-                  />
-                </div>
-              </div>
 
-              {/* Tareas del puesto */}
-              <div className="flex flex-col gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-[#686661]">
-                  Responsabilidades & Alcance Técnico
-                </span>
-                {work.tasks.map((task, tIdx) => (
-                  <div key={tIdx} className="flex items-center gap-2">
-                    <span className="w-5 text-[11px] text-[#099AD7] font-medium tabular-nums">
-                      {tIdx + 1}.
-                    </span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase tracking-wider text-[#686661]">
+                      Rol / Cargo
+                    </label>
                     <input
                       type="text"
-                      value={task}
+                      value={work.role}
                       onChange={(e) =>
-                        handleWorkTaskChange(work.id, tIdx, e.target.value)
+                        handleWorkFieldChange(work.id, "role", e.target.value)
                       }
-                      className="flex-1 h-8 px-2.5 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
+                      className="h-9 px-3 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase tracking-wider text-[#686661]">
+                      Estudio / Empresa
+                    </label>
+                    <input
+                      type="text"
+                      value={work.company}
+                      onChange={(e) =>
+                        handleWorkFieldChange(work.id, "company", e.target.value)
+                      }
+                      className="h-9 px-3 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase tracking-wider text-[#686661]">
+                      Período
+                    </label>
+                    <input
+                      type="text"
+                      value={work.period}
+                      onChange={(e) =>
+                        handleWorkFieldChange(work.id, "period", e.target.value)
+                      }
+                      className="h-9 px-3 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
+                    />
+                  </div>
+                </div>
+
+                {/* Tareas del puesto */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] uppercase tracking-wider text-[#686661]">
+                    Responsabilidades & Alcance Técnico
+                  </span>
+                  {work.tasks.map((task, tIdx) => (
+                    <div key={tIdx} className="flex items-center gap-2">
+                      <span className="w-5 text-[11px] text-[#099AD7] font-medium tabular-nums">
+                        {tIdx + 1}.
+                      </span>
+                      <input
+                        type="text"
+                        value={task}
+                        onChange={(e) =>
+                          handleWorkTaskChange(work.id, tIdx, e.target.value)
+                        }
+                        className="flex-1 h-8 px-2.5 border border-neutral-300 text-xs focus:outline-none focus:border-[#099AD7]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleWorkTaskDelete(work.id, tIdx)}
+                        aria-label="Eliminar tarea"
+                        className="h-8 px-2 border border-neutral-200 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={newTaskInputs[work.id] || ""}
+                      onChange={(e) =>
+                        setNewTaskInputs((prev) => ({
+                          ...prev,
+                          [work.id]: e.target.value,
+                        }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleWorkTaskAdd(work.id);
+                        }
+                      }}
+                      placeholder="Agregar responsabilidad técnica..."
+                      className="flex-1 h-8 px-2.5 border border-neutral-300 text-xs placeholder:text-[#9A9892] focus:outline-none focus:border-[#099AD7]"
                     />
                     <button
                       type="button"
-                      onClick={() => handleWorkTaskDelete(work.id, tIdx)}
-                      aria-label="Eliminar tarea"
-                      className="h-8 px-2 border border-neutral-200 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white transition-colors"
+                      onClick={() => handleWorkTaskAdd(work.id)}
+                      className="h-8 px-3 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-[11px] uppercase tracking-wider font-medium transition-colors"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      + Agregar
                     </button>
                   </div>
-                ))}
-
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="text"
-                    value={newTaskInputs[work.id] || ""}
-                    onChange={(e) =>
-                      setNewTaskInputs((prev) => ({
-                        ...prev,
-                        [work.id]: e.target.value,
-                      }))
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleWorkTaskAdd(work.id);
-                      }
-                    }}
-                    placeholder="Agregar responsabilidad técnica..."
-                    className="flex-1 h-8 px-2.5 border border-neutral-300 text-xs placeholder:text-[#9A9892] focus:outline-none focus:border-[#099AD7]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleWorkTaskAdd(work.id)}
-                    className="h-8 px-3 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-[11px] uppercase tracking-wider font-medium transition-colors"
-                  >
-                    + Agregar
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* SECCIÓN 03: CONCURSOS & PARTICIPACIONES (CRUD + SUBIDA DE PORTADA Y GALERÍA) */}
-      <section className="border border-neutral-200 bg-[#FFFFFF] p-6">
-        <div className="pb-4 mb-6 border-b border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <span className="text-xs uppercase tracking-wider text-[#099AD7] font-semibold block">
-              03 / CONCURSOS & PARTICIPACIONES ({bio.participations.length})
-            </span>
-            <p className="text-[11px] text-[#686661] mt-0.5">
-              Administra premios, exposiciones, imagen principal y galería fotográfica para el visor de Bio.
-            </p>
+            ))}
           </div>
-
-          <button
-            type="button"
-            onClick={handleAddParticipation}
-            className="inline-flex items-center justify-center gap-1.5 px-4 h-9 bg-[#099AD7] text-white hover:bg-[#0886BC] text-xs uppercase tracking-wider font-medium transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ AGREGAR PARTICIPACIÓN</span>
-          </button>
         </div>
+
+        {/* Sub-bloque: Concursos & Participaciones dentro de 02 / Experiencia & Participaciones */}
+        <div className="pt-6 border-t border-neutral-200">
+          <div className="pb-4 mb-6 border-b border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span className="text-xs uppercase tracking-wider text-[#099AD7] font-semibold block">
+                CONCURSOS & PARTICIPACIONES ({bio.participations.length})
+              </span>
+              <p className="text-[11px] text-[#686661] mt-0.5">
+                Administra premios, exposiciones, imagen principal y galería fotográfica para el visor de Bio.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddParticipation}
+              className="inline-flex items-center justify-center gap-1.5 px-4 h-9 bg-[#099AD7] text-white hover:bg-[#0886BC] text-xs uppercase tracking-wider font-medium transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ AGREGAR PARTICIPACIÓN</span>
+            </button>
+          </div>
 
         <div className="flex flex-col gap-6">
           {bio.participations.map((part, partIdx) => {
@@ -1305,7 +1345,7 @@ export default function AdminBio() {
                                 caption
                               )
                             }
-                            disabled={isUploadingThis || saving}
+                            disabled={isUploadingThis || savingSection !== null}
                             columnsClassName="grid-cols-2 sm:grid-cols-3"
                             aspectClassName="aspect-[3/2]"
                           />
@@ -1317,14 +1357,37 @@ export default function AdminBio() {
               </div>
             );
           })}
+          </div>
+        </div>
+
+        {/* Pie de Sección 02: Guardar Experiencia */}
+        <div className="pt-4 border-t border-neutral-100 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => handleSaveSection("experience")}
+            disabled={savingSection !== null}
+            className="inline-flex items-center justify-center gap-2 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium px-6 h-10 rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors duration-200 disabled:opacity-50 cursor-pointer"
+          >
+            {savingSection === "experience" ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Guardando...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>GUARDAR EXPERIENCIA</span>
+              </>
+            )}
+          </button>
         </div>
       </section>
 
-      {/* SECCIÓN 04: HABILIDADES Y SOFTWARE */}
+      {/* SECCIÓN 03: HABILIDADES Y SOFTWARE */}
       <section className="border border-neutral-200 bg-[#FFFFFF] p-6">
         <div className="pb-4 mb-6 border-b border-neutral-200 flex items-center justify-between">
           <span className="text-xs uppercase tracking-wider text-[#099AD7] font-semibold">
-            04 / HABILIDADES & SOFTWARE ({bio.skills.length} CATEGORÍAS)
+            03 / HABILIDADES & SOFTWARE ({bio.skills.length} CATEGORÍAS)
           </span>
         </div>
 
@@ -1399,19 +1462,29 @@ export default function AdminBio() {
             </div>
           ))}
         </div>
-      </section>
 
-      {/* Pie con botón Guardar */}
-      <div className="flex justify-end pt-2">
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center justify-center gap-2 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium px-8 h-11 rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors duration-200 disabled:opacity-50"
-        >
-          <Save className="w-4 h-4" />
-          <span>{saving ? "GUARDANDO CAMBIOS..." : "GUARDAR CAMBIOS"}</span>
-        </button>
-      </div>
-    </form>
+        {/* Pie de Sección 03: Guardar Habilidades */}
+        <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => handleSaveSection("skills")}
+            disabled={savingSection !== null}
+            className="inline-flex items-center justify-center gap-2 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium px-6 h-10 rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors duration-200 disabled:opacity-50 cursor-pointer"
+          >
+            {savingSection === "skills" ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Guardando...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>GUARDAR HABILIDADES</span>
+              </>
+            )}
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
