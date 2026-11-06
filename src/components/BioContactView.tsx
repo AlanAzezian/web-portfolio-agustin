@@ -460,7 +460,7 @@ export default function BioContactView() {
                                 {manifesto ? (
                                   manifesto.trim().startsWith("<") ? (
                                     <div
-                                      className="bio-rich-text font-roboto leading-relaxed text-[#1C1C1A]/85 [&_strong]:font-medium [&_b]:font-medium [&_h3]:text-base [&_h3]:md:text-lg [&_h3]:font-medium [&_h3]:text-[#1C1C1A]"
+                                      className="bio-rich-text font-roboto leading-relaxed text-[#1C1C1A]/85 [&_strong]:font-medium [&_b]:font-medium [&_em]:italic [&_i]:italic [&_u]:underline [&_u]:underline-offset-3 [&_mark]:px-1 [&_h1]:text-xl [&_h1]:font-medium [&_h1]:text-[#1C1C1A] [&_h2]:text-lg [&_h2]:font-medium [&_h2]:text-[#1C1C1A] [&_h3]:text-base [&_h3]:md:text-lg [&_h3]:font-medium [&_h3]:text-[#1C1C1A]"
                                       dangerouslySetInnerHTML={{
                                         __html: manifesto,
                                       }}

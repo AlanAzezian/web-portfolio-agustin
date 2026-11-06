@@ -12,6 +12,23 @@ import SortableImageGallery, {
   type SortableGalleryItem,
 } from "@/components/admin/SortableImageGallery";
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   Trash2,
   Plus,
   X,
@@ -21,6 +38,7 @@ import {
   Tag,
   Eye,
   EyeOff,
+  GripVertical,
 } from "lucide-react";
 
 export interface SupabaseProject {
@@ -57,6 +75,74 @@ function sanitizeFileName(name: string): string {
     .replace(/[^a-z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return `${base || "image"}-${Date.now()}${ext}`;
+}
+
+interface SortableFilterTagProps {
+  filterTag: string;
+  canRemove: boolean;
+  disabled: boolean;
+  onRemove: (tag: string) => void;
+}
+
+function SortableFilterTag({
+  filterTag,
+  canRemove,
+  disabled,
+  onRemove,
+}: SortableFilterTagProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: filterTag,
+    disabled,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition: isDragging ? "none" : transition,
+    touchAction: "none",
+  };
+
+  return (
+    <span
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      title="Arrastrar para reordenar filtro"
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-wider font-medium rounded-none select-none transition-shadow ${
+        disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing"
+      } ${
+        isDragging
+          ? "bg-sky-50 text-[#099AD7] border border-[#099AD7] shadow-md scale-105 opacity-90 z-30"
+          : "bg-neutral-50 text-[#1C1C1A] border border-neutral-300 hover:border-[#099AD7]"
+      }`}
+    >
+      <GripVertical className="w-3 h-3 text-[#686661] shrink-0 pointer-events-none" />
+      <span>{filterTag}</span>
+      {canRemove && (
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(filterTag);
+          }}
+          disabled={disabled}
+          title={`Eliminar filtro ${filterTag}`}
+          aria-label={`Eliminar filtro ${filterTag}`}
+          className="ml-0.5 text-[#686661] hover:text-[#A84A4A] transition-colors disabled:opacity-50 cursor-pointer"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      )}
+    </span>
+  );
 }
 
 export default function AdminProjects() {
@@ -97,6 +183,17 @@ export default function AdminProjects() {
 
   const coverInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const filterSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const persistFilterList = useCallback(async (nextList: string[]) => {
     setSavingFilters(true);
@@ -304,6 +401,19 @@ export default function AdminProjects() {
     }
     await persistFilterList(updated);
     setFeedbackSuccess(`Etiqueta "${tagToRemove}" eliminada de los filtros.`);
+  };
+
+  const handleReorderGlobalFilters = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = availableFilters.findIndex((t) => t === String(active.id));
+    const newIndex = availableFilters.findIndex((t) => t === String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(availableFilters, oldIndex, newIndex);
+    setAvailableFilters(reordered);
+    await persistFilterList(reordered);
   };
 
   const resetForm = () => {
@@ -686,9 +796,9 @@ export default function AdminProjects() {
               GESTOR DE FILTROS / ETIQUETAS DE PROYECTOS
             </span>
             <p className="text-xs text-[#686661] mt-1">
-              Administra las categorías visibles en la barra inferior de{" "}
-              <code className="text-[#1C1C1A]">/proyectos</code> y en el
-              selector de cada obra.
+              Administra y arrastra las etiquetas para definir el orden exacto
+              en la barra inferior de{" "}
+              <code className="text-[#1C1C1A]">/proyectos</code>.
             </p>
           </div>
 
@@ -715,28 +825,28 @@ export default function AdminProjects() {
           </form>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pt-4">
-          {availableFilters.map((filterTag) => (
-            <span
-              key={filterTag}
-              className="inline-flex items-center gap-2 bg-neutral-50 border border-neutral-300 px-3 py-1 text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
-            >
-              <span>{filterTag}</span>
-              {availableFilters.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveGlobalFilter(filterTag)}
+        <DndContext
+          sensors={filterSensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleReorderGlobalFilters}
+        >
+          <SortableContext
+            items={availableFilters}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="flex flex-wrap items-center gap-2 pt-4">
+              {availableFilters.map((filterTag) => (
+                <SortableFilterTag
+                  key={filterTag}
+                  filterTag={filterTag}
+                  canRemove={availableFilters.length > 1}
                   disabled={savingFilters}
-                  title={`Eliminar filtro ${filterTag}`}
-                  aria-label={`Eliminar filtro ${filterTag}`}
-                  className="text-[#686661] hover:text-[#A84A4A] transition-colors disabled:opacity-50"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </span>
-          ))}
-        </div>
+                  onRemove={handleRemoveGlobalFilter}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       </section>
 
       {/* Mensajes de estado general */}

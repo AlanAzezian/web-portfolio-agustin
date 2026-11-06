@@ -96,6 +96,26 @@ body::-webkit-scrollbar {
   margin-bottom: 0;
 }
 
+.tiptap-editor-content h1,
+.bio-rich-text h1 {
+  font-size: 1.375rem;
+  line-height: 1.35;
+  font-weight: 500;
+  color: #1C1C1A;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap-editor-content h2,
+.bio-rich-text h2 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 500;
+  color: #1C1C1A;
+  margin-top: 0.65rem;
+  margin-bottom: 0.5rem;
+}
+
 .tiptap-editor-content h3,
 .bio-rich-text h3 {
   font-size: 1.125rem;
@@ -109,6 +129,18 @@ body::-webkit-scrollbar {
 .tiptap-editor-content strong,
 .bio-rich-text strong {
   font-weight: 500;
+}
+
+.tiptap-editor-content u,
+.bio-rich-text u {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tiptap-editor-content mark,
+.bio-rich-text mark {
+  padding: 0.05rem 0.2rem;
+  color: inherit;
 }
 
 
