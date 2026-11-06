@@ -14,27 +14,58 @@ import {
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { supabase } from "@/lib/supabase";
 
-// Función auxiliar para estimar la altura de una tarjeta según su aspect-ratio
-const estimateItemHeight = (project: Project): number => {
-  const isVertical =
-    project.aspectRatio === "vertical" ||
-    project.aspectRatio === "4/5" ||
-    project.aspectRatio === "3/4";
-  const isWide =
-    project.aspectRatio === "wide" || project.aspectRatio === "16/9";
+// Precarga y mide la proporción real de cada imagen de portada para que
+// el algoritmo Shortest Column First conozca qué obras son verticales/panorámicas
+// y todas las fotos estén listas antes de disparar la animación GSAP.
+function probeCoverImage(
+  src: string
+): Promise<{ aspectRatio: string; height: number }> {
+  return new Promise((resolve) => {
+    if (!src || typeof window === "undefined") {
+      resolve({ aspectRatio: "standard", height: 320 });
+      return;
+    }
 
-  if (isVertical) return 460;
-  if (isWide) return 240;
-  return 320; // proporción estándar 3:2 / 4:3
-};
+    let settled = false;
+    const finish = (aspectRatio: string, height: number) => {
+      if (settled) return;
+      settled = true;
+      resolve({ aspectRatio, height });
+    };
 
-// Distribuir proyectos buscando siempre la columna con menor altura acumulada
+    const timer = window.setTimeout(() => {
+      finish("standard", 320);
+    }, 1200);
+
+    const img = new window.Image();
+    img.onload = () => {
+      window.clearTimeout(timer);
+      const w = img.naturalWidth || 4;
+      const h = img.naturalHeight || 3;
+      const ratio = h / w;
+      if (ratio >= 1.12) {
+        finish("vertical", Math.round(ratio * 360));
+      } else if (ratio <= 0.65) {
+        finish("wide", Math.round(ratio * 360));
+      } else {
+        finish("standard", Math.round(ratio * 360));
+      }
+    };
+    img.onerror = () => {
+      window.clearTimeout(timer);
+      finish("standard", 320);
+    };
+    img.src = src;
+  });
+}
+
+// Algoritmo "Shortest Column First": calcula la altura acumulada de cada columna
+// y asigna siempre el siguiente proyecto a la columna más corta en ese momento.
 const distributeProjects = (items: Project[], columnCount = 4) => {
   const columns: Project[][] = Array.from({ length: columnCount }, () => []);
   const colHeights = new Array<number>(columnCount).fill(0);
 
   items.forEach((project) => {
-    // 1. Encontrar cuál es la columna más corta en este instante
     let shortestColIndex = 0;
     let minHeight = colHeights[0];
 
@@ -45,11 +76,16 @@ const distributeProjects = (items: Project[], columnCount = 4) => {
       }
     }
 
-    // 2. Colocar el proyecto en la columna más vacía
     columns[shortestColIndex].push(project);
 
-    // 3. Sumar la altura estimada de la tarjeta a esa columna
-    const height = project.height || estimateItemHeight(project);
+    // Estimar o computar altura: si es vertical (3:4, 4:5) asigna ~460, si es panorámico ~240, regular ~320
+    const isVertical =
+      project.aspectRatio === "vertical" ||
+      project.aspectRatio === "4/5" ||
+      project.aspectRatio === "3/4";
+    const isWide =
+      project.aspectRatio === "wide" || project.aspectRatio === "16/9";
+    const height = project.height || (isVertical ? 460 : isWide ? 240 : 320);
     colHeights[shortestColIndex] += height;
   });
 
@@ -118,7 +154,7 @@ export default function ProjectGrid() {
 
         const extraTagsFromProjects = new Set<string>(configuredFilters);
 
-        const mapped: Project[] = projectsRes.data
+        const initialMapped: Project[] = projectsRes.data
           .map((row: Record<string, unknown>) => {
             const id = String(row.id || "");
             const { cleanImages, category, tags, showInMainGrid } =
@@ -163,8 +199,24 @@ export default function ProjectGrid() {
           })
           .filter((p) => Boolean(p.id && p.coverImage));
 
+        // Medir y precargar en paralelo las portadas para balancear las columnas
+        // y asegurar que el 100% de las tarjetas animen juntas con GSAP
+        const probed = await Promise.all(
+          initialMapped.map(async (proj) => {
+            if (proj.aspectRatio && proj.height) return proj;
+            const measured = await probeCoverImage(proj.coverImage);
+            return {
+              ...proj,
+              aspectRatio: proj.aspectRatio || measured.aspectRatio,
+              height: proj.height || measured.height,
+            };
+          })
+        );
+
+        if (!active) return;
+
         setFilterTags(Array.from(extraTagsFromProjects));
-        setProjectsList(mapped);
+        setProjectsList(probed);
       } catch {
         if (active) setProjectsList([]);
       } finally {
@@ -237,7 +289,7 @@ export default function ProjectGrid() {
     [filteredProjects]
   );
 
-  // Animación de entrada horizontal sobre el 100% de las tarjetas renderizadas
+  // Animación de entrada horizontal sobre el 100% de los proyectos en el DOM
   useLayoutEffect(() => {
     if (isLoading || filteredProjects.length === 0 || !gridContainerRef.current)
       return;
@@ -247,13 +299,29 @@ export default function ProjectGrid() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>(".project-card");
-      if (cards.length === 0) return;
+      const rawCards = Array.from(
+        gridContainerRef.current?.querySelectorAll<HTMLElement>(
+          ".project-card"
+        ) ?? []
+      );
+      if (rawCards.length === 0) return;
 
       if (prefersReducedMotion) {
-        gsap.set(cards, { opacity: 1, x: 0 });
+        gsap.set(rawCards, { opacity: 1, x: 0 });
         return;
       }
+
+      // Ordenar por posición visual (fila por fila de izquierda a derecha)
+      const cards = [...rawCards].sort((a, b) => {
+        const rectA = a.getBoundingClientRect();
+        const rectB = b.getBoundingClientRect();
+        if (Math.abs(rectA.top - rectB.top) > 36) {
+          return rectA.top - rectB.top;
+        }
+        return rectA.left - rectB.left;
+      });
+
+      gsap.killTweensOf(cards);
 
       gsap.fromTo(
         cards,
@@ -262,7 +330,7 @@ export default function ProjectGrid() {
           opacity: 1,
           x: 0,
           duration: 0.45,
-          stagger: 0.04,
+          stagger: 0.035,
           ease: "power2.out",
           clearProps: "all",
           onComplete: () => {
@@ -281,7 +349,7 @@ export default function ProjectGrid() {
 
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
-      {/* Grilla Masonry inteligente que asigna cada proyecto a la columna más corta */}
+      {/* Grilla Masonry "Shortest Column First" */}
       <div
         ref={gridContainerRef}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start"
@@ -304,12 +372,8 @@ export default function ProjectGrid() {
                       src={project.coverImage || project.images?.[0]}
                       alt={project.title}
                       className="w-full h-auto object-contain block"
-                      loading="lazy"
-                      onLoad={() => {
-                        requestAnimationFrame(() => {
-                          ScrollTrigger.refresh();
-                        });
-                      }}
+                      loading="eager"
+                      decoding="async"
                     />
                   </div>
                   <h3 className="mt-3 text-base md:text-[17px] font-roboto font-medium text-[#1C1C1A] group-hover:text-[#099AD7] hover:text-[#099AD7] transition-colors duration-200 leading-snug tracking-tight">
@@ -322,13 +386,13 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros con separación generosa */}
+      {/* Barra Inferior de Filtros con separación amplia */}
       <footer
         role="navigation"
         aria-label="Filtros de proyectos"
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full"
       >
-        <div className="w-full flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-14 py-4 px-6">
+        <div className="w-full flex flex-wrap justify-center items-center gap-12 md:gap-16 lg:gap-20 py-4 px-6">
           {filterTags.map((tag) => {
             const isSelected = selectedTag === tag;
 

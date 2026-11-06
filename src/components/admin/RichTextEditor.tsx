@@ -16,11 +16,12 @@ import {
   Italic,
   Underline as UnderlineIcon,
   Highlighter,
-  Eraser,
   Minus,
   Plus,
   ChevronDown,
   Pipette,
+  Type,
+  X,
 } from "lucide-react";
 
 export interface RichTextEditorProps {
@@ -31,41 +32,67 @@ export interface RichTextEditorProps {
 
 const FONT_SIZE_STEPS = [12, 14, 16, 18, 20, 24, 28, 32];
 const DEFAULT_FONT_SIZE = 16;
+const ADD_FONT_OPTION_VALUE = "__ADD_CUSTOM_FONT__";
+const CUSTOM_FONTS_STORAGE_KEY = "af_custom_google_fonts";
 
-const FONT_FAMILIES = [
+interface FontOption {
+  label: string;
+  value: string;
+  googleFamily?: string;
+}
+
+const DEFAULT_FONT_FAMILIES: FontOption[] = [
   { label: "Roboto (Predeterminada)", value: "" },
-  { label: "Roboto Mono", value: "'Roboto Mono', monospace" },
   {
-    label: "EB Garamond (Editorial Serif)",
-    value: "'EB Garamond', Georgia, serif",
+    label: "Roboto Mono",
+    value: "'Roboto Mono', monospace",
+    googleFamily: "Roboto Mono",
   },
-  { label: "Playfair Display", value: "'Playfair Display', Georgia, serif" },
-  { label: "Inter", value: "'Inter', sans-serif" },
-  { label: "Georgia", value: "Georgia, serif" },
-  { label: "Courier Prime", value: "'Courier Prime', 'Courier New', monospace" },
+  {
+    label: "EB Garamond",
+    value: "'EB Garamond', Georgia, serif",
+    googleFamily: "EB Garamond",
+  },
 ];
 
-const TEXT_COLORS = [
-  { label: "Celeste Agustín (#099AD7)", value: "#099AD7" },
-  { label: "Negro grafito (#1C1C1A)", value: "#1C1C1A" },
-  { label: "Gris neutro (#686661)", value: "#686661" },
-  { label: "Blanco (#FFFFFF)", value: "#FFFFFF" },
-  { label: "Azul marino (#1E3A8A)", value: "#1E3A8A" },
-  { label: "Verde bosque (#166534)", value: "#166534" },
-  { label: "Terracota (#C2410C)", value: "#C2410C" },
-  { label: "Mostaza suave (#D97706)", value: "#D97706" },
-];
+export function loadGoogleFontInDocument(fontName: string) {
+  if (typeof document === "undefined") return;
+  const clean = fontName
+    .replace(/['"]/g, "")
+    .split(",")[0]
+    .trim();
+  if (
+    !clean ||
+    clean.toLowerCase() === "roboto" ||
+    clean.toLowerCase() === "sans-serif" ||
+    clean.toLowerCase() === "serif" ||
+    clean.toLowerCase() === "monospace" ||
+    clean.toLowerCase() === "georgia"
+  ) {
+    return;
+  }
 
-const HIGHLIGHT_COLORS = [
-  { label: "Celeste Suave (#E0F2FE)", value: "#E0F2FE" },
-  { label: "Celeste Marca (#BAE6FD)", value: "#BAE6FD" },
-  { label: "Amarillo Pastel (#FEF3C7)", value: "#FEF3C7" },
-  { label: "Verde Bosque Suave (#DCFCE7)", value: "#DCFCE7" },
-  { label: "Terracota Suave (#FFEDD5)", value: "#FFEDD5" },
-  { label: "Lavanda Editorial (#F3E8FF)", value: "#F3E8FF" },
-  { label: "Gris Editorial (#F5F5F4)", value: "#F5F5F4" },
-  { label: "Negro Grafito (#1C1C1A)", value: "#1C1C1A" },
-];
+  const linkId = `gf-${clean.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  if (document.getElementById(linkId)) return;
+
+  const familyQuery = encodeURIComponent(clean).replace(/%20/g, "+");
+  const link = document.createElement("link");
+  link.id = linkId;
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${familyQuery}:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap`;
+  document.head.appendChild(link);
+}
+
+function extractFontFamiliesFromHtml(html: string): string[] {
+  const matches: string[] = [];
+  const regex = /font-family:\s*([^;"]+)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(html)) !== null) {
+    const raw = match[1].replace(/['"]/g, "").split(",")[0].trim();
+    if (raw) matches.push(raw);
+  }
+  return Array.from(new Set(matches));
+}
 
 function ensureHtmlFormat(raw: string): string {
   const trimmed = (raw || "").trim();
@@ -103,9 +130,14 @@ export default function RichTextEditor({
   const [customHighlightHexInput, setCustomHighlightHexInput] =
     useState<string>("#E0F2FE");
 
+  // Tipografías dinámicas (3 predeterminadas + agregadas por el usuario)
+  const [fontOptions, setFontOptions] = useState<FontOption[]>(
+    DEFAULT_FONT_FAMILIES
+  );
+  const [isAddFontOpen, setIsAddFontOpen] = useState(false);
+  const [newFontNameInput, setNewFontNameInput] = useState("");
+
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const nativeTextColorPickerRef = useRef<HTMLInputElement>(null);
-  const nativeHighlightPickerRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -143,6 +175,50 @@ export default function RichTextEditor({
       setSelectionTick((t) => t + 1);
     },
   });
+
+  // Cargar tipografías personalizadas guardadas o presentes en el HTML
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const savedNames = new Set<string>();
+
+    try {
+      const raw = window.localStorage.getItem(CUSTOM_FONTS_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((n) => {
+            if (typeof n === "string" && n.trim()) savedNames.add(n.trim());
+          });
+        }
+      }
+    } catch {
+      // Ignorar errores de localStorage
+    }
+
+    extractFontFamiliesFromHtml(value).forEach((n) => savedNames.add(n));
+
+    const extraOptions: FontOption[] = [];
+    savedNames.forEach((name) => {
+      loadGoogleFontInDocument(name);
+      const alreadyDefault = DEFAULT_FONT_FAMILIES.some(
+        (d) =>
+          d.label.toLowerCase() === name.toLowerCase() ||
+          d.googleFamily?.toLowerCase() === name.toLowerCase()
+      );
+      if (!alreadyDefault) {
+        extraOptions.push({
+          label: name,
+          value: `'${name}', sans-serif`,
+          googleFamily: name,
+        });
+      }
+    });
+
+    if (extraOptions.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFontOptions([...DEFAULT_FONT_FAMILIES, ...extraOptions]);
+    }
+  }, [value]);
 
   // Cerrar menús desplegables de color/resaltador al hacer clic fuera
   useEffect(() => {
@@ -182,15 +258,6 @@ export default function RichTextEditor({
     );
   }
 
-  // Estado actual del cursor / selección
-  const currentHeadingValue = editor.isActive("heading", { level: 1 })
-    ? "h1"
-    : editor.isActive("heading", { level: 2 })
-      ? "h2"
-      : editor.isActive("heading", { level: 3 })
-        ? "h3"
-        : "p";
-
   const textStyleAttrs = editor.getAttributes("textStyle") as {
     fontFamily?: string;
     fontSize?: string;
@@ -206,24 +273,65 @@ export default function RichTextEditor({
   const isUnderlineActive = editor.isActive("underline");
   const isHighlightActive = editor.isActive("highlight");
 
-  const handleHeadingChange = (val: string) => {
-    if (val === "p") {
-      editor.chain().focus().setParagraph().run();
-    } else if (val === "h1") {
-      editor.chain().focus().setHeading({ level: 1 }).run();
-    } else if (val === "h2") {
-      editor.chain().focus().setHeading({ level: 2 }).run();
-    } else if (val === "h3") {
-      editor.chain().focus().setHeading({ level: 3 }).run();
+  const handleFontSelectChange = (selectedVal: string) => {
+    if (selectedVal === ADD_FONT_OPTION_VALUE) {
+      setIsAddFontOpen(true);
+      return;
+    }
+    if (!selectedVal) {
+      editor.chain().focus().unsetFontFamily().run();
+    } else {
+      editor.chain().focus().setFontFamily(selectedVal).run();
     }
   };
 
-  const handleFontFamilyChange = (fontVal: string) => {
-    if (!fontVal) {
-      editor.chain().focus().unsetFontFamily().run();
-    } else {
-      editor.chain().focus().setFontFamily(fontVal).run();
-    }
+  const handleAddCustomFont = () => {
+    const cleanName = newFontNameInput.replace(/['"]/g, "").trim();
+    if (!cleanName) return;
+
+    loadGoogleFontInDocument(cleanName);
+    const cssFontValue = `'${cleanName}', sans-serif`;
+
+    setFontOptions((prev) => {
+      const exists = prev.some(
+        (f) =>
+          f.label.toLowerCase() === cleanName.toLowerCase() ||
+          f.value.toLowerCase() === cssFontValue.toLowerCase()
+      );
+      const next = exists
+        ? prev
+        : [
+            ...prev,
+            {
+              label: cleanName,
+              value: cssFontValue,
+              googleFamily: cleanName,
+            },
+          ];
+
+      if (typeof window !== "undefined") {
+        try {
+          const customNames = next
+            .filter(
+              (f) =>
+                !DEFAULT_FONT_FAMILIES.some((def) => def.label === f.label) &&
+                f.googleFamily
+            )
+            .map((f) => f.googleFamily!);
+          window.localStorage.setItem(
+            CUSTOM_FONTS_STORAGE_KEY,
+            JSON.stringify(customNames)
+          );
+        } catch {
+          // Ignorar errores de almacenamiento
+        }
+      }
+      return next;
+    });
+
+    editor.chain().focus().setFontFamily(cssFontValue).run();
+    setNewFontNameInput("");
+    setIsAddFontOpen(false);
   };
 
   const handleSetFontSize = (nextSize: number) => {
@@ -280,53 +388,44 @@ export default function RichTextEditor({
     setOpenMenu(null);
   };
 
-  const handleClearFormatting = () => {
-    editor.chain().focus().unsetAllMarks().clearNodes().run();
-    setOpenMenu(null);
-  };
-
   return (
     <div className="w-full border border-neutral-200 bg-[#FFFFFF] rounded-none focus-within:border-[#099AD7] transition-colors">
-      {/* Barra de herramientas estilo Outlook / Word */}
+      {/* Barra de herramientas minimalista y limpia */}
       <div
         ref={toolbarRef}
         role="toolbar"
         aria-label="Herramientas de formato de texto"
-        className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-neutral-200 bg-[#FFFFFF] select-none"
+        className="flex flex-wrap items-center gap-1 px-2.5 py-1.5 border-b border-neutral-200 bg-[#FFFFFF] select-none"
       >
-        {/* 1. Nivel de Encabezado / Párrafo */}
-        <div className="flex items-center pr-1.5 mr-1 border-r border-neutral-200">
-          <select
-            aria-label="Nivel de encabezado o párrafo"
-            value={currentHeadingValue}
-            onChange={(e) => handleHeadingChange(e.target.value)}
-            className="h-7 px-2 bg-[#FFFFFF] hover:bg-neutral-100 text-[#1C1C1A] text-xs font-roboto border border-transparent hover:border-neutral-200 focus:border-[#099AD7] rounded-none focus:outline-none cursor-pointer"
-          >
-            <option value="p">Párrafo</option>
-            <option value="h1">Encabezado 1</option>
-            <option value="h2">Encabezado 2</option>
-            <option value="h3">Encabezado 3</option>
-          </select>
-        </div>
-
-        {/* 2. Selector Extendido de Tipografías */}
-        <div className="flex items-center pr-1.5 mr-1 border-r border-neutral-200">
+        {/* 1. Selector Dinámico de Tipografías (Roboto, Roboto Mono, EB Garamond + Agregar Tipografía) */}
+        <div className="flex items-center gap-1 pr-2 mr-1 border-r border-neutral-200">
+          <Type className="w-3.5 h-3.5 text-[#686661] shrink-0" />
           <select
             aria-label="Tipografía"
-            value={currentFontFamily}
-            onChange={(e) => handleFontFamilyChange(e.target.value)}
-            className="h-7 px-2 max-w-[175px] bg-[#FFFFFF] hover:bg-neutral-100 text-[#1C1C1A] text-xs font-roboto border border-transparent hover:border-neutral-200 focus:border-[#099AD7] rounded-none focus:outline-none cursor-pointer truncate"
+            value={
+              fontOptions.some((f) => f.value === currentFontFamily)
+                ? currentFontFamily
+                : ""
+            }
+            onChange={(e) => handleFontSelectChange(e.target.value)}
+            className="h-7 px-2 max-w-[190px] bg-[#FFFFFF] hover:bg-neutral-100 text-[#1C1C1A] text-xs font-roboto border border-neutral-200 focus:border-[#099AD7] rounded-none focus:outline-none cursor-pointer truncate"
           >
-            {FONT_FAMILIES.map((font) => (
+            {fontOptions.map((font) => (
               <option key={font.label} value={font.value}>
                 {font.label}
               </option>
             ))}
+            <option
+              value={ADD_FONT_OPTION_VALUE}
+              className="font-semibold text-[#099AD7]"
+            >
+              + AGREGAR TIPOGRAFÍA...
+            </option>
           </select>
         </div>
 
-        {/* 3. Control de Tamaño de Fuente (− [16] +) */}
-        <div className="flex items-center gap-0.5 pr-1.5 mr-1 border-r border-neutral-200">
+        {/* 2. Control de Tamaño de Fuente (− [16] +) */}
+        <div className="flex items-center gap-0.5 pr-2 mr-1 border-r border-neutral-200">
           <input
             type="number"
             min={10}
@@ -360,8 +459,8 @@ export default function RichTextEditor({
           </button>
         </div>
 
-        {/* 4. Estilos Básicos: B / I / U */}
-        <div className="flex items-center gap-0.5 pr-1.5 mr-1 border-r border-neutral-200">
+        {/* 3. Estilos Básicos: B / I / U */}
+        <div className="flex items-center gap-0.5 pr-2 mr-1 border-r border-neutral-200">
           <button
             type="button"
             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -408,16 +507,16 @@ export default function RichTextEditor({
           </button>
         </div>
 
-        {/* 5. Color de Fuente (Paleta + Color Picker Libre) + 6. Resaltador (Paleta + Color Picker Libre) */}
-        <div className="flex items-center gap-0.5 pr-1.5 mr-1 border-r border-neutral-200">
-          {/* Selector de Color de Fuente */}
+        {/* 4. Color de Fuente Libre + 5. Resaltador Libre */}
+        <div className="flex items-center gap-1">
+          {/* Selector Libre de Color de Fuente */}
           <div className="relative flex items-center">
             <button
               type="button"
               onClick={() => handleApplyTextColor(activeTextColor)}
               title={`Aplicar color de fuente (${activeTextColor})`}
               aria-label="Aplicar color de fuente"
-              className={`h-7 px-1.5 inline-flex flex-col items-center justify-center rounded-none transition-colors ${
+              className={`h-7 px-2 inline-flex flex-col items-center justify-center rounded-none transition-colors ${
                 textStyleAttrs.color
                   ? "bg-sky-50 text-[#099AD7]"
                   : "bg-[#FFFFFF] text-[#1C1C1A] hover:bg-neutral-100"
@@ -425,7 +524,7 @@ export default function RichTextEditor({
             >
               <span className="text-xs font-semibold leading-none">A</span>
               <span
-                className="w-3.5 h-1 mt-0.5 border border-neutral-300"
+                className="w-4 h-1 mt-0.5 border border-neutral-300"
                 style={{ backgroundColor: currentColorAttr }}
               />
             </button>
@@ -434,99 +533,102 @@ export default function RichTextEditor({
               onClick={() =>
                 setOpenMenu((prev) => (prev === "color" ? null : "color"))
               }
-              title="Abrir paleta y selector libre de color de fuente"
-              aria-label="Abrir paleta de color de fuente"
-              className="h-7 px-0.5 inline-flex items-center justify-center bg-[#FFFFFF] hover:bg-neutral-100 text-[#686661] rounded-none"
+              title="Seleccionar color personalizado de fuente"
+              aria-label="Seleccionar color de fuente"
+              className="h-7 px-1 inline-flex items-center justify-center bg-[#FFFFFF] hover:bg-neutral-100 text-[#686661] rounded-none"
             >
               <ChevronDown className="w-3 h-3" />
             </button>
 
             {openMenu === "color" && (
-              <div className="absolute left-0 top-full mt-1 z-30 w-56 bg-[#FFFFFF] border border-neutral-200 shadow-lg p-3 flex flex-col gap-2.5 rounded-none">
-                <span className="text-[10px] uppercase tracking-wider text-[#686661] font-medium">
-                  Paleta de colores rápidos
+              <div className="absolute left-0 top-full mt-1.5 z-30 w-64 bg-[#FFFFFF] border border-neutral-200 shadow-xl p-3.5 flex flex-col gap-3 rounded-none">
+                <span className="text-[10px] uppercase tracking-wider text-[#1C1C1A] font-medium flex items-center gap-1.5">
+                  <Pipette className="w-3 h-3 text-[#099AD7]" />
+                  <span>Selector libre de color (HEX)</span>
                 </span>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {TEXT_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => handleApplyTextColor(c.value)}
-                      title={c.label}
-                      aria-label={c.label}
-                      className="h-6 w-full border border-neutral-300 hover:border-[#099AD7] hover:scale-105 transition-transform"
-                      style={{ backgroundColor: c.value }}
-                    />
-                  ))}
+
+                {/* Accesos rápidos esenciales: Celeste Marca y Negro Carbón */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyTextColor("#099AD7", true)}
+                    className="flex-1 h-7 px-2 border border-neutral-200 hover:border-[#099AD7] bg-[#FFFFFF] flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#1C1C1A]"
+                  >
+                    <span className="w-3 h-3 bg-[#099AD7] shrink-0" />
+                    <span>Celeste</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyTextColor("#1C1C1A", true)}
+                    className="flex-1 h-7 px-2 border border-neutral-200 hover:border-[#1C1C1A] bg-[#FFFFFF] flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#1C1C1A]"
+                  >
+                    <span className="w-3 h-3 bg-[#1C1C1A] shrink-0" />
+                    <span>Negro</span>
+                  </button>
                 </div>
 
-                {/* Color Picker Personalizado (HEX libre + input type="color") */}
-                <div className="pt-2 border-t border-neutral-100 flex flex-col gap-1.5">
-                  <span className="text-[10px] uppercase tracking-wider text-[#686661] font-medium flex items-center gap-1">
-                    <Pipette className="w-3 h-3 text-[#099AD7]" />
-                    <span>Color personalizado (HEX)</span>
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <label
-                      title="Abrir selector cromático libre"
-                      className="relative w-7 h-7 border border-neutral-300 shrink-0 cursor-pointer overflow-hidden"
-                      style={{ backgroundColor: activeTextColor }}
-                    >
-                      <input
-                        ref={nativeTextColorPickerRef}
-                        type="color"
-                        value={
-                          isValidHex(activeTextColor)
-                            ? activeTextColor
-                            : "#099AD7"
-                        }
-                        onChange={(e) =>
-                          handleApplyTextColor(e.target.value, false)
-                        }
-                        aria-label="Selector de color de fuente libre"
-                        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                      />
-                    </label>
+                {/* Input color nativo + código HEX + botón OK contenido sin desborde */}
+                <div className="flex items-center gap-2 w-full">
+                  <label
+                    title="Abrir rueda cromática"
+                    className="relative w-8 h-8 border border-neutral-300 shrink-0 cursor-pointer overflow-hidden"
+                    style={{ backgroundColor: activeTextColor }}
+                  >
                     <input
-                      type="text"
-                      value={customTextHexInput}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setCustomTextHexInput(val);
-                        if (isValidHex(val)) {
-                          handleApplyTextColor(val, false);
-                        }
-                      }}
-                      placeholder="#099AD7"
-                      aria-label="Código HEX de color de fuente"
-                      className="flex-1 h-7 px-2 bg-[#FFFFFF] border border-neutral-300 text-xs font-mono text-[#1C1C1A] rounded-none focus:outline-none focus:border-[#099AD7]"
+                      type="color"
+                      value={
+                        isValidHex(activeTextColor)
+                          ? activeTextColor
+                          : "#099AD7"
+                      }
+                      onChange={(e) =>
+                        handleApplyTextColor(e.target.value, false)
+                      }
+                      aria-label="Rueda de color de fuente"
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                     />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isValidHex(customTextHexInput)) {
-                          handleApplyTextColor(customTextHexInput, true);
-                        }
-                      }}
-                      className="h-7 px-2 bg-[#099AD7] text-white text-[10px] uppercase tracking-wider font-medium rounded-none hover:bg-[#0886BC]"
-                    >
-                      OK
-                    </button>
-                  </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={customTextHexInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCustomTextHexInput(val);
+                      if (isValidHex(val)) {
+                        handleApplyTextColor(val, false);
+                      }
+                    }}
+                    placeholder="#099AD7"
+                    aria-label="Código HEX de color de fuente"
+                    className="min-w-0 flex-1 h-8 px-2.5 bg-[#FFFFFF] border border-neutral-300 text-xs font-mono text-[#1C1C1A] rounded-none focus:outline-none focus:border-[#099AD7]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isValidHex(customTextHexInput)) {
+                        handleApplyTextColor(customTextHexInput, true);
+                      } else {
+                        setOpenMenu(null);
+                      }
+                    }}
+                    className="h-8 px-3 bg-[#099AD7] text-white text-[11px] uppercase tracking-wider font-medium rounded-none hover:bg-[#0886BC] shrink-0"
+                  >
+                    OK
+                  </button>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleResetTextColor}
-                  className="w-full py-1 px-2 text-left text-[11px] text-[#686661] hover:bg-neutral-100 hover:text-[#1C1C1A] border-t border-neutral-100 pt-1.5"
+                  className="w-full py-1 px-2 text-left text-[11px] text-[#686661] hover:bg-neutral-100 hover:text-[#1C1C1A] border-t border-neutral-100 pt-2"
                 >
-                  Restablecer color (#1C1C1A)
+                  Restablecer color original
                 </button>
               </div>
             )}
           </div>
 
-          {/* Resaltador / Marcador (Paleta + Color Picker Libre) */}
+          {/* Resaltador / Marcador Libre */}
           <div className="relative flex items-center">
             <button
               type="button"
@@ -540,7 +642,7 @@ export default function RichTextEditor({
               title="Resaltar texto"
               aria-label="Resaltar texto"
               aria-pressed={isHighlightActive}
-              className={`h-7 px-1.5 inline-flex flex-col items-center justify-center rounded-none transition-colors ${
+              className={`h-7 px-2 inline-flex flex-col items-center justify-center rounded-none transition-colors ${
                 isHighlightActive
                   ? "bg-sky-50 text-[#099AD7]"
                   : "bg-[#FFFFFF] text-[#1C1C1A] hover:bg-neutral-100"
@@ -548,7 +650,7 @@ export default function RichTextEditor({
             >
               <Highlighter className="w-3.5 h-3.5" />
               <span
-                className="w-3.5 h-1 mt-0.5 border border-neutral-300"
+                className="w-4 h-1 mt-0.5 border border-neutral-300"
                 style={{ backgroundColor: activeHighlightColor }}
               />
             </button>
@@ -561,89 +663,71 @@ export default function RichTextEditor({
               }
               title="Elegir color de fondo / resaltado"
               aria-label="Elegir color de resaltado"
-              className="h-7 px-0.5 inline-flex items-center justify-center bg-[#FFFFFF] hover:bg-neutral-100 text-[#686661] rounded-none"
+              className="h-7 px-1 inline-flex items-center justify-center bg-[#FFFFFF] hover:bg-neutral-100 text-[#686661] rounded-none"
             >
               <ChevronDown className="w-3 h-3" />
             </button>
 
             {openMenu === "highlight" && (
-              <div className="absolute left-0 top-full mt-1 z-30 w-56 bg-[#FFFFFF] border border-neutral-200 shadow-lg p-3 flex flex-col gap-2.5 rounded-none">
-                <span className="text-[10px] uppercase tracking-wider text-[#686661] font-medium">
-                  Color de fondo / resaltado
+              <div className="absolute right-0 sm:left-0 top-full mt-1.5 z-30 w-64 bg-[#FFFFFF] border border-neutral-200 shadow-xl p-3.5 flex flex-col gap-3 rounded-none">
+                <span className="text-[10px] uppercase tracking-wider text-[#1C1C1A] font-medium flex items-center gap-1.5">
+                  <Pipette className="w-3 h-3 text-[#099AD7]" />
+                  <span>Color de resaltado libre (HEX)</span>
                 </span>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {HIGHLIGHT_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => handleApplyHighlight(c.value)}
-                      title={c.label}
-                      aria-label={c.label}
-                      className="h-6 w-full border border-neutral-300 hover:border-[#099AD7] hover:scale-105 transition-transform"
-                      style={{ backgroundColor: c.value }}
-                    />
-                  ))}
-                </div>
 
-                {/* Highlight Color Picker Libre */}
-                <div className="pt-2 border-t border-neutral-100 flex flex-col gap-1.5">
-                  <span className="text-[10px] uppercase tracking-wider text-[#686661] font-medium flex items-center gap-1">
-                    <Pipette className="w-3 h-3 text-[#099AD7]" />
-                    <span>Resaltado libre (HEX)</span>
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <label
-                      title="Abrir selector de color de fondo libre"
-                      className="relative w-7 h-7 border border-neutral-300 shrink-0 cursor-pointer overflow-hidden"
-                      style={{ backgroundColor: activeHighlightColor }}
-                    >
-                      <input
-                        ref={nativeHighlightPickerRef}
-                        type="color"
-                        value={
-                          isValidHex(activeHighlightColor)
-                            ? activeHighlightColor
-                            : "#E0F2FE"
-                        }
-                        onChange={(e) =>
-                          handleApplyHighlight(e.target.value, false)
-                        }
-                        aria-label="Selector de resaltado libre"
-                        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                      />
-                    </label>
+                <div className="flex items-center gap-2 w-full">
+                  <label
+                    title="Abrir rueda cromática de resaltado"
+                    className="relative w-8 h-8 border border-neutral-300 shrink-0 cursor-pointer overflow-hidden"
+                    style={{ backgroundColor: activeHighlightColor }}
+                  >
                     <input
-                      type="text"
-                      value={customHighlightHexInput}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setCustomHighlightHexInput(val);
-                        if (isValidHex(val)) {
-                          handleApplyHighlight(val, false);
-                        }
-                      }}
-                      placeholder="#E0F2FE"
-                      aria-label="Código HEX de resaltado"
-                      className="flex-1 h-7 px-2 bg-[#FFFFFF] border border-neutral-300 text-xs font-mono text-[#1C1C1A] rounded-none focus:outline-none focus:border-[#099AD7]"
+                      type="color"
+                      value={
+                        isValidHex(activeHighlightColor)
+                          ? activeHighlightColor
+                          : "#E0F2FE"
+                      }
+                      onChange={(e) =>
+                        handleApplyHighlight(e.target.value, false)
+                      }
+                      aria-label="Selector de resaltado libre"
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                     />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isValidHex(customHighlightHexInput)) {
-                          handleApplyHighlight(customHighlightHexInput, true);
-                        }
-                      }}
-                      className="h-7 px-2 bg-[#099AD7] text-white text-[10px] uppercase tracking-wider font-medium rounded-none hover:bg-[#0886BC]"
-                    >
-                      OK
-                    </button>
-                  </div>
+                  </label>
+                  <input
+                    type="text"
+                    value={customHighlightHexInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCustomHighlightHexInput(val);
+                      if (isValidHex(val)) {
+                        handleApplyHighlight(val, false);
+                      }
+                    }}
+                    placeholder="#E0F2FE"
+                    aria-label="Código HEX de resaltado"
+                    className="min-w-0 flex-1 h-8 px-2.5 bg-[#FFFFFF] border border-neutral-300 text-xs font-mono text-[#1C1C1A] rounded-none focus:outline-none focus:border-[#099AD7]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isValidHex(customHighlightHexInput)) {
+                        handleApplyHighlight(customHighlightHexInput, true);
+                      } else {
+                        setOpenMenu(null);
+                      }
+                    }}
+                    className="h-8 px-3 bg-[#099AD7] text-white text-[11px] uppercase tracking-wider font-medium rounded-none hover:bg-[#0886BC] shrink-0"
+                  >
+                    OK
+                  </button>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleResetHighlight}
-                  className="w-full py-1 px-2 text-left text-[11px] text-[#686661] hover:bg-neutral-100 hover:text-[#1C1C1A] border-t border-neutral-100 pt-1.5"
+                  className="w-full py-1 px-2 text-left text-[11px] text-[#686661] hover:bg-neutral-100 hover:text-[#1C1C1A] border-t border-neutral-100 pt-2"
                 >
                   Quitar resaltado
                 </button>
@@ -651,19 +735,51 @@ export default function RichTextEditor({
             )}
           </div>
         </div>
-
-        {/* 7. Limpiar Formato */}
-        <button
-          type="button"
-          onClick={handleClearFormatting}
-          title="Limpiar formato"
-          aria-label="Limpiar formato"
-          className="h-7 px-2 inline-flex items-center gap-1 bg-[#FFFFFF] hover:bg-neutral-100 text-[#686661] hover:text-[#1C1C1A] text-[11px] font-roboto rounded-none transition-colors"
-        >
-          <Eraser className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Limpiar</span>
-        </button>
       </div>
+
+      {/* Barra emergente para "+ AGREGAR TIPOGRAFÍA" */}
+      {isAddFontOpen && (
+        <div className="px-3 py-2.5 bg-neutral-50 border-b border-neutral-200 flex flex-wrap items-center gap-2">
+          <span className="text-[10px] uppercase tracking-wider text-[#099AD7] font-semibold">
+            Nueva tipografía (Google Fonts):
+          </span>
+          <input
+            type="text"
+            value={newFontNameInput}
+            onChange={(e) => setNewFontNameInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddCustomFont();
+              } else if (e.key === "Escape") {
+                setIsAddFontOpen(false);
+              }
+            }}
+            placeholder="Ej. Playfair Display, Inter, Cinzel..."
+            autoFocus
+            className="flex-1 min-w-[180px] h-8 px-2.5 bg-[#FFFFFF] border border-neutral-300 text-xs text-[#1C1C1A] rounded-none focus:outline-none focus:border-[#099AD7]"
+          />
+          <button
+            type="button"
+            onClick={handleAddCustomFont}
+            disabled={!newFontNameInput.trim()}
+            className="h-8 px-3.5 bg-[#099AD7] hover:bg-[#0886BC] text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors disabled:opacity-40"
+          >
+            Aplicar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsAddFontOpen(false);
+              setNewFontNameInput("");
+            }}
+            aria-label="Cancelar nueva tipografía"
+            className="h-8 w-8 inline-flex items-center justify-center border border-neutral-300 bg-[#FFFFFF] text-[#686661] hover:text-[#1C1C1A]"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Área editable */}
       <EditorContent editor={editor} />

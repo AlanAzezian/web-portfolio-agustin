@@ -1275,13 +1275,19 @@ export default function AdminBio() {
                           Sin fotos secundarias en la galería exclusiva. Puedes subir múltiples imágenes para habilitar el visor fullscreen en Bio.
                         </p>
                       ) : (
-                        <div className="pt-1 max-h-64 overflow-y-auto pr-1">
+                        <div className="pt-1">
                           <SortableImageGallery
-                            items={galleryList.map((gItem, gIdx) => ({
-                              id: `${part.id}-gal-${gIdx}-${gItem.src}`,
-                              src: gItem.src,
-                              caption: gItem.caption,
-                            }))}
+                            items={galleryList.map((gItem, gIdx) => {
+                              // ID estable basado en la URL para evitar que el ID mute al cambiar de índice
+                              const duplicateOccurrence = galleryList
+                                .slice(0, gIdx)
+                                .filter((x) => x.src === gItem.src).length;
+                              return {
+                                id: `${part.id}-photo-${gItem.src}-${duplicateOccurrence}`,
+                                src: gItem.src,
+                                caption: gItem.caption,
+                              };
+                            })}
                             onReorder={(newItems) =>
                               handleReorderParticipationGallery(
                                 part.id,

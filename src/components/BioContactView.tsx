@@ -187,6 +187,34 @@ export default function BioContactView({
     };
   }, []);
 
+  // Inyectar dinámicamente en document.head cualquier tipografía de Google Fonts usada en el manifiesto
+  useEffect(() => {
+    if (!manifesto || typeof document === "undefined") return;
+    const regex = /font-family:\s*([^;"]+)/gi;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(manifesto)) !== null) {
+      const clean = match[1].replace(/['"]/g, "").split(",")[0].trim();
+      if (
+        !clean ||
+        clean.toLowerCase() === "roboto" ||
+        clean.toLowerCase() === "sans-serif" ||
+        clean.toLowerCase() === "serif" ||
+        clean.toLowerCase() === "monospace"
+      ) {
+        continue;
+      }
+      const linkId = `gf-${clean.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+      if (!document.getElementById(linkId)) {
+        const familyQuery = encodeURIComponent(clean).replace(/%20/g, "+");
+        const link = document.createElement("link");
+        link.id = linkId;
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${familyQuery}:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+  }, [manifesto]);
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastClickedSectionRef = useRef<BioSectionId | null>(null);

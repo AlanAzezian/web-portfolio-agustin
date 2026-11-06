@@ -1,14 +1,16 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import React from "react";
+import React, { useState } from "react";
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
@@ -73,7 +75,7 @@ function SortableItem<T extends SortableGalleryItem>({
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition: isDragging ? "none" : transition,
+    transition,
   };
 
   const formattedBadge = String(index + 1).padStart(2, "0");
@@ -82,14 +84,14 @@ function SortableItem<T extends SortableGalleryItem>({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative flex flex-col bg-neutral-50 rounded-none select-none transition-shadow ${
+      className={`group relative flex flex-col bg-neutral-50 rounded-none select-none ${
         showCaption ? "p-1.5 gap-1.5" : ""
       } ${
         isDragging
-          ? "opacity-50 border-2 border-[#099AD7] scale-105 shadow-lg z-50"
+          ? "opacity-30 border-2 border-dashed border-[#099AD7] z-10"
           : item.isNew
-            ? "border border-[#099AD7]/50 hover:border-[#099AD7] z-0"
-            : "border border-neutral-200 hover:border-[#099AD7]/70 z-0"
+            ? "border border-[#099AD7]/50 hover:border-[#099AD7]"
+            : "border border-neutral-200 hover:border-[#099AD7]/70"
       }`}
     >
       {/* Área arrastrable de la miniatura */}
@@ -172,10 +174,12 @@ export default function SortableImageGallery<T extends SortableGalleryItem>({
   columnsClassName = "grid-cols-2 sm:grid-cols-3 xl:grid-cols-4",
   aspectClassName = "aspect-[4/3]",
 }: SortableImageGalleryProps<T>) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Requiere mover al menos 5px antes de iniciar el drag
+        distance: 6, // Requiere arrastrar al menos 6px
       },
     }),
     useSensor(KeyboardSensor, {
@@ -183,8 +187,13 @@ export default function SortableImageGallery<T extends SortableGalleryItem>({
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
     if (!over || active.id === over.id) return;
 
     const oldIndex = items.findIndex((entry) => entry.id === active.id);
@@ -195,13 +204,26 @@ export default function SortableImageGallery<T extends SortableGalleryItem>({
     }
   };
 
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
+
   if (items.length === 0) return null;
+
+  const activeIndex = activeId
+    ? items.findIndex((entry) => entry.id === activeId)
+    : -1;
+  const activeItem = activeIndex !== -1 ? items[activeIndex] : null;
+  const activeBadge =
+    activeIndex !== -1 ? String(activeIndex + 1).padStart(2, "0") : "01";
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <SortableContext
         items={items.map((item) => item.id)}
@@ -222,6 +244,35 @@ export default function SortableImageGallery<T extends SortableGalleryItem>({
           ))}
         </div>
       </SortableContext>
+
+      <DragOverlay adjustScale={false}>
+        {activeItem ? (
+          <div
+            className={`flex flex-col bg-[#FFFFFF] rounded-none select-none pointer-events-none scale-105 shadow-xl border-2 border-[#099AD7] ${
+              showCaption ? "p-1.5 gap-1.5" : ""
+            }`}
+          >
+            <div
+              className={`relative w-full ${aspectClassName} overflow-hidden bg-white`}
+            >
+              <img
+                src={activeItem.src}
+                alt={activeItem.caption || `Imagen ${activeBadge}`}
+                draggable={false}
+                className="w-full h-full object-cover"
+              />
+              <span className="absolute bottom-1 left-1 px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-medium tabular-nums bg-[#099AD7] text-white">
+                {activeBadge}
+              </span>
+            </div>
+            {showCaption && (
+              <div className="w-full h-6 px-1.5 bg-[#FFFFFF] border border-neutral-200 text-[10px] text-[#1C1C1A] flex items-center truncate">
+                {activeItem.caption || "Epígrafe..."}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
