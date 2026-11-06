@@ -974,7 +974,7 @@ export default function AdminProjects() {
                 className="flex-1 overflow-y-auto overscroll-contain p-6 md:p-8"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  {/* Columna Izquierda: Metadatos, Visibilidad y Portada */}
+                  {/* Columna Izquierda: Metadatos y Portada */}
                   <div className="lg:col-span-5 flex flex-col gap-5">
                     {/* 1. Título del Proyecto */}
                     <div className="flex flex-col gap-1.5">
@@ -1063,49 +1063,7 @@ export default function AdminProjects() {
                       </div>
                     </div>
 
-                    {/* 3. Toggle "Mostrar en grilla general ('Todos')" */}
-                    <div className="border border-neutral-200 bg-neutral-50/70 p-3.5 flex items-center justify-between gap-4">
-                      <div className="flex flex-col gap-0.5">
-                        <label
-                          htmlFor="project-show-main-grid"
-                          className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium cursor-pointer"
-                        >
-                          Mostrar en grilla general (&ldquo;Todos&rdquo;)
-                        </label>
-                        <span className="text-[11px] text-[#686661] leading-snug">
-                          Si se desactiva, el proyecto no aparecerá en la vista
-                          general de proyectos, pero sí al filtrar por{" "}
-                          <strong className="font-medium text-[#1C1C1A]">
-                            {formCategory}
-                          </strong>{" "}
-                          o mediante enlace directo.
-                        </span>
-                      </div>
-
-                      <button
-                        id="project-show-main-grid"
-                        type="button"
-                        role="switch"
-                        aria-checked={formShowInMainGrid}
-                        onClick={() => setFormShowInMainGrid((prev) => !prev)}
-                        disabled={submitting}
-                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center border transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7] ${
-                          formShowInMainGrid
-                            ? "bg-[#099AD7] border-[#099AD7]"
-                            : "bg-neutral-300 border-neutral-400"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 bg-white transition-transform duration-200 ${
-                            formShowInMainGrid
-                              ? "translate-x-5"
-                              : "translate-x-0.5"
-                          }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* 4. Imagen de Portada (Preview con botón "CAMBIAR PORTADA") */}
+                    {/* 3. Imagen de Portada (Preview con botón "CAMBIAR PORTADA") */}
                     <div className="flex flex-col gap-2">
                       <label
                         htmlFor="project-cover"
@@ -1162,74 +1120,119 @@ export default function AdminProjects() {
                     </div>
                   </div>
 
-                  {/* Columna Derecha: Galería de Imágenes (Renders y Planos) */}
-                  <div className="lg:col-span-7 flex flex-col gap-4 border-t lg:border-t-0 lg:border-l lg:border-neutral-200 pt-6 lg:pt-0 lg:pl-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
-                      <div>
+                  {/* Columna Derecha: Visibilidad en Grilla General + Galería de Imágenes */}
+                  <div className="lg:col-span-7 flex flex-col gap-5 border-t lg:border-t-0 lg:border-l lg:border-neutral-200 pt-6 lg:pt-0 lg:pl-8">
+                    {/* 1. Toggle "Mostrar en grilla general ('Todos')" */}
+                    <div className="border border-neutral-200 p-4 bg-neutral-50/50 flex items-center justify-between gap-4">
+                      <div className="flex flex-col gap-0.5">
                         <label
-                          htmlFor="project-gallery"
-                          className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium block"
+                          htmlFor="project-show-main-grid"
+                          className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium cursor-pointer"
                         >
-                          GALERÍA DE IMÁGENES (RENDERS Y PLANOS)
+                          MOSTRAR EN GRILLA GENERAL (&ldquo;TODOS&rdquo;)
                         </label>
-                        <span className="text-[11px] text-[#686661]">
-                          {totalGalleryCount}{" "}
-                          {totalGalleryCount === 1
-                            ? "imagen cargada"
-                            : "imágenes cargadas"}{" "}
-                          — Arrastra para definir el orden del visor
+                        <span className="text-[11px] text-[#686661] leading-snug">
+                          Si se desactiva, el proyecto no aparecerá en la vista
+                          general de proyectos, pero sí al filtrar por{" "}
+                          <strong className="font-medium text-[#1C1C1A]">
+                            {formCategory}
+                          </strong>{" "}
+                          o mediante enlace directo.
                         </span>
                       </div>
 
-                      <input
-                        ref={galleryInputRef}
-                        id="project-gallery"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleGalleryChange}
-                        disabled={submitting}
-                        className="hidden"
-                      />
-
                       <button
+                        id="project-show-main-grid"
                         type="button"
-                        onClick={() => galleryInputRef.current?.click()}
+                        role="switch"
+                        aria-checked={formShowInMainGrid}
+                        onClick={() => setFormShowInMainGrid((prev) => !prev)}
                         disabled={submitting}
-                        className="inline-flex items-center justify-center gap-1.5 px-4 h-9 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors shrink-0"
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center border transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7] ${
+                          formShowInMainGrid
+                            ? "bg-[#099AD7] border-[#099AD7]"
+                            : "bg-neutral-300 border-neutral-400"
+                        }`}
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>+ AGREGAR IMÁGENES A LA GALERÍA</span>
+                        <span
+                          className={`inline-block h-4 w-4 bg-white transition-transform duration-200 ${
+                            formShowInMainGrid
+                              ? "translate-x-5"
+                              : "translate-x-0.5"
+                          }`}
+                        />
                       </button>
                     </div>
 
-                    {totalGalleryCount === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => galleryInputRef.current?.click()}
-                        disabled={submitting}
-                        className="w-full min-h-[260px] border border-dashed border-neutral-300 hover:border-[#099AD7] bg-neutral-50/40 flex flex-col items-center justify-center gap-2 p-6 transition-colors"
-                      >
-                        <Plus className="w-5 h-5 text-[#099AD7]" />
-                        <span className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium">
-                          + AGREGAR IMÁGENES A LA GALERÍA
-                        </span>
-                        <span className="text-[11px] text-[#686661] text-center max-w-sm">
-                          Sube renders, fotografías de maqueta o planos técnicos.
-                          Una vez cargados podrás reordenarlos arrastrando cada
-                          miniatura.
-                        </span>
-                      </button>
-                    ) : (
-                      <SortableImageGallery
-                        items={galleryEntries}
-                        onReorder={handleReorderGallery}
-                        onRemove={(id) => handleRemoveGalleryEntry(id)}
-                        disabled={submitting}
-                        columnsClassName="grid-cols-2 sm:grid-cols-3 xl:grid-cols-4"
-                        aspectClassName="aspect-[4/3]"
-                      />
-                    )}
+                    {/* 2. Galería de Imágenes (Renders y Planos) */}
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
+                        <div>
+                          <label
+                            htmlFor="project-gallery"
+                            className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium block"
+                          >
+                            GALERÍA DE IMÁGENES (RENDERS Y PLANOS)
+                          </label>
+                          <span className="text-[11px] text-[#686661]">
+                            {totalGalleryCount}{" "}
+                            {totalGalleryCount === 1
+                              ? "imagen cargada"
+                              : "imágenes cargadas"}{" "}
+                            — Arrastra para definir el orden del visor
+                          </span>
+                        </div>
+
+                        <input
+                          ref={galleryInputRef}
+                          id="project-gallery"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleGalleryChange}
+                          disabled={submitting}
+                          className="hidden"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => galleryInputRef.current?.click()}
+                          disabled={submitting}
+                          className="inline-flex items-center justify-center gap-1.5 px-4 h-9 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors shrink-0"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>+ AGREGAR IMÁGENES A LA GALERÍA</span>
+                        </button>
+                      </div>
+
+                      {totalGalleryCount === 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => galleryInputRef.current?.click()}
+                          disabled={submitting}
+                          className="w-full min-h-[260px] border border-dashed border-neutral-300 hover:border-[#099AD7] bg-neutral-50/40 flex flex-col items-center justify-center gap-2 p-6 transition-colors"
+                        >
+                          <Plus className="w-5 h-5 text-[#099AD7]" />
+                          <span className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium">
+                            + AGREGAR IMÁGENES A LA GALERÍA
+                          </span>
+                          <span className="text-[11px] text-[#686661] text-center max-w-sm">
+                            Sube renders, fotografías de maqueta o planos
+                            técnicos. Una vez cargados podrás reordenarlos
+                            arrastrando cada miniatura.
+                          </span>
+                        </button>
+                      ) : (
+                        <SortableImageGallery
+                          items={galleryEntries}
+                          onReorder={handleReorderGallery}
+                          onRemove={(id) => handleRemoveGalleryEntry(id)}
+                          disabled={submitting}
+                          columnsClassName="grid-cols-2 sm:grid-cols-3 xl:grid-cols-4"
+                          aspectClassName="aspect-[4/3]"
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
