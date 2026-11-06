@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useMemo, useEffect, useState, useRef } from "react";
+import { useMemo, useEffect, useLayoutEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
@@ -29,11 +29,7 @@ const estimateItemHeight = (project: Project): number => {
 };
 
 // Distribuir proyectos buscando siempre la columna con menor altura acumulada
-const distributeProjects = (
-  items: Project[],
-  columnCount = 4,
-  measuredHeights: Record<string, number> = {}
-) => {
+const distributeProjects = (items: Project[], columnCount = 4) => {
   const columns: Project[][] = Array.from({ length: columnCount }, () => []);
   const colHeights = new Array<number>(columnCount).fill(0);
 
@@ -52,11 +48,8 @@ const distributeProjects = (
     // 2. Colocar el proyecto en la columna más vacía
     columns[shortestColIndex].push(project);
 
-    // 3. Sumar la altura de la tarjeta a esa columna
-    const height =
-      measuredHeights[project.id] ||
-      project.height ||
-      estimateItemHeight(project);
+    // 3. Sumar la altura estimada de la tarjeta a esa columna
+    const height = project.height || estimateItemHeight(project);
     colHeights[shortestColIndex] += height;
   });
 
@@ -74,9 +67,6 @@ export default function ProjectGrid() {
     ...DEFAULT_PROJECT_FILTERS,
   ]);
   const [isLoading, setIsLoading] = useState(true);
-  const [measuredHeights, setMeasuredHeights] = useState<Record<string, number>>(
-    {}
-  );
 
   useEffect(() => {
     let active = true;
@@ -243,12 +233,12 @@ export default function ProjectGrid() {
   }, [selectedTag, projectsList]);
 
   const desktopCols = useMemo(
-    () => distributeProjects(filteredProjects, 4, measuredHeights),
-    [filteredProjects, measuredHeights]
+    () => distributeProjects(filteredProjects, 4),
+    [filteredProjects]
   );
 
-  // Animación sutil de revelado horizontal en TODOS los ítems de la grilla (al montar y al cambiar de filtro)
-  useEffect(() => {
+  // Animación de entrada horizontal sobre el 100% de las tarjetas renderizadas
+  useLayoutEffect(() => {
     if (isLoading || filteredProjects.length === 0 || !gridContainerRef.current)
       return;
 
@@ -257,9 +247,7 @@ export default function ProjectGrid() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>(
-        ".project-card, .project-card-reveal"
-      );
+      const cards = gsap.utils.toArray<HTMLElement>(".project-card");
       if (cards.length === 0) return;
 
       if (prefersReducedMotion) {
@@ -267,49 +255,29 @@ export default function ProjectGrid() {
         return;
       }
 
-      // Ordenar visualmente de arriba a abajo e izquierda a derecha para que el stagger recorra toda la grilla
-      const sortedCards = [...cards].sort((a, b) => {
-        const rectA = a.getBoundingClientRect();
-        const rectB = b.getBoundingClientRect();
-        if (Math.abs(rectA.top - rectB.top) > 40) {
-          return rectA.top - rectB.top;
-        }
-        return rectA.left - rectB.left;
-      });
-
-      gsap.killTweensOf(sortedCards);
-
       gsap.fromTo(
-        sortedCards,
+        cards,
         { opacity: 0, x: -24 },
         {
           opacity: 1,
           x: 0,
-          duration: 0.42,
-          stagger: {
-            each: 0.045,
-            from: "start",
-          },
+          duration: 0.45,
+          stagger: 0.04,
           ease: "power2.out",
-          overwrite: true,
-          clearProps: "transform,opacity",
+          clearProps: "all",
           onComplete: () => {
             ScrollTrigger.refresh();
           },
         }
       );
-
-      ScrollTrigger.refresh();
     }, gridContainerRef);
 
     return () => ctx.revert();
-  }, [isLoading, filteredProjects]);
+  }, [isLoading, selectedTag, filteredProjects]);
 
   if (isLoading && projectsList.length === 0) {
     return <div className="w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF]" />;
   }
-
-  const isStandardThreeFilters = filterTags.length === 3;
 
   return (
     <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
@@ -337,26 +305,10 @@ export default function ProjectGrid() {
                       alt={project.title}
                       className="w-full h-auto object-contain block"
                       loading="lazy"
-                      onLoad={(e) => {
-                        const { naturalWidth, naturalHeight } = e.currentTarget;
-                        if (naturalWidth > 0 && naturalHeight > 0) {
-                          const computedHeight =
-                            Math.round((naturalHeight / naturalWidth) * 400) +
-                            60;
-                          setMeasuredHeights((prev) => {
-                            if (prev[project.id] === computedHeight) {
-                              return prev;
-                            }
-                            const next = {
-                              ...prev,
-                              [project.id]: computedHeight,
-                            };
-                            requestAnimationFrame(() => {
-                              ScrollTrigger.refresh();
-                            });
-                            return next;
-                          });
-                        }
+                      onLoad={() => {
+                        requestAnimationFrame(() => {
+                          ScrollTrigger.refresh();
+                        });
                       }}
                     />
                   </div>
@@ -370,57 +322,29 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros */}
+      {/* Barra Inferior de Filtros con separación generosa */}
       <footer
         role="navigation"
         aria-label="Filtros de proyectos"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full px-6 md:px-12 lg:px-16"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full"
       >
-        <div
-          className={
-            isStandardThreeFilters
-              ? "flex justify-center items-center gap-6 lg:grid lg:grid-cols-4 lg:gap-[13.5px] relative py-4"
-              : "flex flex-wrap justify-center items-center gap-6 md:gap-10 relative py-4"
-          }
-        >
-          {filterTags.map((tag, idx) => {
+        <div className="w-full flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-14 py-4 px-6">
+          {filterTags.map((tag) => {
             const isSelected = selectedTag === tag;
-            const colStartClass = isStandardThreeFilters
-              ? idx === 0
-                ? "lg:col-start-2"
-                : idx === 1
-                  ? "lg:col-start-3"
-                  : "lg:col-start-4"
-              : "";
 
             return (
-              <div
+              <button
                 key={tag}
-                className={`${colStartClass} flex justify-start items-center`}
+                type="button"
+                onClick={() => handleSelectTag(tag)}
+                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-all duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                  isSelected
+                    ? "text-[14px] md:text-[15px] font-semibold font-[600] text-[#099AD7]"
+                    : "text-[12px] md:text-[12.5px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                }`}
               >
-                <button
-                  type="button"
-                  onClick={() => handleSelectTag(tag)}
-                  className={`${
-                    isStandardThreeFilters
-                      ? "lg:-ml-[6.75px] lg:-translate-x-1/2"
-                      : ""
-                  } relative inline-flex flex-col items-center justify-center text-[13px] uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                    isSelected
-                      ? "font-semibold font-[600] text-[#099AD7]"
-                      : "font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
-                  }`}
-                >
-                  <span>{tag}</span>
-                  {/* Reserva de ancho en peso 600 para mantener el eje de centrado fijo */}
-                  <span
-                    aria-hidden="true"
-                    className="invisible text-[13px] font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
-                  >
-                    {tag}
-                  </span>
-                </button>
-              </div>
+                <span>{tag}</span>
+              </button>
             );
           })}
         </div>

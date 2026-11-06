@@ -25,6 +25,23 @@ import {
   SKILL_CARDS,
 } from "@/data/bio";
 
+export interface InitialBioData {
+  id?: string;
+  manifesto?: string;
+  avatar_url?: string;
+  whatsapp?: string;
+  email?: string;
+  behance?: string;
+  linkedin?: string;
+  work_experience?: WorkAccordionItem[];
+  participations?: ParticipationItem[];
+  skills?: SkillCard[];
+}
+
+export interface BioContactViewProps {
+  initialBioData?: InitialBioData | null;
+}
+
 const BIO_ACCORDION_SECTIONS: {
   id: BioSectionId;
   orderNumber: string;
@@ -35,7 +52,9 @@ const BIO_ACCORDION_SECTIONS: {
   { id: "habilidades", orderNumber: "03", title: "Habilidades" },
 ];
 
-export default function BioContactView() {
+export default function BioContactView({
+  initialBioData = null,
+}: BioContactViewProps) {
   // Acordeón con exclusión mutua: "sobre-mi" inicia abierto por defecto
   const [activeSection, setActiveSection] = useState<string | null>("sobre-mi");
   const [profileImgError, setProfileImgError] = useState(false);
@@ -47,24 +66,60 @@ export default function BioContactView() {
   const [modalSlideIdx, setModalSlideIdx] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  // Estado sincronizado con Supabase public.bio (id = 'main')
-  const [manifesto, setManifesto] = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string>("/agustin-perfil.webp");
-  const [whatsappNumber, setWhatsappNumber] = useState<string>(WHATSAPP_NUMBER);
+  // Estado sincronizado desde el primer render con el Server Component o Supabase public.bio (id = 'main')
+  const [isLoadingBio, setIsLoadingBio] = useState<boolean>(!initialBioData);
+  const [manifesto, setManifesto] = useState<string>(
+    typeof initialBioData?.manifesto === "string"
+      ? initialBioData.manifesto.trim()
+      : ""
+  );
+  const [avatarUrl, setAvatarUrl] = useState<string>(
+    typeof initialBioData?.avatar_url === "string" &&
+      initialBioData.avatar_url.trim()
+      ? initialBioData.avatar_url.trim()
+      : "/agustin-perfil.webp"
+  );
+  const [whatsappNumber, setWhatsappNumber] = useState<string>(
+    typeof initialBioData?.whatsapp === "string" &&
+      initialBioData.whatsapp.trim()
+      ? initialBioData.whatsapp.trim().replace(/[^0-9]/g, "")
+      : WHATSAPP_NUMBER
+  );
   const [emailAddress, setEmailAddress] = useState<string>(
-    "hola@agustinfabrizio.com"
+    typeof initialBioData?.email === "string" && initialBioData.email.trim()
+      ? initialBioData.email.trim()
+      : "hola@agustinfabrizio.com"
   );
   const [behanceUrl, setBehanceUrl] = useState<string>(
-    "https://www.behance.net/agustinfabrizio"
+    typeof initialBioData?.behance === "string" && initialBioData.behance.trim()
+      ? initialBioData.behance.trim()
+      : "https://www.behance.net/agustinfabrizio"
   );
   const [linkedinUrl, setLinkedinUrl] = useState<string>(
-    "https://www.linkedin.com/"
+    typeof initialBioData?.linkedin === "string" &&
+      initialBioData.linkedin.trim()
+      ? initialBioData.linkedin.trim()
+      : "https://www.linkedin.com/"
   );
-  const [workItems, setWorkItems] =
-    useState<WorkAccordionItem[]>(WORK_ACCORDION_ITEMS);
-  const [participationItems, setParticipationItems] =
-    useState<ParticipationItem[]>(PARTICIPATION_ITEMS);
-  const [skillCards, setSkillCards] = useState<SkillCard[]>(SKILL_CARDS);
+  const [workItems, setWorkItems] = useState<WorkAccordionItem[]>(
+    Array.isArray(initialBioData?.work_experience) &&
+      initialBioData.work_experience.length > 0
+      ? initialBioData.work_experience
+      : WORK_ACCORDION_ITEMS
+  );
+  const [participationItems, setParticipationItems] = useState<
+    ParticipationItem[]
+  >(
+    Array.isArray(initialBioData?.participations) &&
+      initialBioData.participations.length > 0
+      ? initialBioData.participations
+      : PARTICIPATION_ITEMS
+  );
+  const [skillCards, setSkillCards] = useState<SkillCard[]>(
+    Array.isArray(initialBioData?.skills) && initialBioData.skills.length > 0
+      ? initialBioData.skills
+      : SKILL_CARDS
+  );
 
   useEffect(() => {
     let active = true;
@@ -77,7 +132,11 @@ export default function BioContactView() {
           .eq("id", "main")
           .maybeSingle();
 
-        if (!active || error || !data) return;
+        if (!active) return;
+        if (error || !data) {
+          setIsLoadingBio(false);
+          return;
+        }
 
         const row = data as Record<string, unknown>;
 
@@ -116,7 +175,9 @@ export default function BioContactView() {
           setSkillCards(row.skills as SkillCard[]);
         }
       } catch {
-        // Fallback silencioso a datos locales de src/data/bio.ts
+        // Sin parpadeo
+      } finally {
+        if (active) setIsLoadingBio(false);
       }
     }
 
@@ -456,8 +517,13 @@ export default function BioContactView() {
 
                             {/* Columna Derecha: Manifiesto textual + Educación y Certificación BIM */}
                             <div className="md:col-span-7 lg:col-span-8 flex flex-col justify-between gap-7 w-full">
-                              <blockquote className="w-full text-sm md:text-base font-roboto font-normal leading-relaxed text-[#1C1C1A]/85 border-l-2 border-[#099AD7] pl-5 md:pl-6 py-1">
-                                {manifesto ? (
+                              <blockquote className="w-full text-sm md:text-base font-roboto font-normal leading-relaxed text-[#1C1C1A]/85 border-l-2 border-[#099AD7] pl-5 md:pl-6 py-1 min-h-[140px]">
+                                {isLoadingBio && !manifesto ? (
+                                  <div
+                                    aria-hidden="true"
+                                    className="w-full min-h-[132px] bg-[#FFFFFF]"
+                                  />
+                                ) : manifesto ? (
                                   manifesto.trim().startsWith("<") ? (
                                     <div
                                       className="bio-rich-text font-roboto leading-relaxed text-[#1C1C1A]/85 [&_strong]:font-medium [&_b]:font-medium [&_em]:italic [&_i]:italic [&_u]:underline [&_u]:underline-offset-3 [&_mark]:px-1 [&_h1]:text-xl [&_h1]:font-medium [&_h1]:text-[#1C1C1A] [&_h2]:text-lg [&_h2]:font-medium [&_h2]:text-[#1C1C1A] [&_h3]:text-base [&_h3]:md:text-lg [&_h3]:font-medium [&_h3]:text-[#1C1C1A]"
@@ -470,42 +536,11 @@ export default function BioContactView() {
                                       {manifesto
                                         .split(/\n{2,}/)
                                         .map((paragraph, pIdx) => (
-                                          <p key={pIdx}>
-                                            {pIdx === 0 ? "“" : ""}
-                                            {paragraph}
-                                            {pIdx ===
-                                            manifesto.split(/\n{2,}/).length - 1
-                                              ? "”"
-                                              : ""}
-                                          </p>
+                                          <p key={pIdx}>{paragraph}</p>
                                         ))}
                                     </div>
                                   )
-                                ) : (
-                                  <>
-                                    &ldquo;Disfruto del proceso creativo compartido, de escuchar, ser escuchado y{" "}
-                                    <strong className="font-medium text-[#099AD7]">
-                                      construir ideas en conjunto
-                                    </strong>
-                                    . Me interesa proyectar una arquitectura conectada con{" "}
-                                    <strong className="font-medium text-[#099AD7]">
-                                      lo cotidiano
-                                    </strong>
-                                    , enfocada en resolver necesidades reales, sin dejar de aprovechar los espacios lúdicos como instancias para{" "}
-                                    <strong className="font-medium text-[#099AD7]">
-                                      explorar otras formas
-                                    </strong>{" "}
-                                    de habitar y pensar el diseño. Me considero metódico y técnico en el uso de{" "}
-                                    <strong className="font-medium text-[#099AD7]">
-                                      herramientas digitales
-                                    </strong>
-                                    , lo que me permite integrar con fluidez el diseño, la representación y la producción. Me motiva{" "}
-                                    <strong className="font-medium text-[#099AD7]">
-                                      aprender
-                                    </strong>{" "}
-                                    constantemente, tanto desde lo teórico como desde lo práctico, incorporando recursos que optimicen y agilicen mis procesos proyectuales.&rdquo;
-                                  </>
-                                )}
+                                ) : null}
                               </blockquote>
 
                               {/* Bloque Educación */}
