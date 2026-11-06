@@ -267,6 +267,18 @@ export default function AdminProjects() {
     };
   }, [coverPreview, galleryEntries]);
 
+  // Bloqueo real del scroll de fondo cuando el modal está abierto
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.__lenis?.stop();
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.__lenis?.start();
+    };
+  }, [isModalOpen]);
+
   const handleAddGlobalFilter = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const clean = normalizeFilterLabel(newFilterInput);
@@ -913,17 +925,18 @@ export default function AdminProjects() {
         )}
       </div>
 
-      {/* Modal de Creación / Edición de Proyecto */}
+      {/* Modal de Creación / Edición de Proyecto (Layout Amplio de 2 Columnas) */}
       {isModalOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-project-title"
-          className="fixed inset-0 z-50 bg-[#1C1C1A]/40 flex items-center justify-center p-4 md:p-8 overflow-y-auto"
+          data-lenis-prevent
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 md:p-8"
         >
-          <div className="w-full max-w-2xl bg-[#FFFFFF] border border-neutral-300 shadow-none my-auto">
-            {/* Cabecera del Modal */}
-            <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
+          <div className="w-full max-w-5xl lg:max-w-6xl max-h-[90vh] bg-white border border-neutral-200 shadow-2xl flex flex-col overflow-hidden rounded-none">
+            {/* Header Fijo */}
+            <div className="shrink-0 px-6 md:px-8 py-4 border-b border-neutral-200 bg-white flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-[#099AD7] font-semibold block">
                   {editingProject ? "EDICIÓN DE PROYECTO" : "NUEVO REGISTRO"}
@@ -934,7 +947,7 @@ export default function AdminProjects() {
                 >
                   {editingProject
                     ? "Editar Proyecto del Portfolio"
-                    : "Cargar Proyecto en Portfolio"}
+                    : "Nuevo Proyecto"}
                 </h3>
               </div>
 
@@ -943,289 +956,326 @@ export default function AdminProjects() {
                 onClick={handleCloseModal}
                 disabled={submitting}
                 aria-label="Cerrar modal"
-                className="p-1.5 text-[#686661] hover:text-[#1C1C1A] transition-colors disabled:opacity-50"
+                className="p-1.5 text-[#686661] hover:text-[#1C1C1A] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Formulario */}
+            {/* Formulario con Cuerpo Scrollable en 2 Columnas + Footer Fijo */}
             <form
               onSubmit={handleSubmit}
-              className="p-6 flex flex-col gap-5"
+              className="flex-1 flex flex-col min-h-0 overflow-hidden"
               noValidate
             >
-              {/* Campo Título */}
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="project-title"
-                  className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
-                >
-                  Título del proyecto
-                </label>
-                <input
-                  id="project-title"
-                  type="text"
-                  value={formTitle}
-                  onChange={handleTitleChange}
-                  disabled={submitting}
-                  placeholder="Ej. Centro de Trasbordo — Triángulo de Bernal, Quilmes"
-                  required
-                  className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-sm border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
-                />
-              </div>
-
-              {/* Selector Obligatorio: Tipo / Categoría de Proyecto + Creación rápida de etiqueta */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 pt-1">
-                <div className="sm:col-span-6 flex flex-col gap-1.5">
-                  <label
-                    htmlFor="project-category"
-                    className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
-                  >
-                    Tipo / Categoría de Proyecto *
-                  </label>
-                  <select
-                    id="project-category"
-                    value={formCategory}
-                    onChange={(e) => {
-                      setFormCategory(e.target.value);
-                      if (formError) setFormError(null);
-                    }}
-                    disabled={submitting}
-                    required
-                    className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs uppercase tracking-wider font-medium border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
-                  >
-                    {availableFilters.map((filterOption) => (
-                      <option key={filterOption} value={filterOption}>
-                        {filterOption}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="sm:col-span-6 flex flex-col gap-1.5">
-                  <label
-                    htmlFor="project-new-category"
-                    className="text-[11px] uppercase tracking-wider text-[#686661] font-medium"
-                  >
-                    ¿Nueva etiqueta / categoría?
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="project-new-category"
-                      type="text"
-                      value={modalNewCategoryInput}
-                      onChange={(e) => setModalNewCategoryInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleQuickAddCategoryInModal();
-                        }
-                      }}
-                      disabled={submitting}
-                      placeholder="Ej. Edificios Públicos"
-                      className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7]"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleQuickAddCategoryInModal}
-                      disabled={submitting || !modalNewCategoryInput.trim()}
-                      className="h-10 px-3 bg-neutral-900 hover:bg-[#099AD7] text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors disabled:opacity-40 shrink-0"
-                    >
-                      Usar
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Switch / Toggle de Visibilidad en Grilla General ("Todos") */}
-              <div className="border border-neutral-200 bg-neutral-50/70 p-3.5 flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-0.5">
-                  <label
-                    htmlFor="project-show-main-grid"
-                    className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium cursor-pointer"
-                  >
-                    Mostrar en grilla general (&ldquo;Todos&rdquo;)
-                  </label>
-                  <span className="text-[11px] text-[#686661] leading-snug">
-                    Si se desactiva, el proyecto no aparecerá en la vista
-                    general de proyectos, pero sí al filtrar por{" "}
-                    <strong className="font-medium text-[#1C1C1A]">
-                      {formCategory}
-                    </strong>{" "}
-                    o mediante enlace directo.
-                  </span>
-                </div>
-
-                <button
-                  id="project-show-main-grid"
-                  type="button"
-                  role="switch"
-                  aria-checked={formShowInMainGrid}
-                  onClick={() => setFormShowInMainGrid((prev) => !prev)}
-                  disabled={submitting}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center border transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7] ${
-                    formShowInMainGrid
-                      ? "bg-[#099AD7] border-[#099AD7]"
-                      : "bg-neutral-300 border-neutral-400"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 bg-white transition-transform duration-200 ${
-                      formShowInMainGrid ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Campo Imagen de Portada (Cover) */}
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="project-cover"
-                  className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
-                >
-                  Imagen de portada
-                </label>
-
-                <input
-                  ref={coverInputRef}
-                  id="project-cover"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleCoverChange}
-                  disabled={submitting}
-                  className="hidden"
-                />
-
-                {coverPreview ? (
-                  <div className="relative w-full h-44 border border-neutral-300 bg-neutral-50 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={coverPreview}
-                      alt="Vista previa de portada"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => coverInputRef.current?.click()}
-                        disabled={submitting}
-                        className="bg-[#FFFFFF]/95 text-[#1C1C1A] hover:text-[#099AD7] border border-neutral-300 px-3 py-1 text-[11px] uppercase tracking-wider font-medium"
+              {/* Cuerpo Central en 2 Columnas */}
+              <div
+                data-lenis-prevent
+                className="flex-1 overflow-y-auto overscroll-contain p-6 md:p-8"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Columna Izquierda: Metadatos, Visibilidad y Portada */}
+                  <div className="lg:col-span-5 flex flex-col gap-5">
+                    {/* 1. Título del Proyecto */}
+                    <div className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor="project-title"
+                        className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
                       >
-                        Cambiar portada
+                        Título del proyecto
+                      </label>
+                      <input
+                        id="project-title"
+                        type="text"
+                        value={formTitle}
+                        onChange={handleTitleChange}
+                        disabled={submitting}
+                        placeholder="Ej. Centro de Trasbordo — Triángulo de Bernal, Quilmes"
+                        required
+                        className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-sm border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                      />
+                    </div>
+
+                    {/* 2. Tipo / Categoría de Proyecto + Input de nueva etiqueta */}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label
+                          htmlFor="project-category"
+                          className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
+                        >
+                          Tipo / Categoría de Proyecto *
+                        </label>
+                        <select
+                          id="project-category"
+                          value={formCategory}
+                          onChange={(e) => {
+                            setFormCategory(e.target.value);
+                            if (formError) setFormError(null);
+                          }}
+                          disabled={submitting}
+                          required
+                          className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs uppercase tracking-wider font-medium border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                        >
+                          {availableFilters.map((filterOption) => (
+                            <option key={filterOption} value={filterOption}>
+                              {filterOption}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label
+                          htmlFor="project-new-category"
+                          className="text-[11px] uppercase tracking-wider text-[#686661] font-medium"
+                        >
+                          ¿Nueva etiqueta / categoría?
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            id="project-new-category"
+                            type="text"
+                            value={modalNewCategoryInput}
+                            onChange={(e) =>
+                              setModalNewCategoryInput(e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleQuickAddCategoryInModal();
+                              }
+                            }}
+                            disabled={submitting}
+                            placeholder="Ej. Edificios Públicos"
+                            className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7]"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleQuickAddCategoryInModal}
+                            disabled={
+                              submitting || !modalNewCategoryInput.trim()
+                            }
+                            className="h-10 px-3.5 bg-neutral-900 hover:bg-[#099AD7] text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors disabled:opacity-40 shrink-0"
+                          >
+                            Usar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. Toggle "Mostrar en grilla general ('Todos')" */}
+                    <div className="border border-neutral-200 bg-neutral-50/70 p-3.5 flex items-center justify-between gap-4">
+                      <div className="flex flex-col gap-0.5">
+                        <label
+                          htmlFor="project-show-main-grid"
+                          className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium cursor-pointer"
+                        >
+                          Mostrar en grilla general (&ldquo;Todos&rdquo;)
+                        </label>
+                        <span className="text-[11px] text-[#686661] leading-snug">
+                          Si se desactiva, el proyecto no aparecerá en la vista
+                          general de proyectos, pero sí al filtrar por{" "}
+                          <strong className="font-medium text-[#1C1C1A]">
+                            {formCategory}
+                          </strong>{" "}
+                          o mediante enlace directo.
+                        </span>
+                      </div>
+
+                      <button
+                        id="project-show-main-grid"
+                        type="button"
+                        role="switch"
+                        aria-checked={formShowInMainGrid}
+                        onClick={() => setFormShowInMainGrid((prev) => !prev)}
+                        disabled={submitting}
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center border transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#099AD7] ${
+                          formShowInMainGrid
+                            ? "bg-[#099AD7] border-[#099AD7]"
+                            : "bg-neutral-300 border-neutral-400"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 bg-white transition-transform duration-200 ${
+                            formShowInMainGrid
+                              ? "translate-x-5"
+                              : "translate-x-0.5"
+                          }`}
+                        />
                       </button>
                     </div>
+
+                    {/* 4. Imagen de Portada (Preview con botón "CAMBIAR PORTADA") */}
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="project-cover"
+                        className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
+                      >
+                        Imagen de portada
+                      </label>
+
+                      <input
+                        ref={coverInputRef}
+                        id="project-cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverChange}
+                        disabled={submitting}
+                        className="hidden"
+                      />
+
+                      {coverPreview ? (
+                        <div className="relative w-full aspect-[16/10] border border-neutral-300 bg-neutral-50 overflow-hidden">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={coverPreview}
+                            alt="Vista previa de portada"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-2.5 right-2.5 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => coverInputRef.current?.click()}
+                              disabled={submitting}
+                              className="bg-[#FFFFFF]/95 text-[#1C1C1A] hover:text-[#099AD7] border border-neutral-300 px-3 py-1.5 text-[11px] uppercase tracking-wider font-medium transition-colors"
+                            >
+                              CAMBIAR PORTADA
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => coverInputRef.current?.click()}
+                          disabled={submitting}
+                          className="w-full h-36 border border-dashed border-neutral-300 hover:border-[#099AD7] bg-[#FFFFFF] flex flex-col items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <Upload className="w-4 h-4 text-[#099AD7]" />
+                          <span className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium">
+                            Seleccionar imagen de portada
+                          </span>
+                          <span className="text-[11px] text-[#686661]">
+                            Formatos recomendados: WEBP, JPG o PNG
+                          </span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                ) : (
+
+                  {/* Columna Derecha: Galería de Imágenes (Renders y Planos) */}
+                  <div className="lg:col-span-7 flex flex-col gap-4 border-t lg:border-t-0 lg:border-l lg:border-neutral-200 pt-6 lg:pt-0 lg:pl-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
+                      <div>
+                        <label
+                          htmlFor="project-gallery"
+                          className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium block"
+                        >
+                          GALERÍA DE IMÁGENES (RENDERS Y PLANOS)
+                        </label>
+                        <span className="text-[11px] text-[#686661]">
+                          {totalGalleryCount}{" "}
+                          {totalGalleryCount === 1
+                            ? "imagen cargada"
+                            : "imágenes cargadas"}{" "}
+                          — Arrastra para definir el orden del visor
+                        </span>
+                      </div>
+
+                      <input
+                        ref={galleryInputRef}
+                        id="project-gallery"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleGalleryChange}
+                        disabled={submitting}
+                        className="hidden"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => galleryInputRef.current?.click()}
+                        disabled={submitting}
+                        className="inline-flex items-center justify-center gap-1.5 px-4 h-9 border border-[#099AD7] text-[#099AD7] hover:bg-[#099AD7] hover:text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>+ AGREGAR IMÁGENES A LA GALERÍA</span>
+                      </button>
+                    </div>
+
+                    {totalGalleryCount === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => galleryInputRef.current?.click()}
+                        disabled={submitting}
+                        className="w-full min-h-[260px] border border-dashed border-neutral-300 hover:border-[#099AD7] bg-neutral-50/40 flex flex-col items-center justify-center gap-2 p-6 transition-colors"
+                      >
+                        <Plus className="w-5 h-5 text-[#099AD7]" />
+                        <span className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium">
+                          + AGREGAR IMÁGENES A LA GALERÍA
+                        </span>
+                        <span className="text-[11px] text-[#686661] text-center max-w-sm">
+                          Sube renders, fotografías de maqueta o planos técnicos.
+                          Una vez cargados podrás reordenarlos arrastrando cada
+                          miniatura.
+                        </span>
+                      </button>
+                    ) : (
+                      <SortableImageGallery
+                        items={galleryEntries}
+                        onReorder={handleReorderGallery}
+                        onRemove={(id) => handleRemoveGalleryEntry(id)}
+                        disabled={submitting}
+                        columnsClassName="grid-cols-2 sm:grid-cols-3 xl:grid-cols-4"
+                        aspectClassName="aspect-[4/3]"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Fijo */}
+              <div className="shrink-0 px-6 md:px-8 py-4 bg-white border-t border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  {formError && (
+                    <p
+                      role="alert"
+                      className="text-xs text-[#A84A4A] tracking-wide truncate"
+                    >
+                      {formError}
+                    </p>
+                  )}
+                  {!formError && statusMessage && (
+                    <div className="inline-flex items-center gap-2">
+                      <span className="w-2 h-2 bg-[#099AD7] animate-pulse shrink-0" />
+                      <span className="text-xs uppercase tracking-wider text-[#099AD7] font-medium truncate">
+                        {statusMessage}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end gap-3 shrink-0">
                   <button
                     type="button"
-                    onClick={() => coverInputRef.current?.click()}
+                    onClick={handleCloseModal}
                     disabled={submitting}
-                    className="w-full h-28 border border-dashed border-neutral-300 hover:border-[#099AD7] bg-[#FFFFFF] flex flex-col items-center justify-center gap-1.5 transition-colors"
+                    className="h-10 px-5 text-xs uppercase tracking-wider text-[#686661] hover:text-[#1C1C1A] border border-neutral-300 rounded-none transition-colors disabled:opacity-50"
                   >
-                    <Upload className="w-4 h-4 text-[#099AD7]" />
-                    <span className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium">
-                      Seleccionar imagen de portada
-                    </span>
-                    <span className="text-[11px] text-[#686661]">
-                      Formatos recomendados: WEBP, JPG o PNG
-                    </span>
+                    CANCELAR
                   </button>
-                )}
-              </div>
-
-              {/* Campo Galería de Imágenes (Renders y Planos) */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="project-gallery"
-                    className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="h-10 px-6 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors disabled:opacity-50"
                   >
-                    Galería de imágenes (Renders y Planos)
-                  </label>
-                  <span className="text-[11px] text-[#686661]">
-                    {totalGalleryCount}{" "}
-                    {totalGalleryCount === 1 ? "imagen" : "imágenes"}
-                  </span>
+                    {submitting
+                      ? "PROCESANDO..."
+                      : editingProject
+                        ? "GUARDAR CAMBIOS"
+                        : "GUARDAR PROYECTO"}
+                  </button>
                 </div>
-
-                <input
-                  ref={galleryInputRef}
-                  id="project-gallery"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleGalleryChange}
-                  disabled={submitting}
-                  className="hidden"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => galleryInputRef.current?.click()}
-                  disabled={submitting}
-                  className="w-full py-3 px-4 border border-dashed border-neutral-300 hover:border-[#099AD7] bg-[#FFFFFF] flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5 text-[#099AD7]" />
-                  <span className="text-xs uppercase tracking-wider text-[#1C1C1A] font-medium">
-                    Agregar imágenes a la galería
-                  </span>
-                </button>
-
-                {totalGalleryCount > 0 && (
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-[10px] uppercase tracking-wider text-[#686661]">
-                      Arrastra las miniaturas para cambiar el orden en que se mostrarán en el visor
-                    </span>
-                    <SortableImageGallery
-                      items={galleryEntries}
-                      onReorder={handleReorderGallery}
-                      onRemove={(id) => handleRemoveGalleryEntry(id)}
-                      disabled={submitting}
-                      columnsClassName="grid-cols-3 sm:grid-cols-4"
-                      aspectClassName="aspect-[4/3]"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Indicadores de error o progreso */}
-              {formError && (
-                <p role="alert" className="text-xs text-[#A84A4A] tracking-wide">
-                  {formError}
-                </p>
-              )}
-
-              {statusMessage && (
-                <div className="border border-[#099AD7]/40 bg-[#099AD7]/5 px-3.5 py-2.5 flex items-center gap-2.5">
-                  <span className="w-2 h-2 bg-[#099AD7] animate-pulse" />
-                  <span className="text-xs uppercase tracking-wider text-[#099AD7] font-medium">
-                    {statusMessage}
-                  </span>
-                </div>
-              )}
-
-              {/* Acciones del Modal */}
-              <div className="pt-3 border-t border-neutral-200 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  disabled={submitting}
-                  className="h-10 px-4 text-xs uppercase tracking-wider text-[#686661] hover:text-[#1C1C1A] border border-neutral-300 rounded-none transition-colors disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="h-10 px-6 bg-[#099AD7] text-white text-xs uppercase tracking-wider font-medium rounded-none hover:bg-[#0886BC] active:bg-[#0776A6] transition-colors disabled:opacity-50"
-                >
-                  {submitting
-                    ? "PROCESANDO..."
-                    : editingProject
-                      ? "GUARDAR CAMBIOS"
-                      : "GUARDAR PROYECTO"}
-                </button>
               </div>
             </form>
           </div>

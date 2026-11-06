@@ -15,6 +15,7 @@ export default function SmoothScroll() {
   const pathname = usePathname();
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
+  const isAdminRoute = pathname.startsWith("/admin");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -23,7 +24,7 @@ export default function SmoothScroll() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    if (isProjectDetail || prefersReducedMotion) {
+    if (isProjectDetail || isAdminRoute || prefersReducedMotion) {
       window.__lenis = null;
       return;
     }
@@ -55,7 +56,7 @@ export default function SmoothScroll() {
         window.__lenis = null;
       }
     };
-  }, [isProjectDetail]);
+  }, [isProjectDetail, isAdminRoute]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

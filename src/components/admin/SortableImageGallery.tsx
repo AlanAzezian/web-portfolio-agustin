@@ -50,7 +50,7 @@ interface SortableCardProps<T extends SortableGalleryItem> {
   aspectClassName: string;
 }
 
-function SortableCard<T extends SortableGalleryItem>({
+function SortableItem<T extends SortableGalleryItem>({
   item,
   index,
   onRemove,
@@ -72,9 +72,8 @@ function SortableCard<T extends SortableGalleryItem>({
   });
 
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 30 : 1,
+    transform: CSS.Translate.toString(transform),
+    transition: isDragging ? "none" : transition,
   };
 
   const formattedBadge = String(index + 1).padStart(2, "0");
@@ -83,21 +82,22 @@ function SortableCard<T extends SortableGalleryItem>({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative flex flex-col border bg-neutral-50 rounded-none select-none transition-all duration-150 ${
+      className={`group relative flex flex-col bg-neutral-50 rounded-none select-none transition-shadow ${
         showCaption ? "p-1.5 gap-1.5" : ""
       } ${
         isDragging
-          ? "border-[#099AD7] ring-1 ring-[#099AD7] opacity-80 scale-105 shadow-md"
+          ? "opacity-50 border-2 border-[#099AD7] scale-105 shadow-lg z-50"
           : item.isNew
-            ? "border-[#099AD7]/50 hover:border-[#099AD7]"
-            : "border-neutral-200 hover:border-[#099AD7]/70"
+            ? "border border-[#099AD7]/50 hover:border-[#099AD7] z-0"
+            : "border border-neutral-200 hover:border-[#099AD7]/70 z-0"
       }`}
     >
       {/* Área arrastrable de la miniatura */}
       <div
         {...attributes}
         {...listeners}
-        className={`relative w-full ${aspectClassName} overflow-hidden bg-white ${
+        style={{ touchAction: "none" }}
+        className={`relative w-full ${aspectClassName} overflow-hidden bg-white touch-none ${
           disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing"
         }`}
         title="Arrastrar para reordenar posición"
@@ -139,7 +139,7 @@ function SortableCard<T extends SortableGalleryItem>({
           disabled={disabled}
           aria-label={`Quitar imagen ${formattedBadge}`}
           title={`Quitar imagen ${formattedBadge}`}
-          className="absolute top-1 right-1 z-10 bg-[#FFFFFF]/95 hover:bg-[#A84A4A] text-[#1C1C1A] hover:text-white border border-neutral-300 hover:border-[#A84A4A] p-1 transition-colors disabled:opacity-50"
+          className="absolute top-1 right-1 z-10 bg-[#FFFFFF]/95 hover:bg-[#A84A4A] text-[#1C1C1A] hover:text-white border border-neutral-300 hover:border-[#A84A4A] p-1 transition-colors disabled:opacity-50 cursor-pointer"
         >
           <X className="w-3 h-3" />
         </button>
@@ -169,13 +169,13 @@ export default function SortableImageGallery<T extends SortableGalleryItem>({
   showCaption = false,
   onCaptionChange,
   disabled = false,
-  columnsClassName = "grid-cols-3 sm:grid-cols-4",
+  columnsClassName = "grid-cols-2 sm:grid-cols-3 xl:grid-cols-4",
   aspectClassName = "aspect-[4/3]",
 }: SortableImageGalleryProps<T>) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 5, // Requiere mover al menos 5px antes de iniciar el drag
       },
     }),
     useSensor(KeyboardSensor, {
@@ -207,11 +207,9 @@ export default function SortableImageGallery<T extends SortableGalleryItem>({
         items={items.map((item) => item.id)}
         strategy={rectSortingStrategy}
       >
-        <div
-          className={`grid ${columnsClassName} gap-3 pt-2 max-h-64 overflow-y-auto pr-1`}
-        >
+        <div className={`grid ${columnsClassName} gap-3 pt-1`}>
           {items.map((item, idx) => (
-            <SortableCard
+            <SortableItem
               key={item.id}
               item={item}
               index={idx}
