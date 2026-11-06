@@ -79,7 +79,6 @@ export default function AdminProjects() {
   const [formTitle, setFormTitle] = useState("");
   const [formCategory, setFormCategory] = useState<string>("PROYECTOS");
   const [formShowInMainGrid, setFormShowInMainGrid] = useState<boolean>(true);
-  const [modalNewCategoryInput, setModalNewCategoryInput] = useState("");
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -307,20 +306,6 @@ export default function AdminProjects() {
     setFeedbackSuccess(`Etiqueta "${tagToRemove}" eliminada de los filtros.`);
   };
 
-  const handleQuickAddCategoryInModal = async () => {
-    const clean = normalizeFilterLabel(modalNewCategoryInput);
-    if (!clean) return;
-
-    if (!availableFilters.includes(clean)) {
-      const updated = [...availableFilters, clean];
-      setAvailableFilters(updated);
-      await persistFilterList(updated);
-    }
-    setFormCategory(clean);
-    setModalNewCategoryInput("");
-    if (formError) setFormError(null);
-  };
-
   const resetForm = () => {
     setEditingProject(null);
     setFormTitle("");
@@ -330,7 +315,6 @@ export default function AdminProjects() {
         : availableFilters[0] || "PROYECTOS"
     );
     setFormShowInMainGrid(true);
-    setModalNewCategoryInput("");
     if (coverPreview && coverPreview.startsWith("blob:")) {
       URL.revokeObjectURL(coverPreview);
     }
@@ -996,71 +980,31 @@ export default function AdminProjects() {
                       />
                     </div>
 
-                    {/* 2. Tipo / Categoría de Proyecto + Input de nueva etiqueta */}
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-col gap-1.5">
-                        <label
-                          htmlFor="project-category"
-                          className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
-                        >
-                          Tipo / Categoría de Proyecto *
-                        </label>
-                        <select
-                          id="project-category"
-                          value={formCategory}
-                          onChange={(e) => {
-                            setFormCategory(e.target.value);
-                            if (formError) setFormError(null);
-                          }}
-                          disabled={submitting}
-                          required
-                          className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs uppercase tracking-wider font-medium border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
-                        >
-                          {availableFilters.map((filterOption) => (
-                            <option key={filterOption} value={filterOption}>
-                              {filterOption}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex flex-col gap-1.5">
-                        <label
-                          htmlFor="project-new-category"
-                          className="text-[11px] uppercase tracking-wider text-[#686661] font-medium"
-                        >
-                          ¿Nueva etiqueta / categoría?
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            id="project-new-category"
-                            type="text"
-                            value={modalNewCategoryInput}
-                            onChange={(e) =>
-                              setModalNewCategoryInput(e.target.value)
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                handleQuickAddCategoryInModal();
-                              }
-                            }}
-                            disabled={submitting}
-                            placeholder="Ej. Edificios Públicos"
-                            className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] placeholder:text-[#9A9892] text-xs border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7]"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleQuickAddCategoryInModal}
-                            disabled={
-                              submitting || !modalNewCategoryInput.trim()
-                            }
-                            className="h-10 px-3.5 bg-neutral-900 hover:bg-[#099AD7] text-white text-[11px] uppercase tracking-wider font-medium rounded-none transition-colors disabled:opacity-40 shrink-0"
-                          >
-                            Usar
-                          </button>
-                        </div>
-                      </div>
+                    {/* 2. Tipo / Categoría de Proyecto */}
+                    <div className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor="project-category"
+                        className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
+                      >
+                        TIPO / CATEGORÍA DE PROYECTO *
+                      </label>
+                      <select
+                        id="project-category"
+                        value={formCategory}
+                        onChange={(e) => {
+                          setFormCategory(e.target.value);
+                          if (formError) setFormError(null);
+                        }}
+                        disabled={submitting}
+                        required
+                        className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs uppercase tracking-wider font-medium border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                      >
+                        {availableFilters.map((filterOption) => (
+                          <option key={filterOption} value={filterOption}>
+                            {filterOption}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* 3. Imagen de Portada (Preview con botón "CAMBIAR PORTADA") */}
