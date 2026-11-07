@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { IconlyArrowRight2 } from "./icons/IconlyArrowRight2";
 
 export default function EditorialOverlay() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
-  const arrowLeftRef = useRef<HTMLDivElement>(null);
-  const arrowRightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -16,31 +13,21 @@ export default function EditorialOverlay() {
 
     const cursorEl = cursorRef.current;
     const dotEl = dotRef.current;
-    const leftEl = arrowLeftRef.current;
-    const rightEl = arrowRightRef.current;
-    if (!cursorEl || !dotEl || !leftEl || !rightEl) return;
+    if (!cursorEl || !dotEl) return;
 
     let mouseX = -100;
     let mouseY = -100;
     let rafId: number | null = null;
     let isVisible = false;
-    let currentMode: "dot" | "interactive" | "arrow-left" | "arrow-right" = "dot";
+    let currentMode: "dot" | "interactive" | "hidden" = "dot";
 
     const applyMode = (mode: typeof currentMode) => {
       if (mode === currentMode) return;
       currentMode = mode;
 
-      if (mode === "arrow-left") {
+      if (mode === "hidden") {
         dotEl.style.display = "none";
-        rightEl.style.display = "none";
-        leftEl.style.display = "flex";
-      } else if (mode === "arrow-right") {
-        dotEl.style.display = "none";
-        leftEl.style.display = "none";
-        rightEl.style.display = "flex";
       } else {
-        leftEl.style.display = "none";
-        rightEl.style.display = "none";
         dotEl.style.display = "block";
         dotEl.style.transform =
           mode === "interactive" ? "scale(1.3)" : "scale(1)";
@@ -72,7 +59,7 @@ export default function EditorialOverlay() {
       if (cursorAttrEl) {
         const attr = cursorAttrEl.getAttribute("data-cursor");
         if (attr === "arrow-left" || attr === "arrow-right") {
-          applyMode(attr);
+          applyMode("hidden");
           return;
         }
       }
@@ -108,32 +95,19 @@ export default function EditorialOverlay() {
   }, []);
 
   return (
-    <div
-      ref={cursorRef}
-      style={{
-        transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
-        opacity: 0,
-        mixBlendMode: "difference",
-      }}
-      className="fixed top-0 left-0 z-[99999] hidden [@media(pointer:fine)]:flex items-center justify-center pointer-events-none mix-blend-difference transition-opacity duration-150"
-    >
+    <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden hidden [@media(pointer:fine)]:block">
       <div
-        ref={dotRef}
-        className="w-3.5 h-3.5 rounded-full bg-[#FFFFFF] transition-transform duration-150 ease-out"
-      />
-      <div
-        ref={arrowLeftRef}
-        style={{ display: "none", mixBlendMode: "difference" }}
-        className="rotate-180 items-center justify-center text-white fill-white mix-blend-difference"
+        ref={cursorRef}
+        style={{
+          transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
+          opacity: 0,
+        }}
+        className="fixed top-0 left-0 z-[99999] flex items-center justify-center pointer-events-none will-change-transform transition-opacity duration-150"
       >
-        <IconlyArrowRight2 size={22} color="#FFFFFF" />
-      </div>
-      <div
-        ref={arrowRightRef}
-        style={{ display: "none", mixBlendMode: "difference" }}
-        className="items-center justify-center text-white fill-white mix-blend-difference"
-      >
-        <IconlyArrowRight2 size={22} color="#FFFFFF" />
+        <div
+          ref={dotRef}
+          className="w-3.5 h-3.5 rounded-full bg-[#1C1C1A] transition-transform duration-150 ease-out will-change-transform"
+        />
       </div>
     </div>
   );

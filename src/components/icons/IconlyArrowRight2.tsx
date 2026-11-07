@@ -15,10 +15,9 @@ export const IconlyArrowRight2 = ({
     viewBox="0 0 24 24"
     fill={color}
     xmlns="http://www.w3.org/2000/svg"
-    style={{ mixBlendMode: "difference" }}
-    className={`fill-white fill-[#FFFFFF] mix-blend-difference ${className}`.trim()}
+    className={className}
   >
-    <polygon points="6,4.5 19.5,12 6,19.5" fill={color} className="fill-white fill-[#FFFFFF]" />
+    <polygon points="6,4.5 19.5,12 6,19.5" fill={color} />
   </svg>
 );
 

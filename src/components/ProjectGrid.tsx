@@ -296,7 +296,7 @@ export default function ProjectGrid() {
     [filteredProjects]
   );
 
-  // Animación de entrada vertical de abajo hacia arriba sobre el 100% de los proyectos en el DOM
+  // Animación de entrada estrictamente vertical de abajo hacia arriba (y: 75 -> 0, x: 0)
   useLayoutEffect(() => {
     if (isLoading || filteredProjects.length === 0 || !gridContainerRef.current)
       return;
@@ -314,37 +314,54 @@ export default function ProjectGrid() {
       if (rawCards.length === 0) return;
 
       if (prefersReducedMotion) {
-        gsap.set(rawCards, { opacity: 1, y: 0 });
+        gsap.set(rawCards, { opacity: 1, y: 0, x: 0 });
         return;
       }
 
-      // Ordenar por posición visual (fila por fila de izquierda a derecha)
-      const cards = [...rawCards].sort((a, b) => {
-        const rectA = a.getBoundingClientRect();
-        const rectB = b.getBoundingClientRect();
-        if (Math.abs(rectA.top - rectB.top) > 36) {
-          return rectA.top - rectB.top;
+      gsap.killTweensOf(rawCards);
+
+      // Agrupar tarjetas por fila vertical (eje Y únicamente, sin desfase horizontal en X)
+      // para que las 4 columnas de cada fila asciendan al unísono de abajo hacia arriba
+      const sortedByTop = [...rawCards].sort(
+        (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
+      );
+
+      const rows: HTMLElement[][] = [];
+      let currentRowTop: number | null = null;
+
+      sortedByTop.forEach((card) => {
+        const top = card.getBoundingClientRect().top;
+        if (currentRowTop === null || Math.abs(top - currentRowTop) > 48) {
+          rows.push([card]);
+          currentRowTop = top;
+        } else {
+          rows[rows.length - 1].push(card);
         }
-        return rectA.left - rectB.left;
       });
 
-      gsap.killTweensOf(cards);
+      gsap.set(rawCards, { opacity: 0, y: 75, x: 0 });
 
-      gsap.fromTo(
-        cards,
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.4,
-          stagger: 0.035,
-          ease: "power2.out",
-          clearProps: "all",
-          onComplete: () => {
-            ScrollTrigger.refresh();
-          },
-        }
-      );
+      rows.forEach((rowCards, rowIndex) => {
+        gsap.fromTo(
+          rowCards,
+          { opacity: 0, y: 75, x: 0 },
+          {
+            opacity: 1,
+            y: 0,
+            x: 0,
+            duration: 0.6,
+            delay: rowIndex * 0.06,
+            ease: "power3.out",
+            clearProps: "transform,opacity",
+            onComplete:
+              rowIndex === rows.length - 1
+                ? () => {
+                    ScrollTrigger.refresh();
+                  }
+                : undefined,
+          }
+        );
+      });
     }, gridContainerRef);
 
     return () => ctx.revert();
@@ -393,7 +410,7 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros en Blanco Puro (#FFFFFF) */}
+      {/* Barra Inferior de Filtros en Blanco Puro (#FFFFFF) sin animación de escala */}
       <footer
         role="navigation"
         aria-label="Filtros de proyectos"
@@ -408,10 +425,10 @@ export default function ProjectGrid() {
                 key={tag}
                 type="button"
                 onClick={() => handleSelectTag(tag)}
-                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-all duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto text-[12px] md:text-[12.5px] font-medium font-[500] py-0.5 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isSelected
-                    ? "text-[14px] md:text-[15px] font-semibold font-[600] text-[#099AD7]"
-                    : "text-[12px] md:text-[12.5px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                    ? "text-[#099AD7]"
+                    : "text-[#1C1C1A] hover:text-[#099AD7]"
                 }`}
               >
                 <span>{tag}</span>

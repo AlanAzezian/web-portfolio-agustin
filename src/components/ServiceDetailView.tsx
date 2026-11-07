@@ -213,10 +213,13 @@ export default function ServiceDetailView({
                       handlePrevImage();
                     }}
                     aria-label="Imagen anterior"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 mix-blend-difference text-white cursor-pointer focus:outline-none"
-                    style={{ mixBlendMode: "difference" }}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-[#FFFFFF]/85 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] transition-colors cursor-pointer focus:outline-none"
                   >
-                    <IconlyArrowRight2 className="w-5 h-5 rotate-180 fill-white fill-[#FFFFFF]" />
+                    <IconlyArrowRight2
+                      size={16}
+                      color="#1C1C1A"
+                      className="rotate-180"
+                    />
                   </button>
 
                   <button
@@ -226,10 +229,9 @@ export default function ServiceDetailView({
                       handleNextImage();
                     }}
                     aria-label="Imagen siguiente"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 mix-blend-difference text-white cursor-pointer focus:outline-none"
-                    style={{ mixBlendMode: "difference" }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-[#FFFFFF]/85 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] transition-colors cursor-pointer focus:outline-none"
                   >
-                    <IconlyArrowRight2 className="w-5 h-5 fill-white fill-[#FFFFFF]" />
+                    <IconlyArrowRight2 size={16} color="#1C1C1A" />
                   </button>
                 </>
               )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,10 @@ export default function ProjectViewer({
   const [images, setImages] = useState<string[]>(initialImages);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [arrowDirection, setArrowDirection] = useState<"left" | "right" | null>(
+    null
+  );
+  const viewerArrowRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -83,6 +87,12 @@ export default function ProjectViewer({
     if (total === 0) return;
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
+
+  const handleViewerPointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (viewerArrowRef.current) {
+      viewerArrowRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+    }
+  };
 
   // Navegación por teclado (← / →, Barra Espaciadora y Escape para volver a /proyectos)
   useEffect(() => {
@@ -158,12 +168,14 @@ export default function ProjectViewer({
   return (
     <main
       className="fixed inset-0 z-20 bg-[#FFFFFF] text-[#1C1C1A] select-none overflow-hidden flex items-center justify-center"
+      onPointerMove={handleViewerPointerMove}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Botón superior derecho: Proyectos */}
       <Link
         href="/proyectos"
+        onPointerEnter={() => setArrowDirection(null)}
         className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-acento transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
       >
         <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
@@ -216,31 +228,65 @@ export default function ProjectViewer({
           </div>
         </div>
 
-        {/* Áreas interactivas con flechas en triángulo e inversión negativa (mix-blend-mode: difference) */}
+        {/* Áreas interactivas con flechas en triángulo e inversión negativa exclusiva del visor (mix-blend-mode: difference) */}
         <button
           type="button"
           onClick={prevSlide}
+          onPointerEnter={() => setArrowDirection("left")}
+          onPointerLeave={() =>
+            setArrowDirection((prev) => (prev === "left" ? null : prev))
+          }
           aria-label="Imagen anterior"
           data-cursor="arrow-left"
           style={{ mixBlendMode: "difference" }}
           className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-start pl-4 md:pl-10 mix-blend-difference"
         >
-          <span className="[@media(pointer:fine)]:sr-only rotate-180 inline-flex items-center justify-center fill-white fill-[#FFFFFF] mix-blend-difference">
-            <IconlyArrowRight2 size={20} color="#FFFFFF" />
+          <span className="[@media(pointer:fine)]:sr-only rotate-180 inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
+            <IconlyArrowRight2 size={22} color="#FFFFFF" />
           </span>
         </button>
         <button
           type="button"
           onClick={nextSlide}
+          onPointerEnter={() => setArrowDirection("right")}
+          onPointerLeave={() =>
+            setArrowDirection((prev) => (prev === "right" ? null : prev))
+          }
           aria-label="Imagen siguiente"
           data-cursor="arrow-right"
           style={{ mixBlendMode: "difference" }}
           className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-end pr-4 md:pr-10 mix-blend-difference"
         >
-          <span className="[@media(pointer:fine)]:sr-only inline-flex items-center justify-center fill-white fill-[#FFFFFF] mix-blend-difference">
-            <IconlyArrowRight2 size={20} color="#FFFFFF" />
+          <span className="[@media(pointer:fine)]:sr-only inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
+            <IconlyArrowRight2 size={22} color="#FFFFFF" />
           </span>
         </button>
+      </div>
+
+      {/* Flecha triangular dinámica con mix-blend-mode: difference exclusiva del visor en desktop */}
+      <div
+        ref={viewerArrowRef}
+        aria-hidden="true"
+        style={{
+          transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
+          mixBlendMode: "difference",
+          opacity: arrowDirection ? 1 : 0,
+        }}
+        className="fixed top-0 left-0 z-40 hidden [@media(pointer:fine)]:flex items-center justify-center pointer-events-none mix-blend-difference transition-opacity duration-150"
+      >
+        <div
+          className={
+            arrowDirection === "left"
+              ? "rotate-180 flex items-center justify-center"
+              : "flex items-center justify-center"
+          }
+        >
+          <IconlyArrowRight2
+            size={24}
+            color="#FFFFFF"
+            className="fill-white fill-[#FFFFFF]"
+          />
+        </div>
       </div>
 
       {/* Metadatos fijos inferiores */}
