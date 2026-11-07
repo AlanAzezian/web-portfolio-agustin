@@ -103,6 +103,20 @@ export default function ProjectGrid() {
     ...DEFAULT_PROJECT_FILTERS,
   ]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleScroll = () => {
+      const currentY = window.__lenis ? window.__lenis.scroll : window.scrollY;
+      setShowFilters(currentY >= 60);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [pathname]);
 
   useEffect(() => {
     let active = true;
@@ -349,11 +363,11 @@ export default function ProjectGrid() {
   }, [isLoading, selectedTag, filteredProjects]);
 
   if (isLoading && projectsList.length === 0) {
-    return <div className="w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF]" />;
+    return <div className="w-full min-h-[calc(100vh-3.5rem)] bg-[#FFFFFF]" />;
   }
 
   return (
-    <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-1 md:pt-2 pb-24 md:pb-28 min-h-[calc(100vh-5rem)] flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+    <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-16 md:pt-20 pb-24 md:pb-28 min-h-screen flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       {/* Grilla Masonry "Shortest Column First" */}
       <div
         ref={gridContainerRef}
@@ -391,11 +405,16 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros en Blanco Puro (#FFFFFF) sin animación de escala */}
+      {/* Barra Inferior de Filtros en Blanco Puro (#FFFFFF) con alternancia en scroll */}
       <footer
         role="navigation"
         aria-label="Filtros de proyectos"
-        className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] bg-white w-full"
+        aria-hidden={!showFilters}
+        className={`fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] bg-white w-full transition-all duration-300 ease-out ${
+          showFilters
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "translate-y-full opacity-0 pointer-events-none"
+        }`}
       >
         <div className="w-full flex flex-wrap justify-center items-center gap-12 md:gap-16 lg:gap-20 py-4 px-6">
           {filterTags.map((tag) => {

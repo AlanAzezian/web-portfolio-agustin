@@ -267,7 +267,8 @@ export default function Navbar() {
         setIsAtTop(true);
         return;
       }
-      setIsAtTop(window.scrollY <= 0);
+      const currentY = window.__lenis ? window.__lenis.scroll : window.scrollY;
+      setIsAtTop(currentY < 60);
     };
 
     handleScroll();
@@ -331,13 +332,13 @@ export default function Navbar() {
   return (
     <nav
       aria-hidden={shouldHideOnScroll}
-      className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-all duration-300 ease-out ${
         shouldHideOnScroll
           ? "-translate-y-full opacity-0 pointer-events-none"
           : "translate-y-0 opacity-100"
       }`}
     >
-      <div className="w-full flex items-center justify-between h-20 px-8 md:px-16">
+      <div className="w-full flex items-center justify-between h-14 py-3 md:py-3.5 px-8 md:px-16">
         <AnimatedLogo />
         <div
           ref={navListRef}
