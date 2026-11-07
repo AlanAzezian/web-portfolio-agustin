@@ -1,11 +1,12 @@
-"use client";
-
-import HomeSlider from "@/components/HomeSlider";
+import ProjectGrid from "@/components/ProjectGrid";
+import { Suspense } from "react";
 
 export default function Home() {
   return (
-    <main className="w-full bg-background min-h-screen flex flex-col overflow-x-hidden no-scrollbar">
-      <HomeSlider />
+    <main>
+      <Suspense fallback={<div className="h-screen w-full bg-background" />}>
+        <ProjectGrid />
+      </Suspense>
     </main>
   );
 }

@@ -61,7 +61,7 @@ function probeCoverImage(
 
 // Algoritmo "Shortest Column First": calcula la altura acumulada de cada columna
 // y asigna siempre el siguiente proyecto a la columna más corta en ese momento.
-const distributeProjects = (items: Project[], columnCount = 4) => {
+const distributeProjects = (items: Project[], columnCount = 3) => {
   const columns: Project[][] = Array.from({ length: columnCount }, () => []);
   const colHeights = new Array<number>(columnCount).fill(0);
 
@@ -292,7 +292,7 @@ export default function ProjectGrid() {
   }, [selectedTag, projectsList]);
 
   const desktopCols = useMemo(
-    () => distributeProjects(filteredProjects, 4),
+    () => distributeProjects(filteredProjects, 3),
     [filteredProjects]
   );
 
@@ -357,7 +357,7 @@ export default function ProjectGrid() {
       {/* Grilla Masonry "Shortest Column First" */}
       <div
         ref={gridContainerRef}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[13.5px] items-start"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start"
       >
         {desktopCols.map((colProjects, colIndex) => (
           <div key={colIndex} className="flex flex-col gap-6 md:gap-8">

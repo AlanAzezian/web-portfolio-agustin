@@ -6,10 +6,9 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { gsap } from "@/lib/gsap";
 
 const links = [
-  { name: "INICIO", path: "/" },
-  { name: "PROYECTOS", path: "/proyectos" },
+  { name: "INICIO/PROYECTOS", path: "/" },
   { name: "SERVICIOS", path: "/servicios" },
-  { name: "BIO & CONTACTO", path: "/bio" },
+  { name: "CONTACTO", path: "/bio" },
 ];
 
 function subscribeReducedMotion(callback: () => void) {
@@ -246,7 +245,9 @@ export const NAV_ACTIVE_DOT = false;
 export default function Navbar() {
   const pathname = usePathname();
   const isProjectsPage =
-    pathname === "/proyectos" || pathname.startsWith("/proyectos?");
+    pathname === "/" ||
+    pathname === "/proyectos" ||
+    pathname.startsWith("/proyectos?");
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
   const isAdminRoute = pathname.startsWith("/admin");
@@ -290,7 +291,7 @@ export default function Navbar() {
 
         const isActive =
           link.path === "/"
-            ? pathname === "/"
+            ? pathname === "/" || pathname === "/proyectos"
             : pathname.startsWith(link.path);
 
         if (!NAV_ACTIVE_DOT) {
@@ -345,7 +346,7 @@ export default function Navbar() {
           {links.map((link, idx) => {
             const isActive =
               link.path === "/"
-                ? pathname === "/"
+                ? pathname === "/" || pathname === "/proyectos"
                 : pathname.startsWith(link.path);
             return (
               <Link

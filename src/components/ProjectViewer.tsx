@@ -89,7 +89,7 @@ export default function ProjectViewer({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        router.push("/proyectos");
+        router.push("/");
       } else if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
         nextSlide();
@@ -150,7 +150,7 @@ export default function ProjectViewer({
     >
       {/* Botón superior derecho: Proyectos */}
       <Link
-        href="/proyectos"
+        href="/"
         className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-acento transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
       >
         <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
