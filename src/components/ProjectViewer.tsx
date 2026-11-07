@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -24,14 +24,10 @@ export default function ProjectViewer({
   const [images, setImages] = useState<string[]>(initialImages);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [arrowDirection, setArrowDirection] = useState<"left" | "right" | null>(
-    null
-  );
-  const viewerArrowRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId || initialImages.length > 0) return;
     let active = true;
 
     async function loadProjectFromSupabase() {
@@ -88,12 +84,6 @@ export default function ProjectViewer({
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  const handleViewerPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    if (viewerArrowRef.current) {
-      viewerArrowRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
-    }
-  };
-
   // Navegación por teclado (← / →, Barra Espaciadora y Escape para volver a /proyectos)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -113,7 +103,7 @@ export default function ProjectViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [nextSlide, prevSlide, router]);
 
-  // Precarga inmediata de diapositivas adyacentes (siguiente y anterior) al cambiar de imagen
+  // Precarga ligera únicamente de diapositivas adyacentes (siguiente y anterior) sin bloquear la red
   useEffect(() => {
     if (total <= 1) return;
     const nextIdx = (currentIndex + 1) % total;
@@ -122,20 +112,11 @@ export default function ProjectViewer({
     [images[nextIdx], images[prevIdx]].forEach((src) => {
       if (src) {
         const img = new window.Image();
+        img.decoding = "async";
         img.src = src;
       }
     });
   }, [currentIndex, images, total]);
-
-  // Precarga en segundo plano del resto de la galería
-  useEffect(() => {
-    images.forEach((src) => {
-      if (src) {
-        const img = new window.Image();
-        img.src = src;
-      }
-    });
-  }, [images]);
 
   // Soporte táctil / swipe móvil
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -156,10 +137,6 @@ export default function ProjectViewer({
   const formattedCurrent = String(currentIndex + 1).padStart(2, "0");
   const formattedTotal = String(total).padStart(2, "0");
   const currentSrc = images[currentIndex] || "";
-  const nextIdx = total > 1 ? (currentIndex + 1) % total : -1;
-  const prevIdx = total > 1 ? (currentIndex - 1 + total) % total : -1;
-  const nextSrc = nextIdx >= 0 ? images[nextIdx] : "";
-  const prevSrc = prevIdx >= 0 && prevIdx !== nextIdx ? images[prevIdx] : "";
 
   if (!currentSrc) {
     return <main className="fixed inset-0 z-20 bg-[#FFFFFF]" />;
@@ -168,14 +145,12 @@ export default function ProjectViewer({
   return (
     <main
       className="fixed inset-0 z-20 bg-[#FFFFFF] text-[#1C1C1A] select-none overflow-hidden flex items-center justify-center"
-      onPointerMove={handleViewerPointerMove}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Botón superior derecho: Proyectos */}
       <Link
         href="/proyectos"
-        onPointerEnter={() => setArrowDirection(null)}
         className="fixed top-6 md:top-8 right-6 md:right-12 z-50 font-roboto font-medium font-[500] text-xs md:text-sm tracking-tight text-[#1C1C1A] hover:text-acento transition-colors duration-200 flex items-center gap-1.5 pointer-events-auto focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento"
       >
         <ArrowLeft size={14} strokeWidth={1.5} /> Proyectos
@@ -195,47 +170,12 @@ export default function ProjectViewer({
             unoptimized={false}
             className="object-contain pointer-events-none select-none shadow-none bg-[#FFFFFF]"
           />
-
-          {/* Precarga invisible de diapositivas adyacentes (siguiente y anterior) con next/image */}
-          <div
-            aria-hidden="true"
-            className="fixed -left-[9999px] -top-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none"
-          >
-            {nextSrc && (
-              <Image
-                key={`preload-next-${nextSrc}`}
-                src={nextSrc}
-                alt=""
-                width={1920}
-                height={1080}
-                sizes="100vw"
-                priority={true}
-                loading="eager"
-              />
-            )}
-            {prevSrc && (
-              <Image
-                key={`preload-prev-${prevSrc}`}
-                src={prevSrc}
-                alt=""
-                width={1920}
-                height={1080}
-                sizes="100vw"
-                priority={true}
-                loading="eager"
-              />
-            )}
-          </div>
         </div>
 
         {/* Áreas interactivas con flechas en triángulo e inversión negativa exclusiva del visor (mix-blend-mode: difference) */}
         <button
           type="button"
           onClick={prevSlide}
-          onPointerEnter={() => setArrowDirection("left")}
-          onPointerLeave={() =>
-            setArrowDirection((prev) => (prev === "left" ? null : prev))
-          }
           aria-label="Imagen anterior"
           data-cursor="arrow-left"
           style={{ mixBlendMode: "difference" }}
@@ -248,10 +188,6 @@ export default function ProjectViewer({
         <button
           type="button"
           onClick={nextSlide}
-          onPointerEnter={() => setArrowDirection("right")}
-          onPointerLeave={() =>
-            setArrowDirection((prev) => (prev === "right" ? null : prev))
-          }
           aria-label="Imagen siguiente"
           data-cursor="arrow-right"
           style={{ mixBlendMode: "difference" }}
@@ -261,32 +197,6 @@ export default function ProjectViewer({
             <IconlyArrowRight2 size={22} color="#FFFFFF" />
           </span>
         </button>
-      </div>
-
-      {/* Flecha triangular dinámica con mix-blend-mode: difference exclusiva del visor en desktop */}
-      <div
-        ref={viewerArrowRef}
-        aria-hidden="true"
-        style={{
-          transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
-          mixBlendMode: "difference",
-          opacity: arrowDirection ? 1 : 0,
-        }}
-        className="fixed top-0 left-0 z-40 hidden [@media(pointer:fine)]:flex items-center justify-center pointer-events-none mix-blend-difference transition-opacity duration-150"
-      >
-        <div
-          className={
-            arrowDirection === "left"
-              ? "rotate-180 flex items-center justify-center"
-              : "flex items-center justify-center"
-          }
-        >
-          <IconlyArrowRight2
-            size={24}
-            color="#FFFFFF"
-            className="fill-white fill-[#FFFFFF]"
-          />
-        </div>
       </div>
 
       {/* Metadatos fijos inferiores */}

@@ -296,7 +296,7 @@ export default function ProjectGrid() {
     [filteredProjects]
   );
 
-  // Animación de entrada estrictamente vertical de abajo hacia arriba (y: 75 -> 0, x: 0)
+  // Animación de entrada vertical real desde el borde inferior hacia arriba (stagger from: "end")
   useLayoutEffect(() => {
     if (isLoading || filteredProjects.length === 0 || !gridContainerRef.current)
       return;
@@ -318,50 +318,31 @@ export default function ProjectGrid() {
         return;
       }
 
-      gsap.killTweensOf(rawCards);
-
-      // Agrupar tarjetas por fila vertical (eje Y únicamente, sin desfase horizontal en X)
-      // para que las 4 columnas de cada fila asciendan al unísono de abajo hacia arriba
-      const sortedByTop = [...rawCards].sort(
+      const cards = [...rawCards].sort(
         (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
       );
 
-      const rows: HTMLElement[][] = [];
-      let currentRowTop: number | null = null;
+      gsap.killTweensOf(cards);
 
-      sortedByTop.forEach((card) => {
-        const top = card.getBoundingClientRect().top;
-        if (currentRowTop === null || Math.abs(top - currentRowTop) > 48) {
-          rows.push([card]);
-          currentRowTop = top;
-        } else {
-          rows[rows.length - 1].push(card);
+      gsap.fromTo(
+        cards,
+        { y: 80, x: 0, opacity: 0 },
+        {
+          y: 0,
+          x: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "power3.out",
+          stagger: {
+            each: 0.05,
+            from: "end",
+          },
+          clearProps: "transform,opacity",
+          onComplete: () => {
+            ScrollTrigger.refresh();
+          },
         }
-      });
-
-      gsap.set(rawCards, { opacity: 0, y: 75, x: 0 });
-
-      rows.forEach((rowCards, rowIndex) => {
-        gsap.fromTo(
-          rowCards,
-          { opacity: 0, y: 75, x: 0 },
-          {
-            opacity: 1,
-            y: 0,
-            x: 0,
-            duration: 0.6,
-            delay: rowIndex * 0.06,
-            ease: "power3.out",
-            clearProps: "transform,opacity",
-            onComplete:
-              rowIndex === rows.length - 1
-                ? () => {
-                    ScrollTrigger.refresh();
-                  }
-                : undefined,
-          }
-        );
-      });
+      );
     }, gridContainerRef);
 
     return () => ctx.revert();

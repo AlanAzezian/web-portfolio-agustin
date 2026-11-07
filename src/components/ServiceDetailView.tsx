@@ -173,24 +173,24 @@ export default function ServiceDetailView({
           </p>
         </header>
 
-        {/* Galería Centrada Arriba (Inmediatamente debajo del título del servicio) */}
+        {/* Galería Técnica Editorial Centrada Arriba (Inmediatamente debajo del título del servicio) */}
         <section
           aria-label={`Galería de ${service.title}`}
           className="py-10 md:py-12 border-b border-[#1C1C1A]/15 flex flex-col items-center justify-center"
         >
-          {/* Visor Principal Cuadrado Centrado */}
-          <div className="relative w-full max-w-[440px] md:max-w-[500px] aspect-square mx-auto border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2">
+          {/* Marco Contenedor Principal Proporcionado (aspect-[16/10]) con object-contain */}
+          <div className="relative w-full max-w-4xl mx-auto aspect-[16/10] border border-[#1C1C1A]/15 bg-white p-2">
             <div
               onClick={() => setExpandedImage(currentImage)}
-              className="relative w-full h-full aspect-square overflow-hidden bg-[#FFFFFF] cursor-pointer group"
+              className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center cursor-pointer group"
             >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentImage}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="relative w-full h-full"
                 >
                   <Image
@@ -198,8 +198,8 @@ export default function ServiceDetailView({
                     alt={`${service.title} — vista ${safeImageIdx + 1}`}
                     fill
                     priority
-                    sizes="(max-width: 768px) 90vw, 500px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    sizes="(max-width: 1024px) 100vw, 896px"
+                    className="object-contain p-2 md:p-4 transition-transform duration-500 group-hover:scale-[1.01]"
                   />
                 </motion.div>
               </AnimatePresence>
@@ -213,11 +213,11 @@ export default function ServiceDetailView({
                       handlePrevImage();
                     }}
                     aria-label="Imagen anterior"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-[#FFFFFF]/85 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] transition-colors cursor-pointer focus:outline-none"
+                    className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-[#FFFFFF]/90 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 hover:border-[#099AD7] text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
                   >
                     <IconlyArrowRight2
-                      size={16}
-                      color="#1C1C1A"
+                      size={15}
+                      color="currentColor"
                       className="rotate-180"
                     />
                   </button>
@@ -229,18 +229,25 @@ export default function ServiceDetailView({
                       handleNextImage();
                     }}
                     aria-label="Imagen siguiente"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 bg-[#FFFFFF]/85 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 text-[#1C1C1A] transition-colors cursor-pointer focus:outline-none"
+                    className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-[#FFFFFF]/90 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 hover:border-[#099AD7] text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
                   >
-                    <IconlyArrowRight2 size={16} color="#1C1C1A" />
+                    <IconlyArrowRight2 size={15} color="currentColor" />
                   </button>
+
+                  <div className="absolute bottom-3 right-3 z-20 bg-[#FFFFFF]/90 border border-[#1C1C1A]/10 px-2.5 py-1 pointer-events-none">
+                    <span className="font-roboto text-[11px] tabular-nums tracking-wider text-[#1C1C1A]/75">
+                      {String(safeImageIdx + 1).padStart(2, "0")} /{" "}
+                      {String(galleryImages.length).padStart(2, "0")}
+                    </span>
+                  </div>
                 </>
               )}
             </div>
           </div>
 
-          {/* Miniaturas Cuadradas Centradas */}
+          {/* Carrusel de Miniaturas Inferior Proporcionadas */}
           {galleryImages.length > 1 && (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-4 w-full max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-3">
               {galleryImages.map((imgSrc, idx) => {
                 const isSelected = idx === safeImageIdx;
                 return (
@@ -249,19 +256,19 @@ export default function ServiceDetailView({
                     type="button"
                     onClick={() => setActiveImageIdx(idx)}
                     aria-label={`Ver imagen ${idx + 1}`}
-                    className={`relative w-16 h-16 md:w-20 md:h-20 aspect-square overflow-hidden border transition-all duration-200 cursor-pointer p-0.5 bg-[#FFFFFF] ${
+                    className={`relative w-24 sm:w-28 md:w-32 aspect-[16/10] overflow-hidden border transition-all duration-200 cursor-pointer p-1 bg-white ${
                       isSelected
                         ? "border-[#099AD7] opacity-100"
-                        : "border-[#1C1C1A]/15 opacity-60 hover:opacity-100"
+                        : "border-[#1C1C1A]/15 opacity-60 hover:opacity-100 hover:border-[#1C1C1A]/35"
                     }`}
                   >
-                    <div className="relative w-full h-full">
+                    <div className="relative w-full h-full bg-neutral-50">
                       <Image
                         src={imgSrc}
                         alt={`${service.title} miniatura ${idx + 1}`}
                         fill
-                        sizes="80px"
-                        className="object-cover"
+                        sizes="128px"
+                        className="object-contain p-0.5"
                       />
                     </div>
                   </button>
