@@ -157,7 +157,7 @@ export default function ProjectGrid() {
         const initialMapped: Project[] = projectsRes.data
           .map((row: Record<string, unknown>) => {
             const id = String(row.id || "");
-            const { cleanImages, category, tags, showInMainGrid } =
+            const { cleanImages, categories, category, tags, showInMainGrid } =
               parseProjectImagesAndMeta(row);
             const coverImage = String(
               row.cover_image || row.coverImage || cleanImages[0] || ""
@@ -169,6 +169,9 @@ export default function ProjectGrid() {
                   ? [coverImage]
                   : [];
 
+            categories.forEach((c) => {
+              if (c) extraTagsFromProjects.add(normalizeFilterLabel(c));
+            });
             if (category) {
               extraTagsFromProjects.add(normalizeFilterLabel(category));
             }
@@ -190,6 +193,7 @@ export default function ProjectGrid() {
               title: String(row.title || id),
               coverImage,
               images,
+              categories,
               tags,
               category,
               showInMainGrid,
@@ -275,12 +279,15 @@ export default function ProjectGrid() {
     }
     const targetSlug = normalizeFilterSlug(selectedTag);
     return projectsList.filter((p) => {
+      const categoriesMatch =
+        Array.isArray(p.categories) &&
+        p.categories.some((c) => normalizeFilterSlug(c) === targetSlug);
       const catMatch =
         p.category && normalizeFilterSlug(p.category) === targetSlug;
       const tagMatch =
         Array.isArray(p.tags) &&
         p.tags.some((t) => normalizeFilterSlug(t) === targetSlug);
-      return Boolean(catMatch || tagMatch);
+      return Boolean(categoriesMatch || catMatch || tagMatch);
     });
   }, [selectedTag, projectsList]);
 
@@ -289,7 +296,7 @@ export default function ProjectGrid() {
     [filteredProjects]
   );
 
-  // Animación de entrada horizontal sobre el 100% de los proyectos en el DOM
+  // Animación de entrada vertical de abajo hacia arriba sobre el 100% de los proyectos en el DOM
   useLayoutEffect(() => {
     if (isLoading || filteredProjects.length === 0 || !gridContainerRef.current)
       return;
@@ -307,7 +314,7 @@ export default function ProjectGrid() {
       if (rawCards.length === 0) return;
 
       if (prefersReducedMotion) {
-        gsap.set(rawCards, { opacity: 1, x: 0 });
+        gsap.set(rawCards, { opacity: 1, y: 0 });
         return;
       }
 
@@ -325,11 +332,11 @@ export default function ProjectGrid() {
 
       gsap.fromTo(
         cards,
-        { opacity: 0, x: -24 },
+        { opacity: 0, y: 24 },
         {
           opacity: 1,
-          x: 0,
-          duration: 0.45,
+          y: 0,
+          duration: 0.4,
           stagger: 0.035,
           ease: "power2.out",
           clearProps: "all",
@@ -386,11 +393,11 @@ export default function ProjectGrid() {
         ))}
       </div>
 
-      {/* Barra Inferior de Filtros con separación amplia */}
+      {/* Barra Inferior de Filtros en Blanco Puro (#FFFFFF) */}
       <footer
         role="navigation"
         aria-label="Filtros de proyectos"
-        className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#E5E2DC] bg-[#FFFFFF]/90 backdrop-blur-md w-full"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] bg-white w-full"
       >
         <div className="w-full flex flex-wrap justify-center items-center gap-12 md:gap-16 lg:gap-20 py-4 px-6">
           {filterTags.map((tag) => {

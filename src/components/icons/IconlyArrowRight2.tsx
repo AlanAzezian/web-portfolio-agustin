@@ -2,23 +2,24 @@ import React from "react";
 
 export const IconlyArrowRight2 = ({
   size = 24,
-  color = "#000000",
+  color = "#FFFFFF",
+  className = "",
 }: {
   size?: number;
   color?: string;
+  className?: string;
 }) => (
   <svg
     width={size}
     height={size}
-    viewBox="0 0 25 24"
-    fill="none"
+    viewBox="0 0 24 24"
+    fill={color}
     xmlns="http://www.w3.org/2000/svg"
+    style={{ mixBlendMode: "difference" }}
+    className={`fill-white fill-[#FFFFFF] mix-blend-difference ${className}`.trim()}
   >
-    <path
-      d="M8.75 5L15.75 12L8.75 19"
-      stroke={color}
-      strokeWidth="1.2"
-      strokeLinecap="square"
-    />
+    <polygon points="6,4.5 19.5,12 6,19.5" fill={color} className="fill-white fill-[#FFFFFF]" />
   </svg>
 );
+
+export default IconlyArrowRight2;

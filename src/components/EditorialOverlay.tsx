@@ -108,33 +108,32 @@ export default function EditorialOverlay() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden hidden [@media(pointer:fine)]:block">
+    <div
+      ref={cursorRef}
+      style={{
+        transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
+        opacity: 0,
+        mixBlendMode: "difference",
+      }}
+      className="fixed top-0 left-0 z-[99999] hidden [@media(pointer:fine)]:flex items-center justify-center pointer-events-none mix-blend-difference transition-opacity duration-150"
+    >
       <div
-        ref={cursorRef}
-        style={{
-          transform: "translate3d(-100px, -100px, 0) translate(-50%, -50%)",
-          opacity: 0,
-        }}
-        className="fixed top-0 left-0 z-[99999] flex items-center justify-center pointer-events-none will-change-transform transition-opacity duration-150"
+        ref={dotRef}
+        className="w-3.5 h-3.5 rounded-full bg-[#FFFFFF] transition-transform duration-150 ease-out"
+      />
+      <div
+        ref={arrowLeftRef}
+        style={{ display: "none", mixBlendMode: "difference" }}
+        className="rotate-180 items-center justify-center text-white fill-white mix-blend-difference"
       >
-        <div
-          ref={dotRef}
-          className="w-3.5 h-3.5 rounded-full bg-[#1C1C1A] transition-transform duration-150 ease-out will-change-transform"
-        />
-        <div
-          ref={arrowLeftRef}
-          style={{ display: "none" }}
-          className="rotate-180 items-center justify-center"
-        >
-          <IconlyArrowRight2 size={26} color="#1C1C1A" />
-        </div>
-        <div
-          ref={arrowRightRef}
-          style={{ display: "none" }}
-          className="items-center justify-center"
-        >
-          <IconlyArrowRight2 size={26} color="#1C1C1A" />
-        </div>
+        <IconlyArrowRight2 size={22} color="#FFFFFF" />
+      </div>
+      <div
+        ref={arrowRightRef}
+        style={{ display: "none", mixBlendMode: "difference" }}
+        className="items-center justify-center text-white fill-white mix-blend-difference"
+      >
+        <IconlyArrowRight2 size={22} color="#FFFFFF" />
       </div>
     </div>
   );

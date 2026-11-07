@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { parseProjectImagesAndMeta } from "@/data/projects";
+import { IconlyArrowRight2 } from "@/components/icons/IconlyArrowRight2";
 
 interface ProjectViewerProps {
   projectId?: string;
@@ -215,21 +216,31 @@ export default function ProjectViewer({
           </div>
         </div>
 
-        {/* Áreas interactivas con flechas Iconly (izquierda / derecha) */}
+        {/* Áreas interactivas con flechas en triángulo e inversión negativa (mix-blend-mode: difference) */}
         <button
           type="button"
           onClick={prevSlide}
           aria-label="Imagen anterior"
           data-cursor="arrow-left"
-          className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento"
-        />
+          style={{ mixBlendMode: "difference" }}
+          className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-start pl-4 md:pl-10 mix-blend-difference"
+        >
+          <span className="[@media(pointer:fine)]:sr-only rotate-180 inline-flex items-center justify-center fill-white fill-[#FFFFFF] mix-blend-difference">
+            <IconlyArrowRight2 size={20} color="#FFFFFF" />
+          </span>
+        </button>
         <button
           type="button"
           onClick={nextSlide}
           aria-label="Imagen siguiente"
           data-cursor="arrow-right"
-          className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento"
-        />
+          style={{ mixBlendMode: "difference" }}
+          className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-end pr-4 md:pr-10 mix-blend-difference"
+        >
+          <span className="[@media(pointer:fine)]:sr-only inline-flex items-center justify-center fill-white fill-[#FFFFFF] mix-blend-difference">
+            <IconlyArrowRight2 size={20} color="#FFFFFF" />
+          </span>
+        </button>
       </div>
 
       {/* Metadatos fijos inferiores */}

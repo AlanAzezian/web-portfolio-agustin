@@ -3,6 +3,7 @@ export interface Project {
   title: string;
   coverImage: string;
   images: string[];
+  categories?: string[];
   tags?: string[];
   category?: string;
   showInMainGrid?: boolean;
@@ -19,6 +20,7 @@ export const DEFAULT_PROJECT_FILTERS = [
 export const PROJECT_META_PREFIX = "__META__:";
 
 export interface ProjectEmbeddedMetadata {
+  categories?: string[];
   category?: string;
   tags?: string[];
   show_in_main_grid?: boolean;
@@ -37,8 +39,38 @@ export function normalizeFilterSlug(label: string): string {
     .replace(/\s+/g, "_");
 }
 
+function parseCategoryList(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    const cleaned = value
+      .filter((t): t is string => typeof t === "string" && t.trim() !== "")
+      .map(normalizeFilterLabel);
+    return cleaned.length > 0 ? Array.from(new Set(cleaned)) : undefined;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed
+            .filter(
+              (t): t is string => typeof t === "string" && t.trim() !== ""
+            )
+            .map(normalizeFilterLabel);
+          if (cleaned.length > 0) return Array.from(new Set(cleaned));
+        }
+      } catch {
+        // Fallback a string simple
+      }
+    }
+    return [normalizeFilterLabel(trimmed)];
+  }
+  return undefined;
+}
+
 export function parseProjectImagesAndMeta(raw: Record<string, unknown>): {
   cleanImages: string[];
+  categories: string[];
   category: string;
   tags: string[];
   showInMainGrid: boolean;
@@ -69,40 +101,23 @@ export function parseProjectImagesAndMeta(raw: Record<string, unknown>): {
     }
   }
 
-  // Prioridad: columna directa en DB -> metadato embebido -> valor por defecto
-  const directCategory =
-    typeof raw.category === "string" && raw.category.trim()
-      ? normalizeFilterLabel(raw.category)
-      : undefined;
-  const directTags = Array.isArray(raw.tags)
-    ? (raw.tags as unknown[])
-        .filter((t): t is string => typeof t === "string" && t.trim() !== "")
-        .map(normalizeFilterLabel)
-    : undefined;
+  const directCategories = parseCategoryList(raw.categories);
+  const metaCategories = parseCategoryList(embeddedMeta.categories);
+  const directTags = parseCategoryList(raw.tags);
+  const metaTags = parseCategoryList(embeddedMeta.tags);
+  const directCategory = parseCategoryList(raw.category);
+  const metaCategory = parseCategoryList(embeddedMeta.category);
 
-  const metaCategory =
-    typeof embeddedMeta.category === "string" && embeddedMeta.category.trim()
-      ? normalizeFilterLabel(embeddedMeta.category)
-      : undefined;
-  const metaTags = Array.isArray(embeddedMeta.tags)
-    ? embeddedMeta.tags
-        .filter((t): t is string => typeof t === "string" && t.trim() !== "")
-        .map(normalizeFilterLabel)
-    : undefined;
-
-  const category =
+  const categories =
+    directCategories ||
+    metaCategories ||
+    directTags ||
+    metaTags ||
     directCategory ||
-    metaCategory ||
-    directTags?.[0] ||
-    metaTags?.[0] ||
-    "PROYECTOS";
+    metaCategory || ["PROYECTOS"];
 
-  const tags =
-    directTags && directTags.length > 0
-      ? directTags
-      : metaTags && metaTags.length > 0
-        ? metaTags
-        : [category];
+  const category = categories[0] || "PROYECTOS";
+  const tags = categories;
 
   const showInMainGrid =
     typeof raw.show_in_main_grid === "boolean"
@@ -115,6 +130,7 @@ export function parseProjectImagesAndMeta(raw: Record<string, unknown>): {
 
   return {
     cleanImages,
+    categories,
     category,
     tags,
     showInMainGrid,
@@ -123,20 +139,46 @@ export function parseProjectImagesAndMeta(raw: Record<string, unknown>): {
 
 export function encodeProjectImagesWithMeta(
   cleanImages: string[],
-  meta: { category: string; tags?: string[]; show_in_main_grid: boolean }
+  meta: {
+    categories?: string[];
+    category?: string;
+    tags?: string[];
+    show_in_main_grid: boolean;
+  }
 ): string[] {
   const sanitized = cleanImages.filter(
-    (img) => typeof img === "string" && img.trim() !== "" && !img.startsWith(PROJECT_META_PREFIX)
+    (img) =>
+      typeof img === "string" &&
+      img.trim() !== "" &&
+      !img.startsWith(PROJECT_META_PREFIX)
   );
-  const normalizedCategory = normalizeFilterLabel(meta.category || "PROYECTOS");
-  const normalizedTags =
-    meta.tags && meta.tags.length > 0
-      ? meta.tags.map(normalizeFilterLabel)
-      : [normalizedCategory];
+
+  const rawList =
+    meta.categories && meta.categories.length > 0
+      ? meta.categories
+      : meta.tags && meta.tags.length > 0
+        ? meta.tags
+        : meta.category
+          ? [meta.category]
+          : ["PROYECTOS"];
+
+  const normalizedCategories = Array.from(
+    new Set(
+      rawList
+        .filter((c) => typeof c === "string" && c.trim() !== "")
+        .map(normalizeFilterLabel)
+    )
+  );
+  if (normalizedCategories.length === 0) {
+    normalizedCategories.push("PROYECTOS");
+  }
+
+  const normalizedCategory = normalizedCategories[0];
 
   const metaString = `${PROJECT_META_PREFIX}${JSON.stringify({
+    categories: normalizedCategories,
     category: normalizedCategory,
-    tags: normalizedTags,
+    tags: normalizedCategories,
     show_in_main_grid: Boolean(meta.show_in_main_grid),
   })}`;
 

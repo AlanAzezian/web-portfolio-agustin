@@ -10,6 +10,7 @@ export interface ServiceItem {
   description: string;
   detailDescription?: string;
   coverImage: string;
+  images?: string[];
   subservices: Subservice[];
   technicalSpecs: string[];
 }
@@ -17,12 +18,19 @@ export interface ServiceItem {
 export function parseMethodologyMetadata(raw: unknown): {
   coverImage?: string;
   detailDescription?: string;
+  images?: string[];
 } {
   if (typeof raw !== "string" || !raw.trim()) return {};
   const trimmed = raw.trim();
   if (trimmed.startsWith("{")) {
     try {
       const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+      const rawImgs = parsed.images ?? parsed.gallery;
+      const images = Array.isArray(rawImgs)
+        ? rawImgs.filter(
+            (img): img is string => typeof img === "string" && img.trim() !== ""
+          )
+        : undefined;
       return {
         coverImage:
           typeof parsed.cover_image === "string" && parsed.cover_image.trim()
@@ -32,6 +40,7 @@ export function parseMethodologyMetadata(raw: unknown): {
           typeof parsed.detail_description === "string"
             ? parsed.detail_description
             : undefined,
+        images: images && images.length > 0 ? images : undefined,
       };
     } catch {
       return {};
@@ -51,6 +60,12 @@ export const servicesData: ServiceItem[] = [
     description:
       "Creación de imágenes fotorrealistas de alta calidad que comunican la esencia, materialidad y atmósfera de cada proyecto arquitectónico.",
     coverImage: "/projects/centro-de-trasbordo/01-render-exterior.webp",
+    images: [
+      "/projects/centro-de-trasbordo/01-render-exterior.webp",
+      "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
+      "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
+      "/projects/centro-de-trasbordo/04-render-cafeteria.webp",
+    ],
     subservices: [
       { id: "renders-exteriores", title: "Renders Exteriores e Inserción Urbana" },
       { id: "renders-interiores", title: "Renders Interiores y Atmósferas de Iluminación" },
@@ -71,6 +86,11 @@ export const servicesData: ServiceItem[] = [
     description:
       "Estudio detallado de volumetrías, análisis de asoleamiento y documentación técnica integral utilizando metodologías BIM.",
     coverImage: "/projects/centro-de-trasbordo/05-render-nave-darsena.webp",
+    images: [
+      "/projects/centro-de-trasbordo/05-render-nave-darsena.webp",
+      "/projects/centro-de-trasbordo/08-plano-vistas.webp",
+      "/projects/centro-de-trasbordo/09-plano-secciones-cortes.webp",
+    ],
     subservices: [
       { id: "modelado-revit-archicad", title: "Modelado Paramétrico en Revit y Archicad" },
       { id: "documentacion-ejecutiva", title: "Extracción de Planimetría y Documentación" },
@@ -90,6 +110,11 @@ export const servicesData: ServiceItem[] = [
     description:
       "Diseño conceptual desde cero, exploración de alternativas de distribución espacial y planimetría inicial.",
     coverImage: "/projects/centro-de-trasbordo/06-plano-planta-baja.webp",
+    images: [
+      "/projects/centro-de-trasbordo/06-plano-planta-baja.webp",
+      "/projects/centro-de-trasbordo/07-plano-planta-alta.webp",
+      "/projects/centro-de-trasbordo/08-plano-vistas.webp",
+    ],
     subservices: [
       { id: "croquis-distribucion", title: "Plantas de Distribución y Zonificación" },
       { id: "estudio-normativo", title: "Estudio de Códigos Urbanísticos y Morfología" },
@@ -109,6 +134,11 @@ export const servicesData: ServiceItem[] = [
     description:
       "Definición minuciosa de materialidad, esquemas de iluminación y selección de mobiliario para espacios funcionales y estéticos.",
     coverImage: "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
+    images: [
+      "/projects/centro-de-trasbordo/02-render-hall-escalera.webp",
+      "/projects/centro-de-trasbordo/04-render-cafeteria.webp",
+      "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
+    ],
     subservices: [
       { id: "paleta-materiales", title: "Moodboards y Selección de Materiales" },
       { id: "diseno-mobiliario", title: "Detalle de Muebles a Medida y Carpinterías" },
@@ -128,6 +158,11 @@ export const servicesData: ServiceItem[] = [
     description:
       "Apoyo técnico externo a estudios de arquitectura en fases de diseño, documentación visual y representación 3D.",
     coverImage: "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
+    images: [
+      "/projects/centro-de-trasbordo/03-render-patio-vidriado.webp",
+      "/projects/centro-de-trasbordo/01-render-exterior.webp",
+      "/projects/centro-de-trasbordo/09-plano-secciones-cortes.webp",
+    ],
     subservices: [
       { id: "soporte-entrega", title: "Refuerzo para Concursos y Entregas Urgentes" },
       { id: "postproduccion-planos", title: "Planimetría Comercial y Gráfica Editorial" },

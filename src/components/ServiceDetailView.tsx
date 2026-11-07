@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Check } from "lucide-react";
+import Image from "next/image";
+import { ArrowLeft, ArrowUpRight, Check, X } from "lucide-react";
 import {
   parseMethodologyMetadata,
   type ServiceItem,
@@ -11,6 +12,7 @@ import {
 } from "@/data/services";
 import { supabase } from "@/lib/supabase";
 import { getWhatsAppLink, SERVICE_WHATSAPP_MESSAGES } from "@/lib/whatsapp";
+import { IconlyArrowRight2 } from "@/components/icons/IconlyArrowRight2";
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
@@ -37,6 +39,8 @@ export default function ServiceDetailView({
   service: initialService,
 }: ServiceDetailViewProps) {
   const [service, setService] = useState<ServiceItem>(initialService);
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -68,6 +72,21 @@ export default function ServiceDetailView({
             initialService.detailDescription ||
             desc
         );
+        const coverImage = String(
+          (typeof row.cover_image === "string" && row.cover_image.trim()) ||
+            meta.coverImage ||
+            initialService.coverImage ||
+            "/projects/centro-de-trasbordo/01-render-exterior.webp"
+        );
+        const rawImages = Array.isArray(row.images)
+          ? (row.images as string[]).filter(Boolean)
+          : meta.images && meta.images.length > 0
+            ? meta.images
+            : initialService.images || [];
+        const mergedImages =
+          rawImages.length > 0
+            ? Array.from(new Set([coverImage, ...rawImages]))
+            : [coverImage];
 
         setService({
           ...initialService,
@@ -75,6 +94,8 @@ export default function ServiceDetailView({
           title: String(row.title || initialService.title),
           description: desc,
           detailDescription: detailDesc,
+          coverImage,
+          images: mergedImages,
           subservices: Array.isArray(rawSubservices)
             ? dbSubservices
             : initialService.subservices,
@@ -93,13 +114,37 @@ export default function ServiceDetailView({
     };
   }, [initialService]);
 
+  const galleryImages =
+    service.images && service.images.length > 0
+      ? service.images
+      : [
+          service.coverImage ||
+            "/projects/centro-de-trasbordo/01-render-exterior.webp",
+        ];
+
+  const safeImageIdx =
+    activeImageIdx < galleryImages.length ? activeImageIdx : 0;
+  const currentImage = galleryImages[safeImageIdx];
+
+  const handlePrevImage = () => {
+    setActiveImageIdx((prev) =>
+      prev <= 0 ? galleryImages.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setActiveImageIdx((prev) =>
+      prev >= galleryImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
   const whatsappMessage =
     SERVICE_WHATSAPP_MESSAGES[service.id] ??
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
 
   return (
     <div className="relative w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-2 pb-16 md:pt-4 md:pb-36">
-      {/* Contenedor Central Controlado: Cabecera y Ficha Técnica */}
+      {/* Contenedor Central Controlado: Cabecera, Galería Superior y Ficha Técnica Inferior */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -128,9 +173,105 @@ export default function ServiceDetailView({
           </p>
         </header>
 
-        {/* Dos Bloques Claros: 01 / Alcance del Servicio y 02 / Especificaciones y Herramientas */}
+        {/* Galería Centrada Arriba (Inmediatamente debajo del título del servicio) */}
+        <section
+          aria-label={`Galería de ${service.title}`}
+          className="py-10 md:py-12 border-b border-[#1C1C1A]/15 flex flex-col items-center justify-center"
+        >
+          {/* Visor Principal Cuadrado Centrado */}
+          <div className="relative w-full max-w-[440px] md:max-w-[500px] aspect-square mx-auto border border-[#1C1C1A]/15 bg-[#FFFFFF] p-2">
+            <div
+              onClick={() => setExpandedImage(currentImage)}
+              className="relative w-full h-full aspect-square overflow-hidden bg-[#FFFFFF] cursor-pointer group"
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentImage}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative w-full h-full"
+                >
+                  <Image
+                    src={currentImage}
+                    alt={`${service.title} — vista ${safeImageIdx + 1}`}
+                    fill
+                    priority
+                    sizes="(max-width: 768px) 90vw, 500px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {galleryImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevImage();
+                    }}
+                    aria-label="Imagen anterior"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 mix-blend-difference text-white cursor-pointer focus:outline-none"
+                    style={{ mixBlendMode: "difference" }}
+                  >
+                    <IconlyArrowRight2 className="w-5 h-5 rotate-180 fill-white fill-[#FFFFFF]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextImage();
+                    }}
+                    aria-label="Imagen siguiente"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 mix-blend-difference text-white cursor-pointer focus:outline-none"
+                    style={{ mixBlendMode: "difference" }}
+                  >
+                    <IconlyArrowRight2 className="w-5 h-5 fill-white fill-[#FFFFFF]" />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Miniaturas Cuadradas Centradas */}
+          {galleryImages.length > 1 && (
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+              {galleryImages.map((imgSrc, idx) => {
+                const isSelected = idx === safeImageIdx;
+                return (
+                  <button
+                    key={`${imgSrc}-${idx}`}
+                    type="button"
+                    onClick={() => setActiveImageIdx(idx)}
+                    aria-label={`Ver imagen ${idx + 1}`}
+                    className={`relative w-16 h-16 md:w-20 md:h-20 aspect-square overflow-hidden border transition-all duration-200 cursor-pointer p-0.5 bg-[#FFFFFF] ${
+                      isSelected
+                        ? "border-[#099AD7] opacity-100"
+                        : "border-[#1C1C1A]/15 opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={imgSrc}
+                        alt={`${service.title} miniatura ${idx + 1}`}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Dos Bloques Técnicos Abajo en 2 Columnas: 01 / Alcance del Servicio (Izquierda) y 02 / Especificaciones y Herramientas (Derecha) */}
         <section className="py-10 md:py-12 border-b border-[#1C1C1A]/15 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-start">
-          {/* Bloque 01 */}
+          {/* Columna Izquierda: Bloque 01 */}
           <div className="lg:col-span-5">
             <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
               01 / ALCANCE DEL SERVICIO
@@ -152,7 +293,7 @@ export default function ServiceDetailView({
             </div>
           </div>
 
-          {/* Bloque 02 */}
+          {/* Columna Derecha: Bloque 02 */}
           <div className="lg:col-span-7 lg:pl-8 lg:border-l border-[#1C1C1A]/10">
             <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
               02 / ESPECIFICACIONES Y HERRAMIENTAS
@@ -197,6 +338,47 @@ export default function ServiceDetailView({
           />
         </a>
       </footer>
+
+      {/* Lightbox Modal de Imagen Expandida */}
+      <AnimatePresence>
+        {expandedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={() => setExpandedImage(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={service.title}
+            className="fixed inset-0 z-50 bg-[#FFFFFF]/98 flex items-center justify-center p-4 md:p-8 select-none overflow-hidden"
+          >
+            <button
+              type="button"
+              onClick={() => setExpandedImage(null)}
+              aria-label="Cerrar imagen"
+              className="fixed top-6 right-6 md:top-8 md:right-10 z-50 text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
+            >
+              <X size={20} strokeWidth={1.5} />
+            </button>
+
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative flex items-center justify-center max-h-[85vh] max-w-full"
+            >
+              <Image
+                src={expandedImage}
+                alt={service.title}
+                width={1200}
+                height={1200}
+                priority
+                sizes="100vw"
+                className="max-h-[85vh] w-auto max-w-full object-contain mx-auto pointer-events-none select-none"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

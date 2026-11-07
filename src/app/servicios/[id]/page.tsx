@@ -63,18 +63,30 @@ async function resolveService(id: string): Promise<ServiceItem | null> {
           desc
       );
 
+      const coverImage = String(
+        (typeof row.cover_image === "string" && row.cover_image.trim()) ||
+          meta.coverImage ||
+          localMatch?.coverImage ||
+          "/projects/centro-de-trasbordo/01-render-exterior.webp"
+      );
+      const rawImages = Array.isArray(row.images)
+        ? (row.images as string[]).filter(Boolean)
+        : meta.images && meta.images.length > 0
+          ? meta.images
+          : localMatch?.images || [];
+      const images =
+        rawImages.length > 0
+          ? Array.from(new Set([coverImage, ...rawImages]))
+          : [coverImage];
+
       return {
         id: String(row.id || id),
         orderNumber: String(row.order_number || localMatch?.orderNumber || "01"),
         title: String(row.title || localMatch?.title || id),
         description: desc,
         detailDescription: detailDesc,
-        coverImage: String(
-          (typeof row.cover_image === "string" && row.cover_image.trim()) ||
-            meta.coverImage ||
-            localMatch?.coverImage ||
-            "/projects/centro-de-trasbordo/01-render-exterior.webp"
-        ),
+        coverImage,
+        images,
         subservices: Array.isArray(rawSubservices)
           ? dbSubservices
           : localMatch?.subservices || [],

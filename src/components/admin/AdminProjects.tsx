@@ -37,6 +37,7 @@ import {
   Pencil,
   Tag,
   GripVertical,
+  Check,
 } from "lucide-react";
 
 export interface SupabaseProject {
@@ -45,6 +46,7 @@ export interface SupabaseProject {
   cover_image: string;
   images: string[];
   order_index: number;
+  categories?: string[];
   category?: string;
   tags?: string[];
   show_in_main_grid?: boolean;
@@ -161,7 +163,7 @@ export default function AdminProjects() {
     null
   );
   const [formTitle, setFormTitle] = useState("");
-  const [formCategory, setFormCategory] = useState<string>("PROYECTOS");
+  const [formCategories, setFormCategories] = useState<string[]>(["PROYECTOS"]);
   const [formShowInMainGrid, setFormShowInMainGrid] = useState<boolean>(true);
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -265,8 +267,11 @@ export default function AdminProjects() {
     const filterSet = new Set<string>(configuredFilters);
 
     const normalizedProjects: SupabaseProject[] = rawRows.map((row) => {
-      const { cleanImages, category, tags, showInMainGrid } =
+      const { cleanImages, categories, category, tags, showInMainGrid } =
         parseProjectImagesAndMeta(row);
+      categories.forEach((c) => {
+        if (c) filterSet.add(normalizeFilterLabel(c));
+      });
       if (category) filterSet.add(normalizeFilterLabel(category));
       tags.forEach((t) => {
         if (t) filterSet.add(normalizeFilterLabel(t));
@@ -278,6 +283,7 @@ export default function AdminProjects() {
         cover_image: String(row.cover_image || ""),
         images: cleanImages,
         order_index: Number(row.order_index ?? 1),
+        categories,
         category,
         tags,
         show_in_main_grid: showInMainGrid,
@@ -394,9 +400,10 @@ export default function AdminProjects() {
     if (availableFilters.length <= 1) return;
     const updated = availableFilters.filter((t) => t !== tagToRemove);
     setAvailableFilters(updated);
-    if (formCategory === tagToRemove) {
-      setFormCategory(updated[0] || "PROYECTOS");
-    }
+    setFormCategories((prev) => {
+      const next = prev.filter((c) => c !== tagToRemove);
+      return next.length > 0 ? next : [updated[0] || "PROYECTOS"];
+    });
     await persistFilterList(updated);
     setFeedbackSuccess(`Etiqueta "${tagToRemove}" eliminada de los filtros.`);
   };
@@ -417,11 +424,11 @@ export default function AdminProjects() {
   const resetForm = () => {
     setEditingProject(null);
     setFormTitle("");
-    setFormCategory(
+    setFormCategories([
       availableFilters.includes("PROYECTOS")
         ? "PROYECTOS"
-        : availableFilters[0] || "PROYECTOS"
-    );
+        : availableFilters[0] || "PROYECTOS",
+    ]);
     setFormShowInMainGrid(true);
     if (coverPreview && coverPreview.startsWith("blob:")) {
       URL.revokeObjectURL(coverPreview);
@@ -449,11 +456,15 @@ export default function AdminProjects() {
     setFeedbackSuccess(null);
     setEditingProject(project);
     setFormTitle(project.title);
-    setFormCategory(
-      project.category
-        ? normalizeFilterLabel(project.category)
-        : availableFilters[0] || "PROYECTOS"
-    );
+    const initialCategories =
+      Array.isArray(project.categories) && project.categories.length > 0
+        ? project.categories.map(normalizeFilterLabel)
+        : Array.isArray(project.tags) && project.tags.length > 0
+          ? project.tags.map(normalizeFilterLabel)
+          : project.category
+            ? [normalizeFilterLabel(project.category)]
+            : [availableFilters[0] || "PROYECTOS"];
+    setFormCategories(Array.from(new Set(initialCategories)));
     setFormShowInMainGrid(project.show_in_main_grid !== false);
     setCoverPreview(project.cover_image || null);
     setGalleryEntries(
@@ -466,6 +477,18 @@ export default function AdminProjects() {
         : []
     );
     setIsModalOpen(true);
+  };
+
+  const handleToggleCategory = (categoryOption: string) => {
+    const clean = normalizeFilterLabel(categoryOption);
+    setFormCategories((prev) => {
+      const exists = prev.includes(clean);
+      if (exists) {
+        return prev.filter((c) => c !== clean);
+      }
+      return [...prev, clean];
+    });
+    if (formError) setFormError(null);
   };
 
   const handleCloseModal = () => {
@@ -559,17 +582,20 @@ export default function AdminProjects() {
       )
     );
 
-    const cleanCategory = normalizeFilterLabel(project.category || "PROYECTOS");
-    const cleanTags =
-      Array.isArray(project.tags) && project.tags.length > 0
-        ? project.tags
-        : [cleanCategory];
+    const cleanCategories =
+      Array.isArray(project.categories) && project.categories.length > 0
+        ? project.categories.map(normalizeFilterLabel)
+        : Array.isArray(project.tags) && project.tags.length > 0
+          ? project.tags.map(normalizeFilterLabel)
+          : [normalizeFilterLabel(project.category || "PROYECTOS")];
+    const cleanCategory = cleanCategories[0] || "PROYECTOS";
 
     const encodedImagesPayload = encodeProjectImagesWithMeta(
       Array.isArray(project.images) ? project.images : [],
       {
+        categories: cleanCategories,
         category: cleanCategory,
-        tags: cleanTags,
+        tags: cleanCategories,
         show_in_main_grid: nextValue,
       }
     );
@@ -579,6 +605,9 @@ export default function AdminProjects() {
         .from("projects")
         .update({
           images: encodedImagesPayload,
+          categories: cleanCategories,
+          category: cleanCategory,
+          tags: cleanCategories,
           show_in_main_grid: nextValue,
         })
         .eq("id", project.id);
@@ -619,11 +648,14 @@ export default function AdminProjects() {
       return;
     }
 
-    const cleanCategory = normalizeFilterLabel(formCategory);
-    if (!cleanCategory) {
-      setFormError("Selecciona el Tipo / Categoría del proyecto.");
+    const cleanCategories = Array.from(
+      new Set(formCategories.map(normalizeFilterLabel).filter(Boolean))
+    );
+    if (cleanCategories.length === 0) {
+      setFormError("Selecciona al menos un Tipo / Categoría del proyecto.");
       return;
     }
+    const cleanCategory = cleanCategories[0];
 
     const isEditing = Boolean(editingProject);
     const projectSlug = isEditing
@@ -641,9 +673,12 @@ export default function AdminProjects() {
     setStatusMessage("Procesando imágenes...");
 
     try {
-      // Asegurar que la categoría seleccionada exista en el listado global de filtros
-      if (!availableFilters.includes(cleanCategory)) {
-        const nextFilters = [...availableFilters, cleanCategory];
+      // Asegurar que todas las categorías seleccionadas existan en el listado global de filtros
+      const missingCategories = cleanCategories.filter(
+        (c) => !availableFilters.includes(c)
+      );
+      if (missingCategories.length > 0) {
+        const nextFilters = [...availableFilters, ...missingCategories];
         setAvailableFilters(nextFilters);
         await persistFilterList(nextFilters);
       }
@@ -710,12 +745,13 @@ export default function AdminProjects() {
         }
       }
 
-      // Codificar metadatos (categoría, tags y visibilidad en grilla principal) de forma retrocompatible
+      // Codificar metadatos (categories, category, tags y visibilidad en grilla principal) de forma retrocompatible
       const encodedImagesPayload = encodeProjectImagesWithMeta(
         finalCleanGalleryUrls,
         {
+          categories: cleanCategories,
           category: cleanCategory,
-          tags: [cleanCategory],
+          tags: cleanCategories,
           show_in_main_grid: formShowInMainGrid,
         }
       );
@@ -726,15 +762,16 @@ export default function AdminProjects() {
       );
 
       if (isEditing && editingProject) {
-        // Intentar primero con columnas explícitas; si el esquema de Supabase aún no las tiene, hacer fallback transparente
+        // Intentar primero con columnas explícitas (incluyendo categories: string[]); si el esquema de Supabase aún no las tiene, hacer fallback transparente
         const { error: fullUpdateErr } = await supabase
           .from("projects")
           .update({
             title: cleanTitle,
             cover_image: finalCoverUrl,
             images: encodedImagesPayload,
+            categories: cleanCategories,
             category: cleanCategory,
-            tags: [cleanCategory],
+            tags: cleanCategories,
             show_in_main_grid: formShowInMainGrid,
           })
           .eq("id", editingProject.id);
@@ -778,8 +815,9 @@ export default function AdminProjects() {
               cover_image: finalCoverUrl,
               images: encodedImagesPayload,
               order_index: nextOrderIndex,
+              categories: cleanCategories,
               category: cleanCategory,
-              tags: [cleanCategory],
+              tags: cleanCategories,
               show_in_main_grid: formShowInMainGrid,
             },
           ]);
@@ -971,7 +1009,14 @@ export default function AdminProjects() {
                 : 0;
               const isDeleting = deletingId === project.id;
               const isVisibleInAll = project.show_in_main_grid !== false;
-              const categoryLabel = project.category || "PROYECTOS";
+              const projectCategories =
+                Array.isArray(project.categories) &&
+                project.categories.length > 0
+                  ? project.categories
+                  : Array.isArray(project.tags) && project.tags.length > 0
+                    ? project.tags
+                    : [project.category || "PROYECTOS"];
+              const categoryLabel = projectCategories.join(" · ");
 
               return (
                 <article
@@ -1140,31 +1185,58 @@ export default function AdminProjects() {
                       />
                     </div>
 
-                    {/* 2. Tipo / Categoría de Proyecto */}
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        htmlFor="project-category"
+                    {/* 2. Tipo / Categoría de Proyecto (Selección Múltiple) */}
+                    <div className="flex flex-col gap-2">
+                      <span
+                        id="project-categories-label"
                         className="text-[11px] uppercase tracking-wider text-[#1C1C1A] font-medium"
                       >
                         TIPO / CATEGORÍA DE PROYECTO *
-                      </label>
-                      <select
-                        id="project-category"
-                        value={formCategory}
-                        onChange={(e) => {
-                          setFormCategory(e.target.value);
-                          if (formError) setFormError(null);
-                        }}
-                        disabled={submitting}
-                        required
-                        className="w-full h-10 px-3 bg-[#FFFFFF] text-[#1C1C1A] text-xs uppercase tracking-wider font-medium border border-neutral-300 rounded-none focus:outline-none focus:border-[#099AD7] transition-colors"
+                      </span>
+                      <div
+                        role="group"
+                        aria-labelledby="project-categories-label"
+                        className="flex flex-wrap gap-2 p-3 border border-neutral-300 bg-[#FFFFFF]"
                       >
-                        {availableFilters.map((filterOption) => (
-                          <option key={filterOption} value={filterOption}>
-                            {filterOption}
-                          </option>
-                        ))}
-                      </select>
+                        {availableFilters.map((filterOption) => {
+                          const isChecked =
+                            formCategories.includes(filterOption);
+                          return (
+                            <button
+                              key={filterOption}
+                              type="button"
+                              role="checkbox"
+                              aria-checked={isChecked}
+                              disabled={submitting}
+                              onClick={() => handleToggleCategory(filterOption)}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-wider font-medium border transition-colors cursor-pointer select-none ${
+                                isChecked
+                                  ? "bg-[#099AD7] text-white border-[#099AD7]"
+                                  : "bg-neutral-50 text-[#1C1C1A] border-neutral-300 hover:border-[#099AD7] hover:text-[#099AD7]"
+                              } disabled:opacity-50`}
+                            >
+                              <span
+                                className={`w-3.5 h-3.5 flex items-center justify-center border ${
+                                  isChecked
+                                    ? "border-white bg-white text-[#099AD7]"
+                                    : "border-neutral-400 bg-white text-transparent"
+                                }`}
+                              >
+                                <Check className="w-2.5 h-2.5 stroke-[3]" />
+                              </span>
+                              <span>{filterOption}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <span className="text-[11px] text-[#686661]">
+                        Puedes seleccionar una o múltiples categorías para este
+                        proyecto ({formCategories.length}{" "}
+                        {formCategories.length === 1
+                          ? "seleccionada"
+                          : "seleccionadas"}
+                        ).
+                      </span>
                     </div>
 
                     {/* 3. Imagen de Portada (Preview con botón "CAMBIAR PORTADA") */}
@@ -1239,7 +1311,9 @@ export default function AdminProjects() {
                           Si se desactiva, el proyecto no aparecerá en la vista
                           general de proyectos, pero sí al filtrar por{" "}
                           <strong className="font-medium text-[#1C1C1A]">
-                            {formCategory}
+                            {formCategories.length > 0
+                              ? formCategories.join(", ")
+                              : "su categoría"}
                           </strong>{" "}
                           o mediante enlace directo.
                         </span>
