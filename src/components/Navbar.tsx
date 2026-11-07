@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import React, { useEffect, useRef, useSyncExternalStore } from "react";
 import { gsap } from "@/lib/gsap";
 
 const links = [
@@ -244,39 +244,14 @@ export const NAV_ACTIVE_DOT = false;
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isProjectsPage =
-    pathname === "/" ||
-    pathname === "/proyectos" ||
-    pathname.startsWith("/proyectos?");
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
   const isAdminRoute = pathname.startsWith("/admin");
   const isHidden = isProjectDetail || isAdminRoute;
 
-  const [isAtTop, setIsAtTop] = useState(true);
-
   const navListRef = useRef<HTMLDivElement>(null);
   const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const dotRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleScroll = () => {
-      if (!isProjectsPage) {
-        setIsAtTop(true);
-        return;
-      }
-      const currentY = window.__lenis ? window.__lenis.scroll : window.scrollY;
-      setIsAtTop(currentY < 60);
-    };
-
-    handleScroll();
-    if (!isProjectsPage) return;
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [pathname, isProjectsPage]);
 
   useEffect(() => {
     if (!navListRef.current) return;
@@ -323,22 +298,13 @@ export default function Navbar() {
     return () => ctx.revert();
   }, [pathname]);
 
-  const shouldHideOnScroll = isProjectsPage && !isAtTop;
-
   if (isHidden) {
     return null;
   }
 
   return (
-    <nav
-      aria-hidden={shouldHideOnScroll}
-      className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-all duration-300 ease-out ${
-        shouldHideOnScroll
-          ? "-translate-y-full opacity-0 pointer-events-none"
-          : "translate-y-0 opacity-100"
-      }`}
-    >
-      <div className="w-full flex items-center justify-between h-14 py-3 md:py-3.5 px-8 md:px-16">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm h-14 py-3 md:py-3.5">
+      <div className="w-full h-full flex items-center justify-between px-8 md:px-16">
         <AnimatedLogo />
         <div
           ref={navListRef}

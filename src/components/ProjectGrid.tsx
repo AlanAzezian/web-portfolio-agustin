@@ -103,20 +103,6 @@ export default function ProjectGrid() {
     ...DEFAULT_PROJECT_FILTERS,
   ]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleScroll = () => {
-      const currentY = window.__lenis ? window.__lenis.scroll : window.scrollY;
-      setShowFilters(currentY >= 60);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [pathname]);
 
   useEffect(() => {
     let active = true;
@@ -367,11 +353,45 @@ export default function ProjectGrid() {
   }
 
   return (
-    <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-16 md:pt-20 pb-24 md:pb-28 min-h-screen flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+    <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-16 md:pt-18 pb-24 md:pb-28 min-h-screen flex flex-col bg-[#FFFFFF] text-[#1C1C1A]">
+      {/* Sub-barra Tipográfica Minimalista de Filtros */}
+      <div
+        role="navigation"
+        aria-label="Filtros de proyectos"
+        className="sticky top-14 bg-white/95 backdrop-blur-sm z-40 py-2.5 w-full"
+      >
+        <div className="w-full flex justify-center items-center gap-6 md:gap-10">
+          {filterTags.map((tag) => {
+            const isSelected = selectedTag === tag;
+
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => handleSelectTag(tag)}
+                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-all duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                  isSelected
+                    ? "text-sm font-semibold font-[600] text-[#099AD7]"
+                    : "text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                }`}
+              >
+                <span>{tag}</span>
+                <span
+                  aria-hidden="true"
+                  className="invisible text-sm uppercase tracking-wider font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+                >
+                  {tag}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Grilla Masonry "Shortest Column First" */}
       <div
         ref={gridContainerRef}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start"
+        className="mt-4 md:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start"
       >
         {desktopCols.map((colProjects, colIndex) => (
           <div key={colIndex} className="flex flex-col gap-6 md:gap-8">
@@ -404,39 +424,6 @@ export default function ProjectGrid() {
           </div>
         ))}
       </div>
-
-      {/* Barra Inferior de Filtros en Blanco Puro (#FFFFFF) con alternancia en scroll */}
-      <footer
-        role="navigation"
-        aria-label="Filtros de proyectos"
-        aria-hidden={!showFilters}
-        className={`fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] bg-white w-full transition-all duration-300 ease-out ${
-          showFilters
-            ? "translate-y-0 opacity-100 pointer-events-auto"
-            : "translate-y-full opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="w-full flex flex-wrap justify-center items-center gap-12 md:gap-16 lg:gap-20 py-4 px-6">
-          {filterTags.map((tag) => {
-            const isSelected = selectedTag === tag;
-
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => handleSelectTag(tag)}
-                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto text-[12px] md:text-[12.5px] font-medium font-[500] py-0.5 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                  isSelected
-                    ? "text-[#099AD7]"
-                    : "text-[#1C1C1A] hover:text-[#099AD7]"
-                }`}
-              >
-                <span>{tag}</span>
-              </button>
-            );
-          })}
-        </div>
-      </footer>
     </div>
   );
 }
