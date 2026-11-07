@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useMemo, useEffect, useLayoutEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   DEFAULT_PROJECT_FILTERS,
   normalizeFilterLabel,
@@ -94,8 +94,6 @@ const distributeProjects = (items: Project[], columnCount = 3) => {
 
 export default function ProjectGrid() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
   const gridContainerRef = useRef<HTMLDivElement>(null);
 
   const [projectsList, setProjectsList] = useState<Project[]>([]);
@@ -103,20 +101,6 @@ export default function ProjectGrid() {
     ...DEFAULT_PROJECT_FILTERS,
   ]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleScroll = () => {
-      const currentY = window.__lenis ? window.__lenis.scroll : window.scrollY;
-      setShowFilters(currentY >= 60);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [pathname]);
 
   useEffect(() => {
     let active = true;
@@ -260,22 +244,6 @@ export default function ProjectGrid() {
     return matched || normalizeFilterLabel(catParam);
   }, [catParam, filterTags]);
 
-  const handleSelectTag = (tag: string) => {
-    const nextTag = selectedTag === tag ? null : tag;
-    if (!nextTag) {
-      router.push(pathname, { scroll: false });
-    } else {
-      router.push(
-        `${pathname}?cat=${encodeURIComponent(normalizeFilterSlug(nextTag))}`,
-        { scroll: false }
-      );
-    }
-
-    if (typeof window !== "undefined" && window.__lenis) {
-      window.__lenis.scrollTo(0, { duration: 0.9 });
-    }
-  };
-
   // Precarga en segundo plano de la primera imagen de la galería al hacer hover en una tarjeta
   const handleCardMouseEnter = (project: Project) => {
     if (typeof window === "undefined") return;
@@ -404,39 +372,6 @@ export default function ProjectGrid() {
           </div>
         ))}
       </div>
-
-      {/* Barra Inferior de Filtros en Blanco Puro (#FFFFFF) con alternancia en scroll */}
-      <footer
-        role="navigation"
-        aria-label="Filtros de proyectos"
-        aria-hidden={!showFilters}
-        className={`fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] bg-white w-full transition-all duration-300 ease-out ${
-          showFilters
-            ? "translate-y-0 opacity-100 pointer-events-auto"
-            : "translate-y-full opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="w-full flex flex-wrap justify-center items-center gap-12 md:gap-16 lg:gap-20 py-4 px-6">
-          {filterTags.map((tag) => {
-            const isSelected = selectedTag === tag;
-
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => handleSelectTag(tag)}
-                className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto text-[12px] md:text-[12.5px] font-medium font-[500] py-0.5 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
-                  isSelected
-                    ? "text-[#099AD7]"
-                    : "text-[#1C1C1A] hover:text-[#099AD7]"
-                }`}
-              >
-                <span>{tag}</span>
-              </button>
-            );
-          })}
-        </div>
-      </footer>
     </div>
   );
 }

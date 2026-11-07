@@ -1,8 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  DEFAULT_PROJECT_FILTERS,
+  normalizeFilterLabel,
+  normalizeFilterSlug,
+} from "@/data/projects";
 import { gsap } from "@/lib/gsap";
 
 const links = [
@@ -242,41 +255,144 @@ function AnimatedLogo() {
 
 export const NAV_ACTIVE_DOT = false;
 
+function HeaderFilterDropdown() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const filterTags = DEFAULT_PROJECT_FILTERS;
+  const catParam = searchParams.get("cat");
+
+  const selectedTag = useMemo(() => {
+    if (!catParam) return null;
+    const targetSlug = normalizeFilterSlug(catParam);
+    const matched = filterTags.find(
+      (tag) =>
+        normalizeFilterSlug(tag) === targetSlug ||
+        normalizeFilterLabel(tag) === normalizeFilterLabel(catParam)
+    );
+    return matched || normalizeFilterLabel(catParam);
+  }, [catParam, filterTags]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const handleSelectTag = (tag: string) => {
+    const nextTag = selectedTag === tag ? null : tag;
+    if (!nextTag) {
+      router.push(pathname, { scroll: false });
+    } else {
+      router.push(
+        `${pathname}?cat=${encodeURIComponent(normalizeFilterSlug(nextTag))}`,
+        { scroll: false }
+      );
+    }
+
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.scrollTo(0, { duration: 0.9 });
+    }
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative flex items-center gap-4">
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="inline-filters"
+            role="group"
+            aria-label="Filtros de proyectos"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 8 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="flex items-center gap-5 lg:gap-6 pr-1"
+          >
+            {filterTags.map((tag) => {
+              const isSelected = selectedTag === tag;
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => handleSelectTag(tag)}
+                  className={`relative inline-flex flex-col items-center justify-center uppercase tracking-wider font-roboto py-0.5 cursor-pointer transition-all duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                    isSelected
+                      ? "text-sm font-semibold font-[600] text-[#099AD7]"
+                      : "text-[12px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                  }`}
+                >
+                  <span>{tag}</span>
+                  <span
+                    aria-hidden="true"
+                    className="invisible text-sm uppercase tracking-wider font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
+                  >
+                    {tag}
+                  </span>
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        className={`inline-flex items-center gap-1.5 font-roboto uppercase tracking-wider text-[12px] lg:text-[13px] font-medium font-[500] py-0.5 px-1 cursor-pointer transition-colors duration-200 whitespace-nowrap focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+          selectedTag || isOpen
+            ? "text-[#099AD7]"
+            : "text-[#1C1C1A] hover:text-[#099AD7]"
+        }`}
+      >
+        <span>
+          {selectedTag && !isOpen ? `FILTROS: ${selectedTag}` : "FILTROS"}
+        </span>
+        <motion.span
+          aria-hidden="true"
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="inline-flex items-center justify-center text-[15px] leading-none font-normal origin-center"
+        >
+          +
+        </motion.span>
+      </button>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
-  const isProjectsPage =
-    pathname === "/" ||
-    pathname === "/proyectos" ||
-    pathname.startsWith("/proyectos?");
+  const isRootGallery = pathname === "/";
   const isProjectDetail =
     pathname.startsWith("/proyectos/") && pathname !== "/proyectos";
   const isAdminRoute = pathname.startsWith("/admin");
   const isHidden = isProjectDetail || isAdminRoute;
 
-  const [isAtTop, setIsAtTop] = useState(true);
-
   const navListRef = useRef<HTMLDivElement>(null);
   const linkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const dotRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleScroll = () => {
-      if (!isProjectsPage) {
-        setIsAtTop(true);
-        return;
-      }
-      const currentY = window.__lenis ? window.__lenis.scroll : window.scrollY;
-      setIsAtTop(currentY < 60);
-    };
-
-    handleScroll();
-    if (!isProjectsPage) return;
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [pathname, isProjectsPage]);
 
   useEffect(() => {
     if (!navListRef.current) return;
@@ -323,26 +439,17 @@ export default function Navbar() {
     return () => ctx.revert();
   }, [pathname]);
 
-  const shouldHideOnScroll = isProjectsPage && !isAtTop;
-
   if (isHidden) {
     return null;
   }
 
   return (
-    <nav
-      aria-hidden={shouldHideOnScroll}
-      className={`fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] transition-all duration-300 ease-out ${
-        shouldHideOnScroll
-          ? "-translate-y-full opacity-0 pointer-events-none"
-          : "translate-y-0 opacity-100"
-      }`}
-    >
-      <div className="w-full flex items-center justify-between h-14 py-3 md:py-3.5 px-8 md:px-16">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm h-14 py-3 md:py-3.5">
+      <div className="w-full h-full flex items-center justify-between px-8 md:px-16">
         <AnimatedLogo />
         <div
           ref={navListRef}
-          className="relative hidden md:flex items-center gap-9 font-roboto"
+          className="relative hidden md:flex items-center gap-8 lg:gap-9 font-roboto"
         >
           {links.map((link, idx) => {
             const isActive =
@@ -373,6 +480,11 @@ export default function Navbar() {
               </Link>
             );
           })}
+          {isRootGallery && (
+            <Suspense fallback={null}>
+              <HeaderFilterDropdown />
+            </Suspense>
+          )}
           {NAV_ACTIVE_DOT && (
             <span
               ref={dotRef}
