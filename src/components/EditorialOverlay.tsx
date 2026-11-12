@@ -64,8 +64,12 @@ export default function EditorialOverlay() {
       const cursorAttrEl = target.closest("[data-cursor]");
       if (cursorAttrEl) {
         const attr = cursorAttrEl.getAttribute("data-cursor");
-        if (attr === "arrow-left" || attr === "arrow-right") {
-          applyMode(attr);
+        if (attr === "arrow-left" || attr === "prev") {
+          applyMode("arrow-left");
+          return;
+        }
+        if (attr === "arrow-right" || attr === "next") {
+          applyMode("arrow-right");
           return;
         }
       }

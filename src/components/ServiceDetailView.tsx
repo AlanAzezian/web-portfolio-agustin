@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, ArrowUpRight, Check, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, Plus, X } from "lucide-react";
 import {
   parseMethodologyMetadata,
   type ServiceItem,
@@ -12,6 +12,7 @@ import {
 } from "@/data/services";
 import { supabase } from "@/lib/supabase";
 import { getWhatsAppLink, SERVICE_WHATSAPP_MESSAGES } from "@/lib/whatsapp";
+import { IconlyArrowRight2 } from "@/components/icons/IconlyArrowRight2";
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
@@ -40,6 +41,8 @@ export default function ServiceDetailView({
   const [service, setService] = useState<ServiceItem>(initialService);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const detailsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -160,6 +163,32 @@ export default function ServiceDetailView({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [galleryImages.length, handleNextImage, handlePrevImage]);
 
+  const handleToggleDetails = () => {
+    setIsDetailsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => {
+          if (detailsRef.current) {
+            if (typeof window !== "undefined" && window.__lenis) {
+              window.__lenis.resize();
+              window.__lenis.scrollTo(detailsRef.current, {
+                duration: 1.0,
+                offset: -40,
+                easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+              });
+            } else if (typeof window !== "undefined") {
+              detailsRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }
+          }
+        }, 80);
+      }
+      return next;
+    });
+  };
+
   const whatsappMessage =
     SERVICE_WHATSAPP_MESSAGES[service.id] ??
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
@@ -198,126 +227,168 @@ export default function ServiceDetailView({
         {/* Galería Técnica Editorial Centrada Arriba */}
         <section
           aria-label={`Galería de ${service.title}`}
-          className="pb-10 md:pb-14 border-b border-[#1C1C1A]/15 flex flex-col items-center justify-center"
+          className="flex flex-col items-center justify-center"
         >
-          {/* Contenedor con flechas laterales claramente visibles */}
-          <div className="relative w-full max-w-4xl mx-auto flex items-center justify-center">
-            {galleryImages.length > 1 && (
-              <button
-                type="button"
-                onClick={handlePrevImage}
-                aria-label="Imagen anterior"
-                className="absolute left-2 sm:-left-9 md:-left-12 lg:-left-14 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none bg-white/80 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
-              >
-                <ChevronLeft
-                  strokeWidth={1.5}
-                  className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9"
-                />
-              </button>
-            )}
-
-            {/* Marco Contenedor Principal Proporcionado (aspect-[16/10]) con object-contain */}
-            <div className="relative w-full aspect-[16/10] border border-[#1C1C1A]/15 bg-white p-2">
-              <div
-                onClick={() => setExpandedImage(currentImage)}
-                className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center cursor-pointer group"
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentImage}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative w-full h-full"
-                  >
-                    <Image
-                      src={currentImage}
-                      alt={`${service.title} — vista ${safeImageIdx + 1}`}
-                      fill
-                      priority
-                      sizes="(max-width: 1024px) 100vw, 896px"
-                      className="object-contain p-2 md:p-4 transition-transform duration-500 group-hover:scale-[1.01]"
-                    />
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Contador discreto abajo a la derecha */}
-                {galleryImages.length > 1 && (
-                  <div className="absolute bottom-3 right-3 z-20 bg-[#FFFFFF]/90 border border-[#1C1C1A]/10 px-2.5 py-1 pointer-events-none">
-                    <span className="font-roboto text-[11px] tabular-nums tracking-wider text-[#1C1C1A]/75">
-                      {String(safeImageIdx + 1).padStart(2, "0")} /{" "}
-                      {String(galleryImages.length).padStart(2, "0")}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {galleryImages.length > 1 && (
-              <button
-                type="button"
-                onClick={handleNextImage}
-                aria-label="Imagen siguiente"
-                className="absolute right-2 sm:-right-9 md:-right-12 lg:-right-14 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none bg-white/80 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
-              >
-                <ChevronRight
-                  strokeWidth={1.5}
-                  className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9"
-                />
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* Dos Bloques Técnicos Abajo en 2 Columnas: 01 / Alcance del Servicio (Izquierda) y 02 / Especificaciones y Herramientas (Derecha) */}
-        <section className="py-10 md:py-12 border-b border-[#1C1C1A]/15 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-start">
-          {/* Columna Izquierda: Bloque 01 */}
-          <div className="lg:col-span-5">
-            <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
-              01 / ALCANCE DEL SERVICIO
-            </h2>
-            <div className="flex flex-col gap-2">
-              {service.subservices.map((sub, idx) => (
-                <div
-                  key={sub.id}
-                  className="flex items-baseline gap-4 py-3 border-b border-[#1C1C1A]/10"
+          {/* Marco Contenedor Principal Proporcionado (aspect-[16/10]) con object-contain */}
+          <div className="relative w-full max-w-4xl mx-auto aspect-[16/10] border border-[#1C1C1A]/15 bg-white p-2">
+            <div className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center select-none">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentImage}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative w-full h-full pointer-events-none"
                 >
-                  <span className="font-roboto font-medium text-xs text-[#099AD7] tabular-nums tracking-wider">
-                    0{idx + 1}
-                  </span>
-                  <span className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85">
-                    {sub.title}
+                  <Image
+                    src={currentImage}
+                    alt={`${service.title} — vista ${safeImageIdx + 1}`}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 896px"
+                    className="object-contain p-2 md:p-4 pointer-events-none select-none"
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Áreas interactivas invisibles que dividen la imagen a la mitad con cursor custom flecha */}
+              {galleryImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrevImage}
+                    aria-label="Imagen anterior"
+                    data-cursor="arrow-left"
+                    style={{ mixBlendMode: "difference" }}
+                    className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-start pl-4 md:pl-10 cursor-pointer mix-blend-difference"
+                  >
+                    <span className="[@media(pointer:fine)]:sr-only rotate-180 inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
+                      <IconlyArrowRight2 size={22} color="#FFFFFF" />
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleNextImage}
+                    aria-label="Imagen siguiente"
+                    data-cursor="arrow-right"
+                    style={{ mixBlendMode: "difference" }}
+                    className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-end pr-4 md:pr-10 cursor-pointer mix-blend-difference"
+                  >
+                    <span className="[@media(pointer:fine)]:sr-only inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
+                      <IconlyArrowRight2 size={22} color="#FFFFFF" />
+                    </span>
+                  </button>
+                </>
+              )}
+
+              {/* Contador discreto abajo a la derecha */}
+              {galleryImages.length > 1 && (
+                <div className="absolute bottom-3 right-3 z-20 bg-[#FFFFFF]/90 border border-[#1C1C1A]/10 px-2.5 py-1 pointer-events-none select-none">
+                  <span className="font-roboto text-[11px] tabular-nums tracking-wider text-[#1C1C1A]/75">
+                    {String(safeImageIdx + 1).padStart(2, "0")} /{" "}
+                    {String(galleryImages.length).padStart(2, "0")}
                   </span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
-
-          {/* Columna Derecha: Bloque 02 */}
-          <div className="lg:col-span-7 lg:pl-8 lg:border-l border-[#1C1C1A]/10">
-            <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
-              02 / ESPECIFICACIONES Y HERRAMIENTAS
-            </h2>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-              {service.technicalSpecs.map((spec, idx) => (
-                <li
-                  key={idx}
-                  className="p-4 bg-[#1C1C1A]/[0.02] border border-[#1C1C1A]/10 flex items-start gap-3 h-full"
-                >
-                  <Check
-                    size={16}
-                    strokeWidth={2}
-                    className="text-[#099AD7] shrink-0 mt-0.5"
-                  />
-                  <span className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed">
-                    {spec}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
         </section>
+
+        {/* Línea divisoria sutil con botón + centrado para desplegar Alcance y Herramientas */}
+        <div className="relative w-full max-w-4xl mx-auto flex items-center justify-center my-8 md:my-10">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-[#1C1C1A]/15" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleToggleDetails}
+            aria-expanded={isDetailsOpen}
+            aria-label={
+              isDetailsOpen
+                ? "Colapsar alcance del servicio y especificaciones"
+                : "Desplegar alcance del servicio y especificaciones"
+            }
+            className="relative z-10 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white border border-[#1C1C1A]/20 hover:border-[#099AD7] text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer group focus:outline-none"
+          >
+            <motion.div
+              animate={{ rotate: isDetailsOpen ? 45 : 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="flex items-center justify-center text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors"
+            >
+              <Plus size={18} strokeWidth={1.75} />
+            </motion.div>
+          </button>
+        </div>
+
+        {/* Dos Bloques Técnicos Desplegables en 2 Columnas */}
+        <AnimatePresence>
+          {isDetailsOpen && (
+            <motion.div
+              ref={detailsRef}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              onAnimationComplete={() => {
+                if (typeof window !== "undefined") {
+                  window.__lenis?.resize();
+                }
+              }}
+              className="overflow-hidden will-change-[height,opacity]"
+            >
+              <section className="pb-12 md:pb-16 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-start border-b border-[#1C1C1A]/15">
+                {/* Columna Izquierda: Bloque 01 */}
+                <div className="lg:col-span-5">
+                  <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
+                    01 / ALCANCE DEL SERVICIO
+                  </h2>
+                  <div className="flex flex-col gap-2">
+                    {service.subservices.map((sub, idx) => (
+                      <div
+                        key={sub.id}
+                        className="flex items-baseline gap-4 py-3 border-b border-[#1C1C1A]/10"
+                      >
+                        <span className="font-roboto font-medium text-xs text-[#099AD7] tabular-nums tracking-wider">
+                          0{idx + 1}
+                        </span>
+                        <span className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85">
+                          {sub.title}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Columna Derecha: Bloque 02 */}
+                <div className="lg:col-span-7 lg:pl-8 lg:border-l border-[#1C1C1A]/10">
+                  <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
+                    02 / ESPECIFICACIONES Y HERRAMIENTAS
+                  </h2>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                    {service.technicalSpecs.map((spec, idx) => (
+                      <li
+                        key={idx}
+                        className="p-4 bg-[#1C1C1A]/[0.02] border border-[#1C1C1A]/10 flex items-start gap-3 h-full"
+                      >
+                        <Check
+                          size={16}
+                          strokeWidth={2}
+                          className="text-[#099AD7] shrink-0 mt-0.5"
+                        />
+                        <span className="font-roboto font-normal text-sm md:text-base text-[#1C1C1A]/85 leading-relaxed">
+                          {spec}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Bloque de Contacto Independiente y Estático abajo a la izquierda */}
