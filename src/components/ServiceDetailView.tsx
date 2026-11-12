@@ -194,7 +194,7 @@ export default function ServiceDetailView({
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
 
   return (
-    <div className="relative w-full min-h-[calc(100vh-5rem)] bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-2 pb-16 md:pt-4 md:pb-36">
+    <div className="relative w-full min-h-screen bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-20 md:pt-22 pb-16 md:pb-36">
       {/* Contenedor Central Controlado: Cabecera, Galería Superior y Ficha Técnica Inferior */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -203,23 +203,23 @@ export default function ServiceDetailView({
         className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8"
       >
         {/* Navegación de regreso */}
-        <div className="mb-8 md:mb-10">
+        <div className="mb-2 md:mb-3">
           <Link
             href="/servicios"
             className="inline-flex items-center gap-2 font-roboto font-medium text-xs uppercase tracking-widest text-[#1C1C1A]/65 hover:text-[#099AD7] transition-colors"
           >
-            <ArrowLeft size={15} strokeWidth={1.75} />
+            <ArrowLeft size={14} strokeWidth={1.75} />
             <span>Servicios</span>
           </Link>
         </div>
 
-        {/* Cabecera Directa y Sobria (sin separador sobrante con el visor) */}
-        <header className="pb-6 md:pb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-roboto font-medium uppercase text-[#1C1C1A] leading-tight tracking-tight max-w-4xl mb-4">
+        {/* Cabecera Directa y Sobria */}
+        <header className="mb-3 md:mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-roboto font-medium uppercase text-[#1C1C1A] leading-tight tracking-tight max-w-4xl mb-1.5 md:mb-2">
             {service.title}
           </h1>
 
-          <p className="text-sm md:text-base font-roboto font-normal text-[#1C1C1A]/85 max-w-3xl leading-relaxed">
+          <p className="text-xs md:text-sm font-roboto font-normal text-[#1C1C1A]/85 max-w-3xl leading-relaxed">
             {service.detailDescription || service.description}
           </p>
         </header>
@@ -229,8 +229,8 @@ export default function ServiceDetailView({
           aria-label={`Galería de ${service.title}`}
           className="flex flex-col items-center justify-center"
         >
-          {/* Marco Contenedor Principal Proporcionado (aspect-[16/10]) con object-contain */}
-          <div className="relative w-full max-w-4xl mx-auto aspect-[16/10] border border-[#1C1C1A]/15 bg-white p-2">
+          {/* Marco Contenedor Principal Proporcionado calibrado a altura de viewport para encuadre en 100vh */}
+          <div className="relative w-full max-w-4xl mx-auto h-[48vh] md:h-[52vh] max-h-[500px] border border-[#1C1C1A]/15 bg-white p-2">
             <div className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center select-none">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -247,7 +247,7 @@ export default function ServiceDetailView({
                     fill
                     priority
                     sizes="(max-width: 1024px) 100vw, 896px"
-                    className="object-contain p-2 md:p-4 pointer-events-none select-none"
+                    className="object-contain p-2 md:p-3 pointer-events-none select-none"
                   />
                 </motion.div>
               </AnimatePresence>
@@ -296,12 +296,8 @@ export default function ServiceDetailView({
           </div>
         </section>
 
-        {/* Línea divisoria sutil con botón + centrado para desplegar Alcance y Herramientas */}
-        <div className="relative w-full max-w-4xl mx-auto flex items-center justify-center my-8 md:my-10">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full border-t border-[#1C1C1A]/15" />
-          </div>
-
+        {/* Botón + limpio sin líneas ni bordes */}
+        <div className="mt-4 md:mt-5 flex justify-center">
           <button
             type="button"
             onClick={handleToggleDetails}
@@ -311,14 +307,14 @@ export default function ServiceDetailView({
                 ? "Colapsar alcance del servicio y especificaciones"
                 : "Desplegar alcance del servicio y especificaciones"
             }
-            className="relative z-10 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-white border border-[#1C1C1A]/20 hover:border-[#099AD7] text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer group focus:outline-none"
+            className="p-1.5 text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
           >
             <motion.div
               animate={{ rotate: isDetailsOpen ? 45 : 0 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="flex items-center justify-center text-[#1C1C1A] group-hover:text-[#099AD7] transition-colors"
+              className="flex items-center justify-center"
             >
-              <Plus size={18} strokeWidth={1.75} />
+              <Plus size={20} strokeWidth={1.5} />
             </motion.div>
           </button>
         </div>
@@ -339,7 +335,7 @@ export default function ServiceDetailView({
               }}
               className="overflow-hidden will-change-[height,opacity]"
             >
-              <section className="pb-12 md:pb-16 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-start border-b border-[#1C1C1A]/15">
+              <section className="pt-8 pb-12 md:pb-16 grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-12 items-start border-b border-[#1C1C1A]/15">
                 {/* Columna Izquierda: Bloque 01 */}
                 <div className="lg:col-span-5">
                   <h2 className="font-roboto font-medium text-sm md:text-base uppercase tracking-wider text-[#099AD7] tabular-nums mb-5">
