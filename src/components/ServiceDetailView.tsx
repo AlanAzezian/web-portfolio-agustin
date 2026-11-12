@@ -229,8 +229,8 @@ export default function ServiceDetailView({
           aria-label={`Galería de ${service.title}`}
           className="flex flex-col items-center justify-center"
         >
-          {/* Lámina flotante con sombra arquitectónica multicapa y elevación 3D sutil */}
-          <div className="relative w-full max-w-4xl mx-auto h-[52vh] md:h-[56vh] max-h-[540px] bg-white shadow-[0_20px_50px_rgba(28,28,26,0.12),0_4px_12px_rgba(28,28,26,0.06)] -translate-y-0.5 hover:-translate-y-1 transition-all duration-500 overflow-hidden flex items-center justify-center select-none">
+          {/* Lámina estática con sombra arquitectónica multicapa 3D fija */}
+          <div className="relative w-full max-w-4xl mx-auto h-[52vh] md:h-[56vh] max-h-[540px] bg-white shadow-[0_20px_50px_rgba(28,28,26,0.12),0_4px_12px_rgba(28,28,26,0.06)] overflow-hidden flex items-center justify-center select-none">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentImage}
