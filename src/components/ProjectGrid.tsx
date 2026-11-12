@@ -367,14 +367,14 @@ export default function ProjectGrid() {
   }
 
   return (
-    <div className="w-full px-6 md:px-12 lg:px-16 max-w-none pt-16 md:pt-20 pb-24 md:pb-28 min-h-screen flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
+    <div className="w-full px-4 max-w-none pt-16 md:pt-20 pb-24 md:pb-28 min-h-screen flex flex-col justify-between bg-[#FFFFFF] text-[#1C1C1A]">
       {/* Grilla Masonry "Shortest Column First" */}
       <div
         ref={gridContainerRef}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 md:gap-x-8 lg:gap-x-10 gap-y-8 md:gap-y-10 items-start"
       >
         {desktopCols.map((colProjects, colIndex) => (
-          <div key={colIndex} className="flex flex-col gap-6 md:gap-8">
+          <div key={colIndex} className="flex flex-col gap-y-8 md:gap-y-10">
             {colProjects.map((project) => (
               <div
                 key={project.id}
