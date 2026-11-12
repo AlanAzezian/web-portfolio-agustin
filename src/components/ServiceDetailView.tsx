@@ -194,7 +194,7 @@ export default function ServiceDetailView({
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
 
   return (
-    <div className="relative w-full min-h-screen bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-16 md:pt-20 pb-16 md:pb-36">
+    <div className="relative w-full min-h-screen bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-12 md:pt-14 pb-16 md:pb-36">
       {/* Contenedor Central Controlado: Cabecera, Galería Superior y Ficha Técnica Inferior */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -224,65 +224,63 @@ export default function ServiceDetailView({
           </p>
         </header>
 
-        {/* Galería Técnica Editorial Centrada Arriba */}
+        {/* Galería Técnica Editorial Centrada Arriba (Lámina 3D elevada sin marco perimetral) */}
         <section
           aria-label={`Galería de ${service.title}`}
           className="flex flex-col items-center justify-center"
         >
-          {/* Marco Contenedor Principal calibrado para encuadre en 100dvh sin scroll */}
-          <div className="relative w-full max-w-4xl mx-auto h-[52vh] md:h-[56vh] max-h-[540px] border border-[#1C1C1A]/15 bg-white p-2 md:p-3">
-            <div className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center select-none">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentImage}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative w-full h-full pointer-events-none"
+          {/* Lámina flotante con sombra arquitectónica multicapa y elevación 3D sutil */}
+          <div className="relative w-full max-w-4xl mx-auto h-[52vh] md:h-[56vh] max-h-[540px] bg-white shadow-[0_20px_50px_rgba(28,28,26,0.12),0_4px_12px_rgba(28,28,26,0.06)] -translate-y-0.5 hover:-translate-y-1 transition-all duration-500 overflow-hidden flex items-center justify-center select-none">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImage}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="relative w-full h-full pointer-events-none"
+              >
+                <Image
+                  src={currentImage}
+                  alt={`${service.title} — vista ${safeImageIdx + 1}`}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 896px"
+                  className="object-contain pointer-events-none select-none"
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Áreas interactivas invisibles que dividen la imagen a la mitad con cursor custom flecha */}
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevImage}
+                  aria-label="Imagen anterior"
+                  data-cursor="arrow-left"
+                  style={{ mixBlendMode: "difference" }}
+                  className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-start pl-4 md:pl-10 cursor-pointer mix-blend-difference"
                 >
-                  <Image
-                    src={currentImage}
-                    alt={`${service.title} — vista ${safeImageIdx + 1}`}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 896px"
-                    className="object-contain p-2 md:p-3 pointer-events-none select-none"
-                  />
-                </motion.div>
-              </AnimatePresence>
+                  <span className="[@media(pointer:fine)]:sr-only rotate-180 inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
+                    <IconlyArrowRight2 size={22} color="#FFFFFF" />
+                  </span>
+                </button>
 
-              {/* Áreas interactivas invisibles que dividen la imagen a la mitad con cursor custom flecha */}
-              {galleryImages.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handlePrevImage}
-                    aria-label="Imagen anterior"
-                    data-cursor="arrow-left"
-                    style={{ mixBlendMode: "difference" }}
-                    className="absolute inset-y-0 left-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-start pl-4 md:pl-10 cursor-pointer mix-blend-difference"
-                  >
-                    <span className="[@media(pointer:fine)]:sr-only rotate-180 inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
-                      <IconlyArrowRight2 size={22} color="#FFFFFF" />
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleNextImage}
-                    aria-label="Imagen siguiente"
-                    data-cursor="arrow-right"
-                    style={{ mixBlendMode: "difference" }}
-                    className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-end pr-4 md:pr-10 cursor-pointer mix-blend-difference"
-                  >
-                    <span className="[@media(pointer:fine)]:sr-only inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
-                      <IconlyArrowRight2 size={22} color="#FFFFFF" />
-                    </span>
-                  </button>
-                </>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={handleNextImage}
+                  aria-label="Imagen siguiente"
+                  data-cursor="arrow-right"
+                  style={{ mixBlendMode: "difference" }}
+                  className="absolute inset-y-0 right-0 w-1/2 h-full z-10 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-acento flex items-center justify-end pr-4 md:pr-10 cursor-pointer mix-blend-difference"
+                >
+                  <span className="[@media(pointer:fine)]:sr-only inline-flex items-center justify-center fill-white fill-[#FFFFFF]">
+                    <IconlyArrowRight2 size={22} color="#FFFFFF" />
+                  </span>
+                </button>
+              </>
+            )}
           </div>
         </section>
 
