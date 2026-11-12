@@ -992,27 +992,31 @@ export default function BioContactView({
               <ArrowLeft size={14} strokeWidth={1.5} /> Volver
             </button>
 
-            {/* Visor Central de Imagen con transición fade de 200ms y mitades clicables */}
+            {/* Visor Central de Imagen con transición zero-flash y mitades clicables */}
             <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14 my-auto">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={modalParticipation.item.gallery[modalSlideIdx].src}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="relative w-full h-[78vh] md:h-[82vh] max-h-[82vh] flex items-center justify-center pointer-events-none"
-                >
-                  <Image
-                    src={modalParticipation.item.gallery[modalSlideIdx].src}
-                    alt={modalParticipation.item.gallery[modalSlideIdx].caption}
-                    fill
-                    sizes="100vw"
-                    priority
-                    className="h-[78vh] md:h-[82vh] w-auto max-w-full object-contain mx-auto pointer-events-none select-none shadow-none"
-                  />
-                </motion.div>
-              </AnimatePresence>
+              <div className="relative w-full h-[78vh] md:h-[82vh] max-h-[82vh] flex items-center justify-center pointer-events-none select-none">
+                {modalParticipation.item.gallery.map((imgItem, idx) => {
+                  const isActive = idx === modalSlideIdx;
+                  return (
+                    <div
+                      key={`${imgItem.src}-${idx}`}
+                      className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ease-out ${
+                        isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                      }`}
+                    >
+                      <Image
+                        src={imgItem.src}
+                        alt={imgItem.caption || modalParticipation.item.title}
+                        fill
+                        sizes="100vw"
+                        priority={idx === 0}
+                        loading="eager"
+                        className="object-contain mx-auto pointer-events-none select-none shadow-none"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
 
               {modalParticipation.item.gallery.length > 1 && (
                 <>

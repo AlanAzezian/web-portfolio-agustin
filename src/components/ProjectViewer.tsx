@@ -158,18 +158,29 @@ export default function ProjectViewer({
 
       {/* Visor central de imagen/plano con corte seco directo y fondo blanco puro #FFFFFF */}
       <div className="relative w-full h-full flex items-center justify-center px-4 md:px-16 py-10 md:py-14 bg-[#FFFFFF]">
-        <div className="relative w-full h-[80vh] md:h-[82vh] max-h-[82vh] bg-[#FFFFFF] pointer-events-none">
-          <Image
-            key={currentSrc}
-            src={currentSrc}
-            alt={`${title} - Imagen ${currentIndex + 1}`}
-            fill
-            sizes="100vw"
-            priority={true}
-            loading="eager"
-            unoptimized={false}
-            className="object-contain pointer-events-none select-none shadow-none bg-[#FFFFFF]"
-          />
+        <div className="relative w-full h-[80vh] md:h-[82vh] max-h-[82vh] bg-[#FFFFFF] pointer-events-none select-none">
+          {images.map((src, idx) => {
+            const isActive = idx === currentIndex;
+            return (
+              <div
+                key={`${src}-${idx}`}
+                className={`absolute inset-0 transition-opacity duration-150 ease-out ${
+                  isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                }`}
+              >
+                <Image
+                  src={src}
+                  alt={`${title} - Imagen ${idx + 1}`}
+                  fill
+                  sizes="100vw"
+                  priority={idx === 0}
+                  loading="eager"
+                  unoptimized={false}
+                  className="object-contain pointer-events-none select-none shadow-none bg-[#FFFFFF]"
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Áreas interactivas con flechas en triángulo e inversión negativa exclusiva del visor (mix-blend-mode: difference) */}

@@ -126,7 +126,6 @@ export default function ServiceDetailView({
 
   const safeImageIdx =
     activeImageIdx < galleryImages.length ? activeImageIdx : 0;
-  const currentImage = galleryImages[safeImageIdx];
 
   const handlePrevImage = useCallback(() => {
     setActiveImageIdx((prev) =>
@@ -231,25 +230,30 @@ export default function ServiceDetailView({
         >
           {/* Lámina estática con sombra arquitectónica multicapa 3D fija */}
           <div className="relative w-full max-w-4xl mx-auto h-[52vh] md:h-[56vh] max-h-[540px] bg-white shadow-[0_20px_50px_rgba(28,28,26,0.12),0_4px_12px_rgba(28,28,26,0.06)] overflow-hidden flex items-center justify-center select-none">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentImage}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="relative w-full h-full pointer-events-none"
-              >
-                <Image
-                  src={currentImage}
-                  alt={`${service.title} — vista ${safeImageIdx + 1}`}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 896px"
-                  className="object-contain pointer-events-none select-none"
-                />
-              </motion.div>
-            </AnimatePresence>
+            {/* Stack de imágenes montadas en DOM sin desmontar para eliminar parpadeo / flash blanco */}
+            <div className="relative w-full h-full pointer-events-none select-none">
+              {galleryImages.map((imgSrc, idx) => {
+                const isActive = idx === safeImageIdx;
+                return (
+                  <div
+                    key={`${imgSrc}-${idx}`}
+                    className={`absolute inset-0 transition-opacity duration-150 ease-out ${
+                      isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                    }`}
+                  >
+                    <Image
+                      src={imgSrc}
+                      alt={`${service.title} — vista ${idx + 1}`}
+                      fill
+                      priority={idx === 0}
+                      loading="eager"
+                      sizes="(max-width: 1024px) 100vw, 896px"
+                      className="object-contain pointer-events-none select-none"
+                    />
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Áreas interactivas invisibles que dividen la imagen a la mitad con cursor custom flecha */}
             {galleryImages.length > 1 && (
