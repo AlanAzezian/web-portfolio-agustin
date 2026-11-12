@@ -734,6 +734,37 @@ export default function BioContactView({
                                                   </li>
                                                 ))}
                                               </ul>
+
+                                              {/* Links de Referencia del Puesto */}
+                                              {Array.isArray(item.links) && item.links.length > 0 && (
+                                                <div className="mt-5 pt-4 border-t border-[#1C1C1A]/10 flex flex-col gap-2.5">
+                                                  <span className="font-roboto font-medium text-[11px] uppercase tracking-wider text-[#1C1C1A]/55 block">
+                                                    Links de Referencia
+                                                  </span>
+                                                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                                                    {item.links.map((link, lIdx) => {
+                                                      const href = link.url?.trim();
+                                                      if (!href) return null;
+                                                      return (
+                                                        <a
+                                                          key={lIdx}
+                                                          href={href}
+                                                          target="_blank"
+                                                          rel="noopener noreferrer"
+                                                          className="inline-flex items-center gap-1.5 font-roboto font-medium text-xs md:text-sm text-[#1C1C1A] hover:text-[#099AD7] transition-colors group cursor-pointer"
+                                                        >
+                                                          <span>{link.label?.trim() || href}</span>
+                                                          <ArrowUpRight
+                                                            size={13}
+                                                            strokeWidth={1.75}
+                                                            className="text-[#099AD7] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 shrink-0"
+                                                          />
+                                                        </a>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                </div>
+                                              )}
                                             </div>
                                           </motion.div>
                                         )}

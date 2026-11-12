@@ -282,6 +282,53 @@ export default function AdminBio() {
     setNewTaskInputs((prev) => ({ ...prev, [workId]: "" }));
   };
 
+  const handleWorkLinkAdd = (workId: string) => {
+    setBio((prev) => ({
+      ...prev,
+      work_experience: prev.work_experience.map((w) => {
+        if (w.id !== workId) return w;
+        const currentLinks = Array.isArray(w.links) ? w.links : [];
+        return {
+          ...w,
+          links: [...currentLinks, { label: "", url: "" }],
+        };
+      }),
+    }));
+  };
+
+  const handleWorkLinkChange = (
+    workId: string,
+    linkIdx: number,
+    field: "label" | "url",
+    value: string
+  ) => {
+    setBio((prev) => ({
+      ...prev,
+      work_experience: prev.work_experience.map((w) => {
+        if (w.id !== workId) return w;
+        const currentLinks = Array.isArray(w.links) ? [...w.links] : [];
+        currentLinks[linkIdx] = {
+          ...currentLinks[linkIdx],
+          [field]: value,
+        };
+        return { ...w, links: currentLinks };
+      }),
+    }));
+  };
+
+  const handleWorkLinkDelete = (workId: string, linkIdx: number) => {
+    setBio((prev) => ({
+      ...prev,
+      work_experience: prev.work_experience.map((w) => {
+        if (w.id !== workId) return w;
+        const currentLinks = Array.isArray(w.links)
+          ? w.links.filter((_, idx) => idx !== linkIdx)
+          : [];
+        return { ...w, links: currentLinks };
+      }),
+    }));
+  };
+
   const handleAddWorkExperience = () => {
     const nextNum = String(bio.work_experience.length + 1).padStart(2, "0");
     const newItem: WorkAccordionItem = {
@@ -291,6 +338,7 @@ export default function AdminBio() {
       company: "Estudio / Empresa",
       period: "2026 - Presente",
       tasks: ["Descripción técnica de tareas realizadas."],
+      links: [],
     };
     setBio((prev) => ({
       ...prev,
@@ -1025,6 +1073,76 @@ export default function AdminBio() {
                       + Agregar
                     </button>
                   </div>
+                </div>
+
+                {/* Links de Referencia del Puesto */}
+                <div className="flex flex-col gap-2 pt-3 border-t border-neutral-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-wider text-[#686661] flex items-center gap-1.5 font-medium">
+                      <Link2 className="w-3 h-3 text-[#099AD7]" />
+                      <span>Links de Referencia</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleWorkLinkAdd(work.id)}
+                      className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-[#099AD7] hover:underline font-medium"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Agregar Link</span>
+                    </button>
+                  </div>
+
+                  {Array.isArray(work.links) && work.links.length > 0 ? (
+                    <div className="flex flex-col gap-2">
+                      {work.links.map((link, lIdx) => (
+                        <div
+                          key={lIdx}
+                          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+                        >
+                          <input
+                            type="text"
+                            value={link.label}
+                            onChange={(e) =>
+                              handleWorkLinkChange(
+                                work.id,
+                                lIdx,
+                                "label",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Título / Etiqueta (ej. Ver proyecto en Behance)"
+                            className="sm:w-1/2 h-8 px-2.5 border border-neutral-300 text-xs placeholder:text-[#9A9892] focus:outline-none focus:border-[#099AD7]"
+                          />
+                          <input
+                            type="url"
+                            value={link.url}
+                            onChange={(e) =>
+                              handleWorkLinkChange(
+                                work.id,
+                                lIdx,
+                                "url",
+                                e.target.value
+                              )
+                            }
+                            placeholder="URL (https://...)"
+                            className="flex-1 h-8 px-2.5 border border-neutral-300 text-xs placeholder:text-[#9A9892] focus:outline-none focus:border-[#099AD7]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleWorkLinkDelete(work.id, lIdx)}
+                            aria-label="Eliminar link"
+                            className="h-8 px-2 border border-neutral-200 text-[#A84A4A] hover:bg-[#A84A4A] hover:text-white transition-colors flex items-center justify-center shrink-0"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-[#9A9892] italic">
+                      Sin enlaces de referencia añadidos. Toca &quot;+ Agregar Link&quot; para vincular Behance, sitio web u otros.
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

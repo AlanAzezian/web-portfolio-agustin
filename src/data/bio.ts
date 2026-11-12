@@ -17,6 +17,7 @@ export interface WorkAccordionItem {
     src: string;
     caption: string;
   }[];
+  links?: { label: string; url: string }[];
 }
 
 export interface ParticipationItem {

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, ArrowUpRight, Check, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, ChevronLeft, ChevronRight, X } from "lucide-react";
 import {
   parseMethodologyMetadata,
   type ServiceItem,
@@ -12,7 +12,6 @@ import {
 } from "@/data/services";
 import { supabase } from "@/lib/supabase";
 import { getWhatsAppLink, SERVICE_WHATSAPP_MESSAGES } from "@/lib/whatsapp";
-import { IconlyArrowRight2 } from "@/components/icons/IconlyArrowRight2";
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
@@ -126,17 +125,40 @@ export default function ServiceDetailView({
     activeImageIdx < galleryImages.length ? activeImageIdx : 0;
   const currentImage = galleryImages[safeImageIdx];
 
-  const handlePrevImage = () => {
+  const handlePrevImage = useCallback(() => {
     setActiveImageIdx((prev) =>
       prev <= 0 ? galleryImages.length - 1 : prev - 1
     );
-  };
+  }, [galleryImages.length]);
 
-  const handleNextImage = () => {
+  const handleNextImage = useCallback(() => {
     setActiveImageIdx((prev) =>
       prev >= galleryImages.length - 1 ? 0 : prev + 1
     );
-  };
+  }, [galleryImages.length]);
+
+  // Soporte de navegación por teclado (← / →)
+  useEffect(() => {
+    if (galleryImages.length <= 1) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNextImage();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrevImage();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [galleryImages.length, handleNextImage, handlePrevImage]);
 
   const whatsappMessage =
     SERVICE_WHATSAPP_MESSAGES[service.id] ??
@@ -162,8 +184,8 @@ export default function ServiceDetailView({
           </Link>
         </div>
 
-        {/* Cabecera Directa y Sobria */}
-        <header className="pb-8 md:pb-10 border-b border-[#1C1C1A]/15">
+        {/* Cabecera Directa y Sobria (sin separador sobrante con el visor) */}
+        <header className="pb-6 md:pb-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-roboto font-medium uppercase text-[#1C1C1A] leading-tight tracking-tight max-w-4xl mb-4">
             {service.title}
           </h1>
@@ -173,109 +195,79 @@ export default function ServiceDetailView({
           </p>
         </header>
 
-        {/* Galería Técnica Editorial Centrada Arriba (Inmediatamente debajo del título del servicio) */}
+        {/* Galería Técnica Editorial Centrada Arriba */}
         <section
           aria-label={`Galería de ${service.title}`}
-          className="py-10 md:py-12 border-b border-[#1C1C1A]/15 flex flex-col items-center justify-center"
+          className="pb-10 md:pb-14 border-b border-[#1C1C1A]/15 flex flex-col items-center justify-center"
         >
-          {/* Marco Contenedor Principal Proporcionado (aspect-[16/10]) con object-contain */}
-          <div className="relative w-full max-w-4xl mx-auto aspect-[16/10] border border-[#1C1C1A]/15 bg-white p-2">
-            <div
-              onClick={() => setExpandedImage(currentImage)}
-              className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center cursor-pointer group"
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentImage}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative w-full h-full"
-                >
-                  <Image
-                    src={currentImage}
-                    alt={`${service.title} — vista ${safeImageIdx + 1}`}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 896px"
-                    className="object-contain p-2 md:p-4 transition-transform duration-500 group-hover:scale-[1.01]"
-                  />
-                </motion.div>
-              </AnimatePresence>
+          {/* Contenedor con flechas laterales claramente visibles */}
+          <div className="relative w-full max-w-4xl mx-auto flex items-center justify-center">
+            {galleryImages.length > 1 && (
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                aria-label="Imagen anterior"
+                className="absolute left-2 sm:-left-9 md:-left-12 lg:-left-14 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none bg-white/80 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
+              >
+                <ChevronLeft
+                  strokeWidth={1.5}
+                  className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9"
+                />
+              </button>
+            )}
 
-              {galleryImages.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePrevImage();
-                    }}
-                    aria-label="Imagen anterior"
-                    className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-[#FFFFFF]/90 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 hover:border-[#099AD7] text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
+            {/* Marco Contenedor Principal Proporcionado (aspect-[16/10]) con object-contain */}
+            <div className="relative w-full aspect-[16/10] border border-[#1C1C1A]/15 bg-white p-2">
+              <div
+                onClick={() => setExpandedImage(currentImage)}
+                className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center cursor-pointer group"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentImage}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative w-full h-full"
                   >
-                    <IconlyArrowRight2
-                      size={15}
-                      color="currentColor"
-                      className="rotate-180"
+                    <Image
+                      src={currentImage}
+                      alt={`${service.title} — vista ${safeImageIdx + 1}`}
+                      fill
+                      priority
+                      sizes="(max-width: 1024px) 100vw, 896px"
+                      className="object-contain p-2 md:p-4 transition-transform duration-500 group-hover:scale-[1.01]"
                     />
-                  </button>
+                  </motion.div>
+                </AnimatePresence>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNextImage();
-                    }}
-                    aria-label="Imagen siguiente"
-                    className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-[#FFFFFF]/90 hover:bg-[#FFFFFF] border border-[#1C1C1A]/15 hover:border-[#099AD7] text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none"
-                  >
-                    <IconlyArrowRight2 size={15} color="currentColor" />
-                  </button>
-
+                {/* Contador discreto abajo a la derecha */}
+                {galleryImages.length > 1 && (
                   <div className="absolute bottom-3 right-3 z-20 bg-[#FFFFFF]/90 border border-[#1C1C1A]/10 px-2.5 py-1 pointer-events-none">
                     <span className="font-roboto text-[11px] tabular-nums tracking-wider text-[#1C1C1A]/75">
                       {String(safeImageIdx + 1).padStart(2, "0")} /{" "}
                       {String(galleryImages.length).padStart(2, "0")}
                     </span>
                   </div>
-                </>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Carrusel de Miniaturas Inferior Proporcionadas */}
-          {galleryImages.length > 1 && (
-            <div className="mt-4 w-full max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-3">
-              {galleryImages.map((imgSrc, idx) => {
-                const isSelected = idx === safeImageIdx;
-                return (
-                  <button
-                    key={`${imgSrc}-${idx}`}
-                    type="button"
-                    onClick={() => setActiveImageIdx(idx)}
-                    aria-label={`Ver imagen ${idx + 1}`}
-                    className={`relative w-24 sm:w-28 md:w-32 aspect-[16/10] overflow-hidden border transition-all duration-200 cursor-pointer p-1 bg-white ${
-                      isSelected
-                        ? "border-[#099AD7] opacity-100"
-                        : "border-[#1C1C1A]/15 opacity-60 hover:opacity-100 hover:border-[#1C1C1A]/35"
-                    }`}
-                  >
-                    <div className="relative w-full h-full bg-neutral-50">
-                      <Image
-                        src={imgSrc}
-                        alt={`${service.title} miniatura ${idx + 1}`}
-                        fill
-                        sizes="128px"
-                        className="object-contain p-0.5"
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+            {galleryImages.length > 1 && (
+              <button
+                type="button"
+                onClick={handleNextImage}
+                aria-label="Imagen siguiente"
+                className="absolute right-2 sm:-right-9 md:-right-12 lg:-right-14 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 text-[#1C1C1A] hover:text-[#099AD7] transition-colors cursor-pointer focus:outline-none bg-white/80 sm:bg-transparent backdrop-blur-[2px] sm:backdrop-blur-none"
+              >
+                <ChevronRight
+                  strokeWidth={1.5}
+                  className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9"
+                />
+              </button>
+            )}
+          </div>
         </section>
 
         {/* Dos Bloques Técnicos Abajo en 2 Columnas: 01 / Alcance del Servicio (Izquierda) y 02 / Especificaciones y Herramientas (Derecha) */}
