@@ -6,9 +6,9 @@ import React, { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { gsap } from "@/lib/gsap";
 
 const links = [
-  { name: "INICIO/PROYECTOS", path: "/" },
+  { name: "PROYECTOS", path: "/" },
   { name: "SERVICIOS", path: "/servicios" },
-  { name: "CONTACTO", path: "/bio" },
+  { name: "BIO & CONTACTO", path: "/bio" },
 ];
 
 function subscribeReducedMotion(callback: () => void) {
@@ -279,7 +279,7 @@ export default function Navbar() {
   }, [pathname, isProjectsPage]);
 
   useEffect(() => {
-    if (!navListRef.current) return;
+    if (!NAV_ACTIVE_DOT || !navListRef.current) return;
 
     const prefersReducedMotion =
       typeof window !== "undefined" &&
@@ -292,30 +292,20 @@ export default function Navbar() {
 
         const isActive =
           link.path === "/"
-            ? pathname === "/" || pathname === "/proyectos"
+            ? pathname === "/" || pathname === "/proyectos" || pathname.startsWith("/proyectos")
             : pathname.startsWith(link.path);
 
-        if (!NAV_ACTIVE_DOT) {
-          gsap.to(el, {
-            scale: isActive ? 1.15 : 1,
-            duration: prefersReducedMotion ? 0 : isActive ? 0.45 : 0.25,
-            ease: isActive ? "back.out(1.6)" : "power2.out",
+        if (isActive && dotRef.current && navListRef.current) {
+          const navRect = navListRef.current.getBoundingClientRect();
+          const linkRect = el.getBoundingClientRect();
+          const targetX = linkRect.left - navRect.left + linkRect.width / 2 - 3;
+          gsap.to(dotRef.current, {
+            x: targetX,
+            opacity: 1,
+            duration: prefersReducedMotion ? 0 : 0.4,
+            ease: "power3.out",
             overwrite: "auto",
           });
-        } else {
-          gsap.set(el, { scale: 1 });
-          if (isActive && dotRef.current && navListRef.current) {
-            const navRect = navListRef.current.getBoundingClientRect();
-            const linkRect = el.getBoundingClientRect();
-            const targetX = linkRect.left - navRect.left + linkRect.width / 2 - 3;
-            gsap.to(dotRef.current, {
-              x: targetX,
-              opacity: 1,
-              duration: prefersReducedMotion ? 0 : 0.4,
-              ease: "power3.out",
-              overwrite: "auto",
-            });
-          }
         }
       });
     }, navListRef);
@@ -347,7 +337,7 @@ export default function Navbar() {
           {links.map((link, idx) => {
             const isActive =
               link.path === "/"
-                ? pathname === "/" || pathname === "/proyectos"
+                ? pathname === "/" || pathname === "/proyectos" || pathname.startsWith("/proyectos")
                 : pathname.startsWith(link.path);
             return (
               <Link
@@ -356,20 +346,13 @@ export default function Navbar() {
                 ref={(el) => {
                   linkRefs.current[idx] = el;
                 }}
-                className={`relative inline-flex flex-col items-center justify-center origin-center font-roboto uppercase tracking-wider px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
+                className={`relative inline-flex items-center justify-center font-roboto uppercase tracking-wider text-sm font-medium px-1 transition-colors duration-200 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento ${
                   isActive
-                    ? "text-sm font-semibold font-[600] text-[#099AD7]"
-                    : "text-[13px] font-medium font-[500] text-[#1C1C1A] hover:text-[#099AD7]"
+                    ? "text-[#099AD7]"
+                    : "text-[#1C1C1A] hover:text-[#099AD7]"
                 }`}
               >
                 <span>{link.name}</span>
-                {/* Reserva de ancho en peso 600 y text-sm para evitar desplazamiento de vecinos */}
-                <span
-                  aria-hidden="true"
-                  className="invisible text-sm uppercase tracking-wider font-semibold font-[600] h-0 overflow-hidden select-none pointer-events-none"
-                >
-                  {link.name}
-                </span>
               </Link>
             );
           })}
