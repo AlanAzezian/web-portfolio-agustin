@@ -194,7 +194,7 @@ export default function ServiceDetailView({
     `Hola Agustín, me gustaría solicitar una cotización por el servicio de ${service.title}.`;
 
   return (
-    <div className="relative w-full min-h-screen bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-24 md:pt-28 pb-16 md:pb-36">
+    <div className="relative w-full min-h-screen bg-[#FFFFFF] text-[#1C1C1A] font-roboto pt-16 md:pt-20 pb-16 md:pb-36">
       {/* Contenedor Central Controlado: Cabecera, Galería Superior y Ficha Técnica Inferior */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -203,7 +203,7 @@ export default function ServiceDetailView({
         className="w-full max-w-4xl lg:max-w-5xl mx-auto px-6 md:px-8"
       >
         {/* Navegación de regreso */}
-        <div className="mb-4">
+        <div className="mb-2 md:mb-3">
           <Link
             href="/servicios"
             className="inline-flex items-center gap-2 font-roboto font-medium text-xs uppercase tracking-widest text-[#1C1C1A]/65 hover:text-[#099AD7] transition-colors"
@@ -213,13 +213,13 @@ export default function ServiceDetailView({
           </Link>
         </div>
 
-        {/* Cabecera Directa y Sobria con márgenes naturales */}
-        <header className="mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-roboto font-medium uppercase text-[#1C1C1A] leading-tight tracking-tight max-w-4xl mb-2">
+        {/* Cabecera Directa y Sobria */}
+        <header className="mb-4 md:mb-5">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-roboto font-medium uppercase text-[#1C1C1A] leading-tight tracking-tight max-w-4xl mb-1.5">
             {service.title}
           </h1>
 
-          <p className="text-sm md:text-base font-roboto font-normal text-[#1C1C1A]/85 max-w-3xl leading-relaxed">
+          <p className="text-xs md:text-sm font-roboto font-normal text-[#1C1C1A]/85 max-w-3xl leading-relaxed">
             {service.detailDescription || service.description}
           </p>
         </header>
@@ -229,8 +229,8 @@ export default function ServiceDetailView({
           aria-label={`Galería de ${service.title}`}
           className="flex flex-col items-center justify-center"
         >
-          {/* Marco Contenedor Principal con proporción amplia y generosa */}
-          <div className="relative w-full max-w-4xl mx-auto h-[56vh] md:h-[62vh] max-h-[640px] border border-[#1C1C1A]/15 bg-white p-3 md:p-4">
+          {/* Marco Contenedor Principal calibrado para encuadre en 100dvh sin scroll */}
+          <div className="relative w-full max-w-4xl mx-auto h-[52vh] md:h-[56vh] max-h-[540px] border border-[#1C1C1A]/15 bg-white p-2 md:p-3">
             <div className="relative w-full h-full overflow-hidden bg-neutral-50/70 flex items-center justify-center select-none">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -304,7 +304,7 @@ export default function ServiceDetailView({
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="flex items-center justify-center"
             >
-              <Plus size={20} strokeWidth={1.5} />
+              <Plus size={18} strokeWidth={1.5} />
             </motion.div>
           </button>
         </div>
